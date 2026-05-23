@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Compass, BookOpen, MessageSquare, User, Search, Sparkles } from 'lucide-react';
+import { Compass, BookOpen, MessageSquare, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
 
@@ -25,8 +25,7 @@ export default function AppShell({ children, user }) {
 
   async function loadPrefs() {
     try {
-      const { base44: sdk } = await import('@/api/base44Client');
-      const results = await sdk.entities.UserPreferences.filter({ user_email: user.email });
+      const results = await base44.entities.UserPreferences.filter({ user_email: user.email });
       if (results.length > 0) {
         setPrefs(results[0]);
         applyTheme(results[0]);
@@ -54,7 +53,7 @@ export default function AppShell({ children, user }) {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {NAV_ITEMS.map(({ path, icon: Icon, label }) => {
+            {NAV_ITEMS.map(({ path, icon: NavIcon, label }) => {
               const active = location.pathname === path;
               return (
                 <Link
@@ -66,7 +65,7 @@ export default function AppShell({ children, user }) {
                     backgroundColor: active ? 'var(--bg-elevated)' : 'transparent',
                   }}
                 >
-                  <Icon size={15} />
+                  <NavIcon size={15} />
                   {label}
                 </Link>
               );
@@ -97,7 +96,7 @@ export default function AppShell({ children, user }) {
 
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 lx-bg-secondary border-t flex" style={{ borderColor: 'var(--lx-border)' }}>
-        {NAV_ITEMS.map(({ path, icon: Icon, label }) => {
+        {NAV_ITEMS.map(({ path, icon: MobIcon, label }) => {
           const active = location.pathname === path;
           return (
             <Link
@@ -106,7 +105,7 @@ export default function AppShell({ children, user }) {
               className="flex-1 flex flex-col items-center py-3 gap-1 text-xs font-medium transition-all"
               style={{ color: active ? 'var(--lx-accent)' : 'var(--text-muted)' }}
             >
-              <Icon size={18} />
+              <MobIcon size={18} />
               {label}
             </Link>
           );

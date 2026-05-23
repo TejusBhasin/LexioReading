@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Download, Trash2, Check } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { applyTheme, GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
@@ -171,7 +171,7 @@ export default function ProfilePage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-8 overflow-x-auto pb-1 scrollbar-hide">
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {TABS.map(({ id, label, icon: TabIcon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
@@ -182,7 +182,7 @@ export default function ProfilePage() {
               border: `1px solid ${tab === id ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
             }}
           >
-            <Icon size={13} />
+            <TabIcon size={13} />
             {label}
           </button>
         ))}
