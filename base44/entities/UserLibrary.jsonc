@@ -1,0 +1,55 @@
+{
+  "name": "UserLibrary",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "book_id": {
+      "type": "string"
+    },
+    "book_title": {
+      "type": "string"
+    },
+    "book_author": {
+      "type": "string"
+    },
+    "book_cover": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "want_to_read",
+        "reading",
+        "finished",
+        "dropped"
+      ],
+      "default": "want_to_read"
+    },
+    "rating": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "date_added": {
+      "type": "string"
+    },
+    "date_finished": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "book_id",
+    "book_title",
+    "book_author"
+  ]
+}

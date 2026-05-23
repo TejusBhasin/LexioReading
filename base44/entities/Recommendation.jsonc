@@ -1,0 +1,55 @@
+{
+  "name": "Recommendation",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "book_id": {
+      "type": "string"
+    },
+    "book_title": {
+      "type": "string"
+    },
+    "book_author": {
+      "type": "string"
+    },
+    "book_cover": {
+      "type": "string"
+    },
+    "book_description": {
+      "type": "string"
+    },
+    "book_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reasoning": {
+      "type": "string"
+    },
+    "hook": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "onboarding",
+        "chat",
+        "library",
+        "auto"
+      ],
+      "default": "auto"
+    },
+    "dismissed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_email",
+    "book_title",
+    "book_author"
+  ]
+}

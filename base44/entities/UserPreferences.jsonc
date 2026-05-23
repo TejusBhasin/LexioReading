@@ -1,0 +1,91 @@
+{
+  "name": "UserPreferences",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "favorite_genres": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "disliked_genres": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "favorite_books": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "moods": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pacing": {
+      "type": "string",
+      "enum": [
+        "fast",
+        "medium",
+        "slow",
+        "any"
+      ],
+      "default": "any"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "light",
+        "medium",
+        "challenging",
+        "any"
+      ],
+      "default": "any"
+    },
+    "disliked_content": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "theme_mode": {
+      "type": "string",
+      "enum": [
+        "bold",
+        "minimal"
+      ],
+      "default": "bold"
+    },
+    "color_scheme": {
+      "type": "string",
+      "enum": [
+        "light",
+        "dark"
+      ],
+      "default": "dark"
+    },
+    "custom_primary": {
+      "type": "string"
+    },
+    "custom_accent": {
+      "type": "string"
+    },
+    "custom_secondary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

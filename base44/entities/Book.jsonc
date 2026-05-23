@@ -1,0 +1,55 @@
+{
+  "name": "Book",
+  "type": "object",
+  "properties": {
+    "google_books_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "cover_image": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "published_date": {
+      "type": "string"
+    },
+    "page_count": {
+      "type": "number"
+    },
+    "isbn": {
+      "type": "string"
+    },
+    "ai_summary": {
+      "type": "string"
+    },
+    "ai_hook": {
+      "type": "string"
+    },
+    "amazon_search_url": {
+      "type": "string"
+    },
+    "average_rating": {
+      "type": "number"
+    },
+    "ratings_count": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "title",
+    "author"
+  ]
+}
