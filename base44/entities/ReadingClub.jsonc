@@ -11,26 +11,51 @@
     "creator_email": {
       "type": "string"
     },
+    "cover_image": {
+      "type": "string"
+    },
     "current_book_id": {
       "type": "string"
     },
     "current_book_title": {
       "type": "string"
     },
-    "current_book_author": {
-      "type": "string"
-    },
-    "current_book_cover": {
-      "type": "string"
-    },
-    "genre": {
-      "type": "string"
-    },
-    "is_public": {
-      "type": "boolean"
-    },
     "member_count": {
-      "type": "number"
+      "type": "number",
+      "default": 1
+    },
+    "genres": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "club_type": {
+      "type": "string",
+      "enum": [
+        "administrative",
+        "discussion",
+        "collaborative"
+      ],
+      "default": "discussion"
+    },
+    "is_visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "join_code": {
+      "type": "string"
+    },
+    "tracking_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What member data admin tracks: 'pages_read', 'time_spent', 'mood', 'notes', etc."
+    },
+    "allow_chat": {
+      "type": "boolean",
+      "default": true
     },
     "member_emails": {
       "type": "array",

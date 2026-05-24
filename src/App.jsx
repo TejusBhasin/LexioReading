@@ -14,6 +14,7 @@ import ProfilePage from '@/pages/ProfilePage';
 import BookDetailPage from '@/pages/BookDetailPage';
 import OnboardingPage from '@/pages/OnboardingPage';
 import ClubsPage from '@/pages/ClubsPage';
+import ClubDetailPage from '@/pages/ClubDetailPage';
 import ReviewsPage from '@/pages/ReviewsPage';
 import ReadingLogPage from '@/pages/ReadingLogPage';
 import VaultPage from '@/pages/VaultPage';
@@ -58,6 +59,7 @@ const AuthenticatedApp = () => {
         <Route path="/book/:id" element={<BookDetailPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/clubs" element={<ClubsPage />} />
+        <Route path="/club/:id" element={<ClubDetailPage />} />
         <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/reading-log" element={<ReadingLogPage />} />
         <Route path="/vault" element={<VaultPage />} />

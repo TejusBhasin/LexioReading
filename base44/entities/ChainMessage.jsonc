@@ -1,0 +1,41 @@
+{
+  "name": "ChainMessage",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "chain_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "has_spoilers": {
+      "type": "boolean",
+      "default": false
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "liked_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "club_id",
+    "chain_id",
+    "user_email",
+    "content"
+  ]
+}

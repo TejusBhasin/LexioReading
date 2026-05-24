@@ -1,0 +1,45 @@
+{
+  "name": "BookClubChain",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "schedule_id": {
+      "type": "string"
+    },
+    "book_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "start_page": {
+      "type": "number"
+    },
+    "end_page": {
+      "type": "number"
+    },
+    "due_date": {
+      "type": "string"
+    },
+    "message_count": {
+      "type": "number",
+      "default": 0
+    },
+    "members_participated": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "club_id",
+    "book_id",
+    "title"
+  ]
+}

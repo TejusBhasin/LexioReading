@@ -1,0 +1,58 @@
+{
+  "name": "BookClubSchedule",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "book_id": {
+      "type": "string"
+    },
+    "book_title": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string"
+    },
+    "end_date": {
+      "type": "string"
+    },
+    "total_pages": {
+      "type": "number"
+    },
+    "reading_pace": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "biweekly",
+        "monthly",
+        "custom"
+      ]
+    },
+    "chapters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "start_page": {
+            "type": "number"
+          },
+          "end_page": {
+            "type": "number"
+          },
+          "due_date": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "club_id",
+    "book_id",
+    "book_title"
+  ]
+}
