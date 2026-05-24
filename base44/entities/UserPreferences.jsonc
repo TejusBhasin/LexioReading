@@ -83,6 +83,14 @@
     },
     "custom_secondary": {
       "type": "string"
+    },
+    "show_recommendations": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_popular": {
+      "type": "boolean",
+      "default": true
     }
   },
   "required": [

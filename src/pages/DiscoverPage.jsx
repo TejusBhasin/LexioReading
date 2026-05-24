@@ -19,13 +19,21 @@ export default function DiscoverPage() {
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [genRec, setGenRec] = useState(false);
+  const [showRecs, setShowRecs] = useState(true);
+  const [showPopular, setShowPopular] = useState(true);
 
   useEffect(() => {
-    loadFeatured();
     if (user?.email) {
       loadSaved();
       loadRecommendations();
+      base44.entities.UserPreferences.filter({ user_email: user.email }).then(p => {
+        if (p[0]) {
+          setShowRecs(p[0].show_recommendations !== false);
+          setShowPopular(p[0].show_popular !== false);
+        }
+      }).catch(() => {});
     }
+    loadFeatured();
   }, [user]);
 
   async function loadFeatured() {
@@ -227,7 +235,7 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
       )}
 
       {/* AI Recommendations */}
-      {isAuthenticated && (
+      {isAuthenticated && showRecs && (
         <section className="mb-12">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
@@ -264,7 +272,7 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
       )}
 
       {/* Trending */}
-      <section>
+      {showPopular && <section>
         <div className="flex items-center gap-2 mb-5">
           <TrendingUp size={18} style={{ color: 'var(--lx-accent)' }} />
           <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
@@ -280,7 +288,7 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
         ) : (
           <BookGrid books={featuredBooks} onSave={saveBook} savedIds={savedIds} />
         )}
-      </section>
+      </section>}
     </div>
   );
 }

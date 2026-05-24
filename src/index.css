@@ -70,6 +70,78 @@
 /* Prose styles for AI markdown */
 .prose p { margin-bottom: 0.75rem; }
 .prose p:last-child { margin-bottom: 0; }
-.prose strong { color: var(--accent-primary); }
+.prose strong { color: var(--lx-accent); }
 .prose ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; }
 .prose li { margin-bottom: 0.25rem; }
+
+/* Lexio utility aliases — theme.js writes --accent, components read --lx-accent */
+:root {
+  --lx-accent: var(--accent);
+  --lx-border: var(--border-strong, #2a2520);
+  --bg-elevated: #1e1e1e;
+  --border-strong: #2a2520;
+}
+
+/* Lexio component classes */
+.lx-bg { background: var(--bg-primary); color: var(--text-primary); }
+.lx-bg-secondary { background: var(--bg-secondary); }
+
+.lx-card {
+  background: var(--bg-card);
+  border: 1px solid var(--lx-border);
+  border-radius: var(--radius, 6px);
+  transition: border-color 0.15s ease;
+}
+.lx-card:hover { border-color: var(--lx-accent); }
+
+.lx-input {
+  width: 100%;
+  padding: 0.55rem 0.875rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--lx-border);
+  border-radius: var(--radius, 6px);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.lx-input:focus { border-color: var(--lx-accent); }
+.lx-input::placeholder { color: var(--text-muted); }
+
+.lx-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.25rem;
+  background: var(--lx-accent);
+  color: var(--bg-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: var(--radius, 6px);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+.lx-btn-primary:hover { opacity: 0.88; }
+.lx-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.lx-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius, 6px);
+  border: 1px solid var(--lx-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+.lx-btn-ghost:hover { border-color: var(--lx-accent); color: var(--text-primary); }
+
+/* Page enter animation */
+.page-enter { animation: fadeIn 0.25s ease-out; }

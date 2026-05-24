@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Compass, BookOpen, MessageSquare, User } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
 
 const NAV_ITEMS = [
-  { path: '/', icon: Compass, label: 'Discover' },
+  { path: '/', icon: LayoutDashboard, label: 'Home' },
+  { path: '/discover', icon: Compass, label: 'Discover' },
   { path: '/library', icon: BookOpen, label: 'Library' },
   { path: '/chat', icon: MessageSquare, label: 'Chat' },
   { path: '/profile', icon: User, label: 'Profile' },
@@ -40,15 +41,15 @@ export default function AppShell({ children, user }) {
   return (
     <div className="min-h-screen lx-bg flex flex-col">
       {/* Top Nav */}
-      <header className="sticky top-0 z-50 lx-bg-secondary border-b" style={{ borderColor: 'var(--lx-border)' }}>
+      <header className="sticky top-0 z-50 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)' }}>
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             <img
-              src="https://media.base44.com/images/public/user_6a12376d0f4ca5762da03b88/1678f5c8f_Lexio.png"
+              src="https://media.base44.com/images/public/6a123803b5827eb9277efa4d/63f81eba7_7c1bd0943_logo.png"
               alt="Lexio"
-              className="h-7 w-auto"
-              style={{ filter: 'brightness(0) invert(1)' }}
+              className="h-9 w-9 rounded-lg object-contain"
             />
+            <span className="font-display font-bold text-lg hidden sm:block" style={{ color: 'var(--text-primary)' }}>Lexio</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -95,7 +96,7 @@ export default function AppShell({ children, user }) {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 lx-bg-secondary border-t flex" style={{ borderColor: 'var(--lx-border)' }}>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t flex" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)' }}>
         {NAV_ITEMS.map(({ path, icon: MobIcon, label }) => {
           const active = location.pathname === path;
           return (

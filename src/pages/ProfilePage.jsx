@@ -267,6 +267,33 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          <div>
+            <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Discover Page Sections</h3>
+            <div className="space-y-3">
+              {[
+                { key: 'show_recommendations', label: 'AI Recommendations', desc: 'Show personalized book picks in Discover' },
+                { key: 'show_popular', label: 'Popular & Trending', desc: 'Show trending books section in Discover' },
+              ].map(({ key, label, desc }) => (
+                <div key={key} className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{label}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+                  </div>
+                  <button
+                    onClick={() => setPrefs(p => ({ ...p, [key]: !p[key] }))}
+                    className="w-11 h-6 rounded-full transition-all flex-shrink-0 relative"
+                    style={{ background: prefs[key] !== false ? 'var(--lx-accent)' : 'var(--border-strong)' }}
+                  >
+                    <span
+                      className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+                      style={{ left: prefs[key] !== false ? '22px' : '2px' }}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <button onClick={savePrefs} disabled={saving} className="lx-btn-primary">
             {saved ? <><Check size={14} /> Saved!</> : saving ? 'Saving...' : 'Save Preferences'}
           </button>

@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppShell from '@/components/layout/AppShell';
+import DashboardPage from '@/pages/DashboardPage';
 import DiscoverPage from '@/pages/DiscoverPage';
 import LibraryPage from '@/pages/LibraryPage';
 import ChatPage from '@/pages/ChatPage';
@@ -44,7 +45,8 @@ const AuthenticatedApp = () => {
   return (
     <AppShell user={user}>
       <Routes>
-        <Route path="/" element={<DiscoverPage />} />
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/profile" element={<ProfilePage />} />
