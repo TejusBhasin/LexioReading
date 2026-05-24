@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
 import SetupTour from '@/components/onboarding/SetupTour.jsx';
@@ -8,11 +8,17 @@ import SetupTour from '@/components/onboarding/SetupTour.jsx';
 const NAV_ITEMS = [
   { path: '/', icon: LayoutDashboard, label: 'Home' },
   { path: '/discover', icon: Compass, label: 'Discover' },
-  { path: '/reviews', icon: Star, label: 'Reviews' },
   { path: '/library', icon: BookOpen, label: 'Library' },
+  { path: '/reading-log', icon: Clock, label: 'Log' },
+  { path: '/reviews', icon: Star, label: 'Reviews' },
   { path: '/clubs', icon: Users, label: 'Clubs' },
   { path: '/chat', icon: MessageSquare, label: 'Chat' },
   { path: '/profile', icon: User, label: 'Profile' },
+];
+
+const EXTRA_NAV = [
+  { path: '/vault', icon: Lock, label: 'Vault' },
+  { path: '/wrapped', icon: Sparkles, label: 'Wrapped' },
 ];
 
 export default function AppShell({ children, user }) {
@@ -101,9 +107,14 @@ export default function AppShell({ children, user }) {
           <div className="flex items-center gap-2">
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="text-sm hidden md:block" style={{ color: 'var(--text-muted)' }}>
-                  {user.email}
-                </span>
+                {EXTRA_NAV.map(({ path, icon: EIcon, label }) => (
+                  <Link key={path} to={path} title={label}
+                    className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-all"
+                    style={{ color: 'var(--text-muted)' }}>
+                    <EIcon size={14} />
+                    <span className="hidden lg:inline">{label}</span>
+                  </Link>
+                ))}
               </div>
             ) : (
               <div className="flex items-center gap-2">

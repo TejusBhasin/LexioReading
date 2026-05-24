@@ -11,6 +11,7 @@ import UsernameSetupModal from '@/components/user/UsernameSetupModal';
 import DiscussionForum from '@/components/discussions/DiscussionForum';
 import StarRating from '@/components/reviews/StarRating';
 import AgeVerificationModal from '@/components/books/AgeVerificationModal';
+import { cleanHtml } from '@/utils/textClean';
 
 const STATUS_OPTIONS = [
   { value: 'want_to_read', label: 'Want to Read' },
@@ -299,7 +300,7 @@ Return as JSON array with title and author for each.`,
           {/* Description */}
           {book.description && (
             <p className="text-sm leading-relaxed line-clamp-4" style={{ color: 'var(--text-secondary)' }}>
-              {book.description}
+              {cleanHtml(book.description)}
             </p>
           )}
         </div>
@@ -319,10 +320,10 @@ Return as JSON array with title and author for each.`,
             <span className="text-sm">Generating summary...</span>
           </div>
         ) : aiSummary ? (
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{aiSummary}</p>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{cleanHtml(aiSummary)}</p>
         ) : (
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            {book.description?.slice(0, 400) || 'No description available.'}
+            {cleanHtml(book.description?.slice(0, 400)) || 'No description available.'}
           </p>
         )}
       </div>

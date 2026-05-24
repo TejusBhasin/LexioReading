@@ -13,6 +13,11 @@ import ChatPage from '@/pages/ChatPage';
 import ProfilePage from '@/pages/ProfilePage';
 import BookDetailPage from '@/pages/BookDetailPage';
 import OnboardingPage from '@/pages/OnboardingPage';
+import ClubsPage from '@/pages/ClubsPage';
+import ReviewsPage from '@/pages/ReviewsPage';
+import ReadingLogPage from '@/pages/ReadingLogPage';
+import VaultPage from '@/pages/VaultPage';
+import WrappedPage from '@/pages/WrappedPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, isAuthenticated } = useAuth();
@@ -52,6 +57,11 @@ const AuthenticatedApp = () => {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/book/:id" element={<BookDetailPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/clubs" element={<ClubsPage />} />
+        <Route path="/reviews" element={<ReviewsPage />} />
+        <Route path="/reading-log" element={<ReadingLogPage />} />
+        <Route path="/vault" element={<VaultPage />} />
+        <Route path="/wrapped" element={<WrappedPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AppShell>

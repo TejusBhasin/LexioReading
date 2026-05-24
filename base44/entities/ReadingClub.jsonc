@@ -1,0 +1,46 @@
+{
+  "name": "ReadingClub",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "creator_email": {
+      "type": "string"
+    },
+    "current_book_id": {
+      "type": "string"
+    },
+    "current_book_title": {
+      "type": "string"
+    },
+    "current_book_author": {
+      "type": "string"
+    },
+    "current_book_cover": {
+      "type": "string"
+    },
+    "genre": {
+      "type": "string"
+    },
+    "is_public": {
+      "type": "boolean"
+    },
+    "member_count": {
+      "type": "number"
+    },
+    "member_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "name",
+    "creator_email"
+  ]
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Compass, MessageSquare, Star, TrendingUp, Clock, CheckCircle, Bookmark, ArrowRight, Sparkles } from 'lucide-react';
+import { BookOpen, Compass, MessageSquare, Star, Clock, CheckCircle, Bookmark, ArrowRight, Sparkles, Users, Lock, PenLine } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -115,11 +115,14 @@ export default function DashboardPage() {
       )}
 
       {/* Quick Nav */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
         {[
-          { icon: Compass, title: 'Discover Books', desc: 'Search & explore new titles', href: '/discover', cta: 'Browse' },
-          { icon: Sparkles, title: 'AI Recommendations', desc: 'Personalized picks just for you', href: '/discover', cta: 'Get Recs' },
-          { icon: MessageSquare, title: 'Book Chat', desc: 'Talk to your AI reading companion', href: '/chat', cta: 'Open Chat' },
+          { icon: Compass, title: 'Discover', desc: 'Search & explore new titles', href: '/discover', cta: 'Browse' },
+          { icon: MessageSquare, title: 'Book Chat', desc: 'AI reading companion', href: '/chat', cta: 'Open Chat' },
+          { icon: PenLine, title: 'Reading Log', desc: 'Track sessions & reflections', href: '/reading-log', cta: 'Log Now' },
+          { icon: Users, title: 'Clubs', desc: 'Join reading communities', href: '/clubs', cta: 'Browse' },
+          { icon: Lock, title: 'Vault', desc: 'Secure library cards', href: '/vault', cta: 'Open' },
+          { icon: Sparkles, title: 'Wrapped', desc: 'Your year in books', href: '/wrapped', cta: 'View' },
         ].map(({ icon: Icon, title, desc, href, cta }) => (
           <Link key={title} to={href} className="lx-card p-5 flex flex-col gap-3 hover:border-[var(--lx-accent)] transition-colors group">
             <Icon size={20} style={{ color: 'var(--lx-accent)' }} />

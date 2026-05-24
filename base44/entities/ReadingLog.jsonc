@@ -1,0 +1,47 @@
+{
+  "name": "ReadingLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "book_id": {
+      "type": "string"
+    },
+    "book_title": {
+      "type": "string"
+    },
+    "book_author": {
+      "type": "string"
+    },
+    "book_cover": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string"
+    },
+    "time_spent_minutes": {
+      "type": "number"
+    },
+    "progress_note": {
+      "type": "string"
+    },
+    "reflection": {
+      "type": "string"
+    },
+    "mood": {
+      "type": "string"
+    },
+    "session_started": {
+      "type": "string"
+    },
+    "session_ended": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "book_title",
+    "date"
+  ]
+}
