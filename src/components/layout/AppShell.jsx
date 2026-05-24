@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Compass, BookOpen, MessageSquare, User } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
+import SetupTour from '@/components/onboarding/SetupTour.jsx';
 
 const NAV_ITEMS = [
   { path: '/', icon: LayoutDashboard, label: 'Home' },
   { path: '/discover', icon: Compass, label: 'Discover' },
+  { path: '/reviews', icon: Star, label: 'Reviews' },
   { path: '/library', icon: BookOpen, label: 'Library' },
+  { path: '/clubs', icon: Users, label: 'Clubs' },
   { path: '/chat', icon: MessageSquare, label: 'Chat' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
@@ -15,10 +18,13 @@ const NAV_ITEMS = [
 export default function AppShell({ children, user }) {
   const location = useLocation();
   const [prefs, setPrefs] = useState(null);
+  const [showTour, setShowTour] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
     if (user?.email) {
       loadPrefs();
+      loadUserProfile();
     } else {
       applyTheme({ theme_mode: 'bold', color_scheme: 'dark' });
     }
@@ -38,8 +44,27 @@ export default function AppShell({ children, user }) {
     }
   }
 
+  async function loadUserProfile() {
+    try {
+      const p = await base44.entities.UserProfile.filter({ user_email: user.email });
+      if (p[0]) {
+        setUserProfile(p[0]);
+        if (!p[0].onboarding_complete) setShowTour(true);
+      } else {
+        setShowTour(true);
+      }
+    } catch (e) {}
+  }
+
   return (
     <div className="min-h-screen lx-bg flex flex-col">
+      {showTour && user && (
+        <SetupTour
+          user={user}
+          userProfile={userProfile}
+          onComplete={() => { setShowTour(false); loadUserProfile(); }}
+        />
+      )}
       {/* Top Nav */}
       <header className="sticky top-0 z-50 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)' }}>
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">

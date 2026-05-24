@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check } from 'lucide-react';
+import PrivacyTab from '@/components/profile/PrivacyTab';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { applyTheme, GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
@@ -8,6 +9,7 @@ import { applyTheme, GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
 const TABS = [
   { id: 'preferences', label: 'Preferences', icon: Settings },
   { id: 'stats', label: 'Stats', icon: BookOpen },
+  { id: 'privacy', label: 'Privacy', icon: User },
   { id: 'history', label: 'Chat History', icon: MessageSquare },
   { id: 'theme', label: 'Personalize', icon: Palette },
 ];
@@ -345,6 +347,11 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* PRIVACY */}
+      {tab === 'privacy' && (
+        <PrivacyTab user={user} />
       )}
 
       {/* CHAT HISTORY */}

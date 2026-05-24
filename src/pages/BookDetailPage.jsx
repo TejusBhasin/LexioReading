@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, ShoppingCart, Star, Sparkles, RefreshCw, ExternalLink } from 'lucide-react';
+import { ArrowLeft, BookmarkPlus, BookmarkCheck, ShoppingCart, Star, Sparkles, RefreshCw, ExternalLink, PenSquare } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getBookById, searchBooks } from '@/lib/googleBooks';
 import { useAuth } from '@/lib/AuthContext';
 import BookGrid from '@/components/books/BookGrid';
+import ReviewCard from '@/components/reviews/ReviewCard';
+import WriteReviewModal from '@/components/reviews/WriteReviewModal';
+import UsernameSetupModal from '@/components/user/UsernameSetupModal';
+import DiscussionForum from '@/components/discussions/DiscussionForum';
+import StarRating from '@/components/reviews/StarRating';
+import AgeVerificationModal from '@/components/books/AgeVerificationModal';
 
 const STATUS_OPTIONS = [
   { value: 'want_to_read', label: 'Want to Read' },
@@ -27,11 +33,38 @@ export default function BookDetailPage() {
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [savedIds, setSavedIds] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [showWriteModal, setShowWriteModal] = useState(false);
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [ageVerified, setAgeVerified] = useState(false);
 
   useEffect(() => {
     loadBook();
-    if (user?.email) loadLibraryEntry();
+    loadReviews();
+    if (user?.email) { loadLibraryEntry(); loadUserProfile(); }
   }, [id, user]);
+
+  async function loadUserProfile() {
+    try {
+      const p = await base44.entities.UserProfile.filter({ user_email: user.email });
+      if (p[0]) setUserProfile(p[0]);
+    } catch (e) {}
+  }
+
+  async function loadReviews() {
+    try {
+      const r = await base44.entities.Review.filter({ book_id: id }, '-created_date', 20);
+      setReviews(r);
+    } catch (e) {}
+  }
+
+  function handleWriteReview() {
+    if (!isAuthenticated) { navigate('/signup'); return; }
+    if (!userProfile?.username) { setShowUsernameModal(true); return; }
+    setShowWriteModal(true);
+  }
 
   async function loadBook() {
     setLoading(true);
@@ -294,6 +327,39 @@ Return as JSON array with title and author for each.`,
         )}
       </div>
 
+      {/* Reviews */}
+      <div className="mb-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <Star size={16} style={{ color: 'var(--lx-accent)' }} />
+            Reviews
+            {reviews.length > 0 && (
+              <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>
+                ({reviews.length}) · {(reviews.reduce((s,r) => s+(r.rating||0), 0)/reviews.length).toFixed(1)} avg
+              </span>
+            )}
+          </h2>
+          <button onClick={handleWriteReview} className="lx-btn-primary text-xs py-1.5">
+            <PenSquare size={12} /> Write Review
+          </button>
+        </div>
+        {reviews.length > 0 ? (
+          <div className="space-y-3">
+            {reviews.map(r => <ReviewCard key={r.id} review={r} />)}
+          </div>
+        ) : (
+          <div className="lx-card p-6 text-center">
+            <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>No reviews yet.</p>
+            <button onClick={handleWriteReview} className="lx-btn-primary text-sm">Be the first to review</button>
+          </div>
+        )}
+      </div>
+
+      {/* Discussion */}
+      <div className="mb-10">
+        <DiscussionForum bookId={id} bookTitle={book?.title} />
+      </div>
+
       {/* More like this */}
       <div>
         <div className="flex items-center justify-between mb-5">
@@ -323,6 +389,32 @@ Return as JSON array with title and author for each.`,
           </div>
         )}
       </div>
+
+      {showUsernameModal && user && (
+        <UsernameSetupModal
+          user={user}
+          onComplete={p => { setUserProfile(p); setShowUsernameModal(false); setShowWriteModal(true); }}
+          onClose={() => setShowUsernameModal(false)}
+        />
+      )}
+
+      {showWriteModal && book && userProfile && user && (
+        <WriteReviewModal
+          book={book}
+          username={userProfile.username}
+          userEmail={user.email}
+          onClose={() => setShowWriteModal(false)}
+          onSubmitted={() => { setShowWriteModal(false); loadReviews(); }}
+        />
+      )}
+
+      {showAgeModal && user && (
+        <AgeVerificationModal
+          user={user}
+          onVerified={() => { setAgeVerified(true); setShowAgeModal(false); }}
+          onClose={() => navigate(-1)}
+        />
+      )}
     </div>
   );
 }
