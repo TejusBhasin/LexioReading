@@ -19,6 +19,7 @@ import ReviewsPage from '@/pages/ReviewsPage';
 import ReadingLogPage from '@/pages/ReadingLogPage';
 import VaultPage from '@/pages/VaultPage';
 import WrappedPage from '@/pages/WrappedPage';
+import TermsPrivacyPage from '@/pages/TermsPrivacyPage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
 const AuthenticatedApp = () => {
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
         <Route path="/reading-log" element={<ReadingLogPage />} />
         <Route path="/vault" element={<VaultPage />} />
         <Route path="/wrapped" element={<WrappedPage />} />
+        <Route path="/terms-privacy" element={<TermsPrivacyPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AppShell>

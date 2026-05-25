@@ -154,6 +154,9 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8">
+      {/* Google Calendar Section at Top */}
+      <PrivacyTab user={user} showOnlyGcal={true} />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
@@ -482,6 +485,15 @@ export default function ProfilePage() {
           </button>
         </div>
       )}
+
+      {/* Footer with TC Link */}
+      <div className="mt-12 pt-8 border-t" style={{ borderColor: 'var(--lx-border)' }}>
+        <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+          <Link to="/terms-privacy" style={{ color: 'var(--lx-accent)' }} className="underline hover:opacity-80">
+            Terms and Conditions / Privacy Policy
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

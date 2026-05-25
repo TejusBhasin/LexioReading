@@ -11,7 +11,7 @@ const CONTENT_THEMES = [
 
 const CONNECTOR_ID = '6a137f90ca344552dcf8ff6d'; // Lexio Reading Reminders
 
-export default function PrivacyTab({ user }) {
+export default function PrivacyTab({ user, showOnlyGcal = false }) {
   const [profile, setProfile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -93,6 +93,42 @@ export default function PrivacyTab({ user }) {
 
   const publicUrl = profile.username ? `/u/${profile.username}` : null;
 
+  if (showOnlyGcal) {
+    return (
+      <div className="lx-card p-6 mb-8">
+        <h2 className="font-display font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <Calendar size={18} style={{ color: 'var(--lx-accent)' }} />
+          Google Calendar Integration
+        </h2>
+        <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Connect Google Calendar to receive personalized reading reminders.</p>
+        <div className="p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar size={16} style={{ color: gcalConnected ? 'var(--lx-accent)' : 'var(--text-muted)' }} />
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Google Calendar</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                  {gcalConnected ? 'Connected - reminders enabled' : 'Click to connect and set up reminders'}
+                </p>
+              </div>
+            </div>
+            {gcalChecking ? (
+              <button disabled className="text-xs px-3 py-1.5" style={{ color: 'var(--text-muted)' }}>...</button>
+            ) : gcalConnected ? (
+              <button onClick={disconnectGcal} className="lx-btn-ghost text-xs py-1.5 px-3 flex items-center gap-1">
+                <LogOut size={12} /> Disconnect
+              </button>
+            ) : (
+              <button onClick={connectGcal} className="lx-btn-primary text-xs py-1.5 px-3 flex items-center gap-1">
+                <Calendar size={12} /> Connect
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Public Profile */}
@@ -167,7 +203,7 @@ export default function PrivacyTab({ user }) {
 
       {/* Reading Reminders */}
       <div>
-        <h3 className="font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Reading Reminders</h3>
+       <h3 className="font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Reading Reminders</h3>
         <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Set your preferred reading days and time. Connect Google Calendar to receive reminders.</p>
         <div className="flex gap-1.5 flex-wrap mb-3">
           {DAYS.map(d => (
@@ -184,31 +220,7 @@ export default function PrivacyTab({ user }) {
           value={profile.reading_reminder_time || '20:00'}
           onChange={e => setProfile(p => ({ ...p, reading_reminder_time: e.target.value }))} />
 
-        {/* Google Calendar Connection */}
-        <div className="mt-4 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar size={16} style={{ color: gcalConnected ? 'var(--lx-accent)' : 'var(--text-muted)' }} />
-              <div>
-                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Google Calendar</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                  {gcalConnected ? 'Reminders enabled' : 'Click to connect'}
-                </p>
-              </div>
-            </div>
-            {gcalChecking ? (
-              <button disabled className="text-xs px-3 py-1.5" style={{ color: 'var(--text-muted)' }}>...</button>
-            ) : gcalConnected ? (
-              <button onClick={disconnectGcal} className="lx-btn-ghost text-xs py-1.5 px-3 flex items-center gap-1">
-                <LogOut size={12} /> Disconnect
-              </button>
-            ) : (
-              <button onClick={connectGcal} className="lx-btn-primary text-xs py-1.5 px-3 flex items-center gap-1">
-                <Calendar size={12} /> Connect
-              </button>
-            )}
-          </div>
-        </div>
+
       </div>
 
       <button onClick={save} disabled={saving} className="lx-btn-primary">
