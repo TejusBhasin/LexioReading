@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Compass, MessageSquare, Star, Clock, CheckCircle, Bookmark, ArrowRight, Sparkles, Users, Lock, PenLine, HelpCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import SetupTour from '@/components/onboarding/SetupTour';
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAuth();
+  const [showTourPrompt, setShowTourPrompt] = useState(false);
   const [library, setLibrary] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,13 +82,22 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 pb-24 md:pb-8">
       {/* Welcome */}
+      {showTourPrompt && user && (
+        <SetupTour user={user} userProfile={null} onComplete={() => setShowTourPrompt(false)} />
+      )}
+
       <div className="mb-8 flex items-start justify-between">
         <div>
           <h1 className="font-display text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            Welcome back, {user?.full_name?.split(' ')[0] || 'Reader'} 👋
+          Welcome back, {user?.full_name?.split(' ')[0] || 'Reader'} 👋
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Here's your reading overview</p>
-        </div>
+          </div>
+          <button onClick={() => setShowTourPrompt(true)} title="Take the setup tour again"
+            className="lx-btn-ghost text-xs py-1.5 px-2 flex items-center gap-1">
+            <HelpCircle size={13} /> Tour
+          </button>
+          </div>
         <button
           onClick={() => {
             // Re-trigger the setup tour by clearing onboarding_complete

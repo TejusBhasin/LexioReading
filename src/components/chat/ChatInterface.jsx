@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, BookOpen } from 'lucide-react';
+import { Send, Sparkles, ChevronDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 function uuidv4() {
@@ -28,6 +28,14 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const isDemo = !user;
+  const [userContext, setUserContext] = useState('');
+  const [suggestions] = useState([
+    "Recommend me a book like Dune",
+    "What should I read if I loved Harry Potter?",
+    "Best mystery novels of all time",
+    "Books for when you're feeling sad",
+    "Short books I can finish in a week",
+  ]);
 
   useEffect(() => {
     if (user?.email) loadUserContext();
@@ -54,6 +62,33 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
         reading,
         username: profile[0]?.username || user.full_name || '',
       });
+    } catch (e) {}
+  }
+
+  useEffect(() => {
+    if (user?.email) loadUserContext();
+  }, [user]);
+
+  async function loadUserContext() {
+    try {
+      const [prefs, lib, logs] = await Promise.all([
+        base44.entities.UserPreferences.filter({ user_email: user.email }),
+        base44.entities.UserLibrary.filter({ user_email: user.email }),
+        base44.entities.ReadingLog.filter({ user_email: user.email }, '-created_date', 5),
+      ]);
+      const p = prefs[0] || {};
+      const finished = lib.filter(b => b.status === 'finished').map(b => b.book_title).slice(0, 5);
+      const reading = lib.filter(b => b.status === 'reading').map(b => b.book_title).slice(0, 3);
+      const ctx = [
+        p.favorite_genres?.length ? `Genres I love: ${p.favorite_genres.join(', ')}` : '',
+        p.moods?.length ? `Reading moods: ${p.moods.join(', ')}` : '',
+        p.pacing && p.pacing !== 'any' ? `Pacing preference: ${p.pacing}` : '',
+        p.disliked_content?.length ? `Avoid themes: ${p.disliked_content.join(', ')}` : '',
+        finished.length ? `Recently finished: ${finished.join(', ')}` : '',
+        reading.length ? `Currently reading: ${reading.join(', ')}` : '',
+        p.favorite_books?.length ? `All-time favorites: ${p.favorite_books.join(', ')}` : '',
+      ].filter(Boolean).join('\n');
+      setUserContext(ctx);
     } catch (e) {}
   }
 
@@ -252,6 +287,29 @@ Keep responses focused and under 300 words unless listing many books.`,
             {SUGGESTIONS.slice(0, 3).map(s => (
               <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }}
                 className="text-xs px-2.5 py-1 rounded transition-all truncate max-w-[200px]"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--lx-border)' }}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+        {/* Quick suggestion chips */}
+        {messages.length <= 1 && !isDemo && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {suggestions.map(s => (
+              <button key={s} onClick={() => { setInput(s); setTimeout(() => inputRef.current?.focus(), 50); }}
+                className="text-xs px-3 py-1.5 rounded-full transition-all"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--lx-border)' }}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+        {messages.length <= 1 && !isDemo && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {suggestions.map(s => (
+              <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }}
+                className="text-xs px-3 py-1.5 rounded-full transition-all"
                 style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--lx-border)' }}>
                 {s}
               </button>
