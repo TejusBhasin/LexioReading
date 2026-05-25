@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles, Menu, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
 import SetupTour from '@/components/onboarding/SetupTour.jsx';
@@ -26,6 +26,18 @@ export default function AppShell({ children, user }) {
   const [prefs, setPrefs] = useState(null);
   const [showTour, setShowTour] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMobileMenuOpen(false);
+    }
+    if (mobileMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [mobileMenuOpen]);
+
+  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
 
   useEffect(() => {
     if (user?.email) {
@@ -105,8 +117,18 @@ export default function AppShell({ children, user }) {
           </nav>
 
           <div className="flex items-center gap-2">
+            {/* Mobile hamburger */}
+            <button
+              className="md:hidden p-2 rounded transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
+              onClick={() => setMobileMenuOpen(o => !o)}
+              aria-label="Menu"
+            >
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+
             {user ? (
-              <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 {EXTRA_NAV.map(({ path, icon: EIcon, label }) => (
                   <Link key={path} to={path} title={label}
                     className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-all"
@@ -117,7 +139,7 @@ export default function AppShell({ children, user }) {
                 ))}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 <Link to="/login" className="lx-btn-ghost text-sm py-1.5 px-3">Sign In</Link>
                 <Link to="/signup" className="lx-btn-primary text-sm py-1.5 px-3">Get Started</Link>
               </div>
@@ -126,28 +148,37 @@ export default function AppShell({ children, user }) {
         </div>
       </header>
 
+      {/* Mobile Slide-down Menu */}
+      {mobileMenuOpen && (
+        <div ref={menuRef} className="md:hidden fixed top-14 left-0 right-0 z-40 border-b shadow-lg"
+          style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)' }}>
+          <nav className="px-4 py-3 space-y-1">
+            {[...NAV_ITEMS, ...EXTRA_NAV].map(({ path, icon: MIcon, label }) => {
+              const active = location.pathname === path;
+              return (
+                <Link key={path} to={path}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium transition-all"
+                  style={{ color: active ? 'var(--lx-accent)' : 'var(--text-primary)', background: active ? 'var(--bg-elevated)' : 'transparent' }}>
+                  <MIcon size={17} />
+                  {label}
+                </Link>
+              );
+            })}
+            {!user && (
+              <div className="flex gap-2 pt-2 border-t" style={{ borderColor: 'var(--lx-border)' }}>
+                <Link to="/login" className="lx-btn-ghost text-sm flex-1 justify-center">Sign In</Link>
+                <Link to="/signup" className="lx-btn-primary text-sm flex-1 justify-center">Get Started</Link>
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="flex-1 page-enter">
         {children}
       </main>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t flex" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)' }}>
-        {NAV_ITEMS.map(({ path, icon: MobIcon, label }) => {
-          const active = location.pathname === path;
-          return (
-            <Link
-              key={path}
-              to={path}
-              className="flex-1 flex flex-col items-center py-3 gap-1 text-xs font-medium transition-all"
-              style={{ color: active ? 'var(--lx-accent)' : 'var(--text-muted)' }}
-            >
-              <MobIcon size={18} />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
     </div>
   );
 }
