@@ -20,6 +20,8 @@ import ReadingLogPage from '@/pages/ReadingLogPage';
 import VaultPage from '@/pages/VaultPage';
 import WrappedPage from '@/pages/WrappedPage';
 import TermsPrivacyPage from '@/pages/TermsPrivacyPage';
+import UserPublicProfilePage from '@/pages/UserPublicProfilePage';
+import EasterEggPage from '@/pages/EasterEggPage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
 const AuthenticatedApp = () => {
@@ -69,6 +71,8 @@ const AuthenticatedApp = () => {
         <Route path="/vault" element={<VaultPage />} />
         <Route path="/wrapped" element={<WrappedPage />} />
         <Route path="/terms-privacy" element={<TermsPrivacyPage />} />
+        <Route path="/u/:username" element={<UserPublicProfilePage />} />
+        <Route path="/secret" element={<EasterEggPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AppShell>

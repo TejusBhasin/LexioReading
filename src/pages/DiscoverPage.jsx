@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, Search, TrendingUp, RefreshCw, BookMarked } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { searchBooks, FALLBACK_TRENDING, EDITORS_PICKS } from '@/lib/googleBooks';
@@ -13,6 +13,7 @@ const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Romanc
 
 export default function DiscoverPage() {
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [featuredBooks, setFeaturedBooks] = useState([]);
@@ -146,6 +147,11 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
   async function handleSearch(e) {
     e.preventDefault();
     if (!searchQuery.trim()) return;
+    const profileMatch = searchQuery.trim().match(/^\/u\/(.+)$/i);
+    if (profileMatch) {
+      navigate(`/u/${profileMatch[1].trim()}`);
+      return;
+    }
     setSearching(true);
     try {
       const results = await searchBooks(searchQuery, 12);

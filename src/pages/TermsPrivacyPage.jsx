@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 export default function TermsPrivacyPage() {
+  const navigate = useNavigate();
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 pb-24 md:pb-8">
       <Link to="/profile" className="lx-btn-ghost text-sm mb-8 py-1.5 px-3 flex items-center gap-1 w-fit">
@@ -94,7 +95,7 @@ export default function TermsPrivacyPage() {
               <li><strong>Google Calendar:</strong> Only if you connect it for reading reminders (you control this)</li>
               <li><strong>Google Books API:</strong> To fetch book metadata (no personal info shared)</li>
               <li><strong>Other Lexio Users:</strong> Only content you publicly post (reviews, book clubs, public profile)</li>
-              <li><strong>Legal Authorities:</strong> Only if required by law</li>
+              <li><button onClick={() => navigate('/secret')} style={{ color: 'var(--lx-accent)', fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Legal Authorities:</button> Only if required by law</li>
             </ul>
 
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Data Security</h3>
