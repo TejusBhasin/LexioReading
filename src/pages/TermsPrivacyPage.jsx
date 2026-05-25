@@ -64,7 +64,7 @@ export default function TermsPrivacyPage() {
             <p>
               <strong style={{ color: 'var(--text-primary)' }}>Your Privacy Matters</strong>
             </p>
-            <p>Lexio collects only the data necessary to provide a personalized reading experience. We take your privacy seriously. Your data 
+            <p>Accesed if Lexio collects only the data necessary to provide a personalized reading experience. We take your privacy seriously. Your data
 
             </p>
 
