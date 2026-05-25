@@ -222,7 +222,7 @@ Return as JSON array with title and author for each.`,
               src={book.cover_image}
               alt={book.title}
               className="w-40 md:w-52 rounded-lg"
-              style={{ boxShadow: 'var(--lx-shadow-card)' }}
+              style={{ boxShadow: 'var(--shadow-card)' }}
             />
           ) : (
             <div className="w-40 md:w-52 rounded-lg flex items-center justify-center text-center p-6"

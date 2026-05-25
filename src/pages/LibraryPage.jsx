@@ -147,7 +147,7 @@ export default function LibraryPage() {
           <p style={{ color: 'var(--text-muted)' }}>
             {activeStatus === 'all' ? 'Your library is empty. Start discovering books!' : `No ${STATUS_LABELS[activeStatus]?.toLowerCase() || ''} books yet.`}
           </p>
-          <Link to="/" className="inline-block mt-4 lx-btn-primary text-sm">
+          <Link to="/discover" className="inline-block mt-4 lx-btn-primary text-sm">
             Discover Books
           </Link>
         </div>

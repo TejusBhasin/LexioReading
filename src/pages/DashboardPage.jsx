@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Compass, MessageSquare, Star, Clock, CheckCircle, Bookmark, ArrowRight, Sparkles, Users, Lock, PenLine, HelpCircle, Quote } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import SetupTour from '@/components/onboarding/SetupTour';
 
 const QUOTES = [
   { text: 'A reader lives a thousand lives before he dies. The man who never reads lives only one.', author: 'George R.R. Martin' },
@@ -13,9 +16,6 @@ const QUOTES = [
   { text: 'The more that you read, the more things you will know.', author: 'Dr. Seuss' },
 ];
 function getDailyQuote() { return QUOTES[new Date().getDate() % QUOTES.length]; }
-import { base44 } from '@/api/base44Client';
-import { useAuth } from '@/lib/AuthContext';
-import SetupTour from '@/components/onboarding/SetupTour';
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAuth();
