@@ -138,9 +138,6 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
       console.error(e);
     } finally {
       setGenRec(false);
-      if (!result?.recommendations?.length) {
-        console.error('No recommendations returned');
-      }
     }
   }
 
