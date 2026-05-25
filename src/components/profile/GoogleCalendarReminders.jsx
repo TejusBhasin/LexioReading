@@ -3,7 +3,7 @@ import { Calendar, LogOut, Check, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const CONNECTOR_ID = '6a137f90ca344552dcf8ff6d';
+const CONNECTOR_ID = '6a13c5e513abe52d74016dcd';
 
 export default function GoogleCalendarReminders({ user }) {
   const [connected, setConnected] = useState(false);

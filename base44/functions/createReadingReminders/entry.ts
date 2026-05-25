@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
 
     const tz = timezone || 'America/New_York';
 
-    const { accessToken } = await base44.asServiceRole.connectors.getCurrentAppUserConnection('6a137f90ca344552dcf8ff6d');
+    const { accessToken } = await base44.asServiceRole.connectors.getCurrentAppUserConnection('6a13c5e513abe52d74016dcd');
 
     // Delete existing Lexio reading reminder events to avoid duplicates
     const searchRes = await fetch(
