@@ -118,6 +118,8 @@ Context: ${b.description?.slice(0, 500) || 'No description available'}`,
 
   async function addToLibrary(status) {
     if (!user) { navigate('/login'); return; }
+    // Optimistic update
+    setLibraryEntry(prev => prev ? { ...prev, status } : { status, book_id: id });
     try {
       if (libraryEntry) {
         const updated = await base44.entities.UserLibrary.update(libraryEntry.id, { status });

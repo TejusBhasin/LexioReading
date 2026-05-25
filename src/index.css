@@ -101,14 +101,16 @@
   border: 1px solid var(--lx-border);
   border-radius: var(--radius, 6px);
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: 1rem;
   outline: none;
   transition: border-color 0.15s ease;
+  touch-action: manipulation;
 }
 .lx-input:focus { border-color: var(--lx-accent); }
 .lx-input::placeholder { color: var(--text-muted); }
 
 .lx-btn-primary {
+  touch-action: manipulation;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -127,6 +129,7 @@
 .lx-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .lx-btn-ghost {
+  touch-action: manipulation;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;

@@ -108,14 +108,8 @@ export default function ReadingLogPage() {
     if (fullscreen) toggleFullscreen();
   }
 
-  async function toggleFullscreen() {
-    if (!fullscreen) {
-      try { await document.documentElement.requestFullscreen(); } catch (e) {}
-      setFullscreen(true);
-    } else {
-      try { await document.exitFullscreen(); } catch (e) {}
-      setFullscreen(false);
-    }
+  function toggleFullscreen() {
+    setFullscreen(f => !f);
   }
 
   async function saveLog(withReflection = false) {

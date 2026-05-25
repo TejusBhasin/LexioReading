@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, Bell } from 'lucide-react';
 import ProfileExport from '@/components/profile/ProfileExport';
 import PrivacyTab from '@/components/profile/PrivacyTab';
+import RemindersTab from '@/components/profile/RemindersTab';
 
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -12,6 +13,7 @@ const TABS = [
   { id: 'preferences', label: 'Preferences', icon: Settings },
   { id: 'stats', label: 'Stats', icon: BookOpen },
   { id: 'privacy', label: 'Privacy', icon: User },
+  { id: 'reminders', label: 'Reminders', icon: Bell },
   { id: 'history', label: 'Chat History', icon: MessageSquare },
   { id: 'theme', label: 'Personalize', icon: Palette },
   { id: 'export', label: 'Export Card', icon: Download },
@@ -396,6 +398,10 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+      )}
+
+      {tab === 'reminders' && (
+        <RemindersTab user={user} />
       )}
 
       {tab === 'export' && (
