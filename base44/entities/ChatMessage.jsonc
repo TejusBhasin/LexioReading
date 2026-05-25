@@ -46,9 +46,6 @@
     },
     "delete": {
       "data.user_email": "{{user.email}}"
-    },
-    "write": {
-      "data.user_email": "{{user.email}}"
     }
   }
 }
