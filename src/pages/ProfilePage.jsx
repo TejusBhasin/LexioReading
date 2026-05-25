@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download } from 'lucide-react';
 import ProfileExport from '@/components/profile/ProfileExport';
 import PrivacyTab from '@/components/profile/PrivacyTab';
-import GoogleCalendarReminders from '@/components/profile/GoogleCalendarReminders';
+
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { applyTheme, GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
@@ -155,8 +155,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8">
-      {/* Google Calendar Reminders */}
-      <GoogleCalendarReminders user={user} />
+
 
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
