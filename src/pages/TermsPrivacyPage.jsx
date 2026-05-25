@@ -64,8 +64,8 @@ export default function TermsPrivacyPage() {
             <p>
               <strong style={{ color: 'var(--text-primary)' }}>Your Privacy Matters</strong>
             </p>
-            <p>
-              Lexio collects only the data necessary to provide a personalized reading experience. We take your privacy seriously.
+            <p>Lexio collects only the data necessary to provide a personalized reading experience. We take your privacy seriously. Your data 
+
             </p>
 
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Data We Collect</h3>
@@ -125,7 +125,7 @@ export default function TermsPrivacyPage() {
             </p>
 
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Contact</h3>
-            <p>Questions about privacy? Contact support through the app or reach out to our team (TEJUSBHASIN17@GMAIL.COM. We are committed to transparency.
+            <p>Questions about privacy? Contact support through the app or reach out to our team (TEJUSBHASIN17@GMAIL.COM). We are committed to transparency.
 
             </p>
           </div>
