@@ -47,12 +47,12 @@
   ],
   "rls": {
     "create": {
-      "user_email": "{{user.email}}"
+      "data.user_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "user_email": "{{user.email}}"
+          "data.user_email": "{{user.email}}"
         },
         {
           "data.leaderboard_opt_in": true
@@ -60,10 +60,10 @@
       ]
     },
     "update": {
-      "user_email": "{{user.email}}"
+      "data.user_email": "{{user.email}}"
     },
     "delete": {
-      "user_email": "{{user.email}}"
+      "data.user_email": "{{user.email}}"
     }
   }
 }
