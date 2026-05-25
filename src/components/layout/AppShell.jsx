@@ -18,7 +18,6 @@ const NAV_ITEMS = [
 
 const EXTRA_NAV = [
   { path: '/vault', icon: Lock, label: 'Vault' },
-  { path: '/wrapped', icon: Sparkles, label: 'Wrapped' },
 ];
 
 export default function AppShell({ children, user }) {

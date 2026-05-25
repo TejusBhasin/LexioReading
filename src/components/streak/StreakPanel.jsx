@@ -70,8 +70,31 @@ export default function StreakPanel({ user }) {
     setPoints(updated);
   }
 
-  if (loading) return null;
-  if (!points) return null;
+  if (loading) return <div className="lx-card p-5 mb-6 text-center text-sm" style={{ color: 'var(--text-muted)' }}>Loading streak...</div>;
+
+  if (!points) return (
+    <div className="lx-card p-6 mb-6 text-center">
+      <div className="text-4xl mb-3">🔥</div>
+      <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Start Your Streak!</h2>
+      <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Log your first reading session to begin your streak and earn points.</p>
+      <div className="space-y-2 text-left max-w-sm mx-auto">
+        {[
+          { emoji: '🔥', label: 'Daily Streak', desc: 'Log every day to keep it alive' },
+          { emoji: '⚡', label: 'Earn Points', desc: 'Log (+3) · Review (+5) · Chat (+1) · Finish (+10)' },
+          { emoji: '🛡️', label: 'Streak Freeze', desc: 'Buy shields to protect your streak (15 pts)' },
+          { emoji: '🏆', label: 'Leaderboard', desc: 'Compete with readers worldwide when you opt in' },
+        ].map(({ emoji, label, desc }) => (
+          <div key={label} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
+            <span className="text-xl flex-shrink-0">{emoji}</span>
+            <div>
+              <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{label}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const totalPts = points.total_points || 0;
   const freezes = points.streak_freeze_count || 0;
