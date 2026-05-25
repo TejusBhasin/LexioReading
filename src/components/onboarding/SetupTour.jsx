@@ -182,6 +182,7 @@ export default function SetupTour({ user, userProfile, onComplete }) {
           </div>
         )}
 
+
         {currentStep === 'done' && (
           <div className="text-center">
             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"

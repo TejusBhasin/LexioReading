@@ -50,6 +50,8 @@ const AuthenticatedApp = () => {
   }
 
   return (
+    <>
+    <PointNotificationContainer />
     <AppShell user={user}>
       <Routes>
         <Route path="/" element={<DashboardPage />} />
@@ -68,6 +70,7 @@ const AuthenticatedApp = () => {
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AppShell>
+    </>  
   );
 };
 
@@ -79,7 +82,6 @@ function App() {
           <AuthenticatedApp />
         </Router>
         <Toaster />
-        <PointNotificationContainer />
       </QueryClientProvider>
     </AuthProvider>
   );
