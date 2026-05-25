@@ -64,56 +64,21 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "user_email": "{{user.email}}"
-        },
-        {
-          "data.club_id": {
-            "$in": [
-              {
-                "$query": {
-                  "collection": "ReadingClub",
-                  "filter": {
-                    "creator_email": "{{user.email}}"
-                  },
-                  "pipeline": [
-                    {
-                      "$project": {
-                        "_id": 0,
-                        "id": "$id"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ]
+      "created_by_id": "{{user.id}}"
     },
     "read": {
       "$or": [
         {
-          "user_email": "{{user.email}}"
+          "data.user_email": "{{user.email}}"
         },
         {
           "data.club_id": {
             "$in": [
               {
-                "$query": {
-                  "collection": "ReadingClub",
-                  "filter": {
-                    "member_emails": "{{user.email}}"
-                  },
-                  "pipeline": [
-                    {
-                      "$project": {
-                        "_id": 0,
-                        "id": "$id"
-                      }
-                    }
-                  ]
+                "entity": "ReadingClub",
+                "field": "id",
+                "query": {
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]
@@ -124,25 +89,16 @@
     "update": {
       "$or": [
         {
-          "user_email": "{{user.email}}"
+          "data.user_email": "{{user.email}}"
         },
         {
           "data.club_id": {
             "$in": [
               {
-                "$query": {
-                  "collection": "ReadingClub",
-                  "filter": {
-                    "creator_email": "{{user.email}}"
-                  },
-                  "pipeline": [
-                    {
-                      "$project": {
-                        "_id": 0,
-                        "id": "$id"
-                      }
-                    }
-                  ]
+                "entity": "ReadingClub",
+                "field": "id",
+                "query": {
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]
@@ -153,27 +109,16 @@
     "delete": {
       "$or": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "data.user_email": "{{user.email}}"
         },
         {
           "data.club_id": {
             "$in": [
               {
-                "$query": {
-                  "collection": "ReadingClub",
-                  "filter": {
-                    "creator_email": "{{user.email}}"
-                  },
-                  "pipeline": [
-                    {
-                      "$project": {
-                        "_id": 0,
-                        "id": "$id"
-                      }
-                    }
-                  ]
+                "entity": "ReadingClub",
+                "field": "id",
+                "query": {
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]
