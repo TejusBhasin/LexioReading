@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Link as LinkIcon } from 'lucide-react';
+import { Check, Link as LinkIcon, Calendar, LogOut } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 
@@ -9,10 +9,14 @@ const CONTENT_THEMES = [
   'Divorce/Separation', 'Addiction', 'War', 'Abuse', 'Mental illness', 'Religion', 'Politics'
 ];
 
+const CONNECTOR_ID = '6a137f90ca344552dcf8ff6d'; // Lexio Reading Reminders
+
 export default function PrivacyTab({ user }) {
   const [profile, setProfile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [gcalConnected, setGcalConnected] = useState(false);
+  const [gcalChecking, setGcalChecking] = useState(false);
 
   useEffect(() => {
     if (user?.email) load();
@@ -23,6 +27,39 @@ export default function PrivacyTab({ user }) {
       const p = await base44.entities.UserProfile.filter({ user_email: user.email });
       if (p[0]) setProfile(p[0]);
       else setProfile({ user_email: user.email, is_public: true, show_library: true, show_stats: true, show_reviews: true, blacklisted_themes: [], age_filter: 'all', reading_reminder_days: [], reading_reminder_time: '20:00' });
+      checkGcalConnection();
+    } catch (e) {}
+  }
+
+  async function checkGcalConnection() {
+    setGcalChecking(true);
+    try {
+      // Try calling a backend function that uses the connector — if it fails, user isn't connected
+      await base44.functions.invoke('testGcalConnection', {});
+      setGcalConnected(true);
+    } catch (e) {
+      setGcalConnected(false);
+    }
+    setGcalChecking(false);
+  }
+
+  async function connectGcal() {
+    try {
+      const url = await base44.connectors.connectAppUser(CONNECTOR_ID);
+      const popup = window.open(url, '_blank');
+      const timer = setInterval(() => {
+        if (!popup || popup.closed) {
+          clearInterval(timer);
+          checkGcalConnection();
+        }
+      }, 500);
+    } catch (e) {}
+  }
+
+  async function disconnectGcal() {
+    try {
+      await base44.connectors.disconnectAppUser(CONNECTOR_ID);
+      setGcalConnected(false);
     } catch (e) {}
   }
 
@@ -146,9 +183,32 @@ export default function PrivacyTab({ user }) {
         <input type="time" className="lx-input w-auto text-sm"
           value={profile.reading_reminder_time || '20:00'}
           onChange={e => setProfile(p => ({ ...p, reading_reminder_time: e.target.value }))} />
-        <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-          💡 Google Calendar integration coming soon. Your preferences are saved.
-        </p>
+
+        {/* Google Calendar Connection */}
+        <div className="mt-4 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar size={16} style={{ color: gcalConnected ? 'var(--lx-accent)' : 'var(--text-muted)' }} />
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Google Calendar</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                  {gcalConnected ? 'Reminders enabled' : 'Click to connect'}
+                </p>
+              </div>
+            </div>
+            {gcalChecking ? (
+              <button disabled className="text-xs px-3 py-1.5" style={{ color: 'var(--text-muted)' }}>...</button>
+            ) : gcalConnected ? (
+              <button onClick={disconnectGcal} className="lx-btn-ghost text-xs py-1.5 px-3 flex items-center gap-1">
+                <LogOut size={12} /> Disconnect
+              </button>
+            ) : (
+              <button onClick={connectGcal} className="lx-btn-primary text-xs py-1.5 px-3 flex items-center gap-1">
+                <Calendar size={12} /> Connect
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       <button onClick={save} disabled={saving} className="lx-btn-primary">
