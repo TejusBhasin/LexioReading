@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Star, Trash2, Edit3, Check, X } from 'lucide-react';
+import LxSelect from '@/components/ui/LxSelect';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -183,20 +184,12 @@ export default function LibraryPage() {
                   </div>
 
                   {/* Status Select */}
-                  <select
+                  <LxSelect
                     value={book.status}
-                    onChange={e => updateStatus(book.id, e.target.value)}
-                    className="text-xs px-2 py-1 rounded border"
-                    style={{
-                      background: 'var(--bg-elevated)',
-                      color: 'var(--text-secondary)',
-                      borderColor: 'var(--lx-border)',
-                    }}
-                  >
-                    {STATUSES.filter(s => s.key !== 'all').map(s => (
-                      <option key={s.key} value={s.key}>{s.label}</option>
-                    ))}
-                  </select>
+                    onChange={v => updateStatus(book.id, v)}
+                    options={STATUSES.filter(s => s.key !== 'all').map(s => ({ value: s.key, label: s.label }))}
+                    compact
+                  />
                 </div>
 
                 {/* Rating */}

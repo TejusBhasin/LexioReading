@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles, Menu, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -18,6 +19,14 @@ const NAV_ITEMS = [
 
 const EXTRA_NAV = [
   { path: '/vault', icon: Lock, label: 'Vault' },
+];
+
+const BOTTOM_NAV_ITEMS = [
+  { path: '/', icon: LayoutDashboard, label: 'Home' },
+  { path: '/discover', icon: Compass, label: 'Discover' },
+  { path: '/library', icon: BookOpen, label: 'Library' },
+  { path: '/reading-log', icon: Clock, label: 'Log' },
+  { path: '/profile', icon: User, label: 'Profile' },
 ];
 
 export default function AppShell({ children, user }) {
@@ -83,7 +92,7 @@ export default function AppShell({ children, user }) {
         />
       )}
       {/* Top Nav */}
-      <header className="sticky top-0 z-50 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)' }}>
+      <header className="sticky top-0 z-50 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             <img
@@ -149,8 +158,8 @@ export default function AppShell({ children, user }) {
 
       {/* Mobile Slide-down Menu */}
       {mobileMenuOpen && (
-        <div ref={menuRef} className="md:hidden fixed top-14 left-0 right-0 z-40 border-b shadow-lg"
-          style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)' }}>
+        <div ref={menuRef} className="md:hidden fixed left-0 right-0 z-40 border-b shadow-lg"
+          style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', top: 'calc(3.5rem + env(safe-area-inset-top, 0px))' }}>
           <nav className="px-4 py-3 space-y-1">
             {[...NAV_ITEMS, ...EXTRA_NAV].map(({ path, icon: MIcon, label }) => {
               const active = location.pathname === path;
@@ -174,9 +183,39 @@ export default function AppShell({ children, user }) {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 page-enter">
-        {children}
+      <main className="flex-1">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t"
+        style={{
+          background: 'var(--bg-secondary)',
+          borderColor: 'var(--lx-border)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}>
+        {BOTTOM_NAV_ITEMS.map(({ path, icon: BotIcon, label }) => {
+          const active = location.pathname === path;
+          return (
+            <Link key={path} to={path}
+              className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors"
+              style={{ color: active ? 'var(--lx-accent)' : 'var(--text-muted)' }}>
+              <BotIcon size={20} />
+              <span className="text-[10px] font-medium">{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
     </div>
   );

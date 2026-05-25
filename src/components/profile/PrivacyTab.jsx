@@ -12,6 +12,9 @@ export default function PrivacyTab({ user }) {
   const [profile, setProfile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteInput, setDeleteInput] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user?.email) load();
@@ -52,6 +55,19 @@ export default function PrivacyTab({ user }) {
         ? p.blacklisted_themes.filter(x => x !== t)
         : [...(p.blacklisted_themes || []), t]
     }));
+  }
+
+  async function deleteAccount() {
+    setDeleting(true);
+    try {
+      const libs = await base44.entities.UserLibrary.filter({ user_email: user.email });
+      await Promise.all(libs.map(l => base44.entities.UserLibrary.delete(l.id)));
+      const prefs = await base44.entities.UserPreferences.filter({ user_email: user.email });
+      await Promise.all(prefs.map(p => base44.entities.UserPreferences.delete(p.id)));
+      if (profile?.id) await base44.entities.UserProfile.delete(profile.id);
+      base44.auth.logout();
+    } catch (e) {}
+    setDeleting(false);
   }
 
   if (!profile) return <div style={{ color: 'var(--text-muted)' }}>Loading...</div>;
@@ -133,6 +149,47 @@ export default function PrivacyTab({ user }) {
       <button onClick={save} disabled={saving} className="lx-btn-primary">
         {saved ? <><Check size={14} /> Saved!</> : saving ? 'Saving...' : 'Save Privacy Settings'}
       </button>
+
+      {/* Danger Zone */}
+      <div className="mt-10 pt-6" style={{ borderTop: '1px solid rgba(239,68,68,0.2)' }}>
+        <h3 className="font-bold mb-3 text-sm uppercase tracking-wider" style={{ color: '#f87171' }}>Danger Zone</h3>
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-sm px-4 py-2 rounded transition-all"
+            style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+            Delete My Account Data
+          </button>
+        ) : (
+          <div className="p-4 rounded-lg" style={{ border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.05)' }}>
+            <p className="text-sm mb-3" style={{ color: '#f87171' }}>
+              This permanently deletes your library, preferences, and profile. Type <strong>DELETE</strong> to confirm.
+            </p>
+            <input
+              className="lx-input text-sm mb-3"
+              placeholder="Type DELETE"
+              value={deleteInput}
+              onChange={e => setDeleteInput(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <button
+                disabled={deleteInput !== 'DELETE' || deleting}
+                onClick={deleteAccount}
+                className="text-sm px-4 py-2 rounded font-bold transition-all"
+                style={{
+                  background: deleteInput === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.3)',
+                  color: 'white',
+                  opacity: deleting ? 0.6 : 1,
+                }}>
+                {deleting ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+              <button onClick={() => { setShowDeleteConfirm(false); setDeleteInput(''); }} className="lx-btn-ghost text-sm">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { awardPoints } from '@/lib/points';
+import LxSelect from '@/components/ui/LxSelect';
 import StreakPanel from '@/components/streak/StreakPanel';
 import PointsLeaderboard from '@/components/streak/PointsLeaderboard';
 
@@ -285,15 +286,15 @@ export default function ReadingLogPage() {
             {library.length > 0 && (
               <div className="mb-4">
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Currently reading</label>
-                <select className="lx-input" value={selectedBook?.id || ''}
-                  onChange={e => {
-                    const b = library.find(l => l.id === e.target.value);
+                <LxSelect
+                  value={selectedBook?.id || ''}
+                  onChange={v => {
+                    const b = library.find(l => l.id === v);
                     setSelectedBook(b);
                     if (b) setForm(f => ({ ...f, book_title: b.book_title, book_author: b.book_author, book_id: b.book_id }));
                   }}
-                  style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}>
-                  {library.map(b => <option key={b.id} value={b.id}>{b.book_title}</option>)}
-                </select>
+                  options={library.map(b => ({ value: b.id, label: b.book_title }))}
+                />
               </div>
             )}
 
@@ -395,14 +396,15 @@ export default function ReadingLogPage() {
               {library.length > 0 && (
                 <div>
                   <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Pick from library</label>
-                  <select className="lx-input text-sm" value={selectedBook?.id || ''} onChange={e => {
-                    const b = library.find(l => l.id === e.target.value);
+                  <LxSelect
+                  value={selectedBook?.id || ''}
+                  onChange={v => {
+                    const b = library.find(l => l.id === v);
                     setSelectedBook(b);
                     if (b) setForm(f => ({ ...f, book_title: b.book_title, book_author: b.book_author, book_id: b.book_id }));
-                  }} style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}>
-                    <option value="">select book...</option>
-                    {library.map(b => <option key={b.id} value={b.id}>{b.book_title}</option>)}
-                  </select>
+                  }}
+                  options={[{ value: '', label: 'Select book...' }, ...library.map(b => ({ value: b.id, label: b.book_title }))]}
+                />
                 </div>
               )}
               <div>

@@ -84,7 +84,8 @@ export function getBaseTheme(mode, colorScheme) {
 
 export function applyTheme(prefs) {
   const mode = prefs?.theme_mode || 'bold';
-  const colorScheme = prefs?.color_scheme || 'dark';
+  const systemDark = !prefs?.color_scheme && window.matchMedia?.('(prefers-color-scheme: dark)').matches !== false;
+  const colorScheme = prefs?.color_scheme || (systemDark ? 'dark' : 'dark');
   const base = getBaseTheme(mode, colorScheme);
 
   const final = { ...base };
