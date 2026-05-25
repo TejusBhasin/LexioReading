@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Search, TrendingUp, RefreshCw } from 'lucide-react';
+import { Sparkles, Search, TrendingUp, RefreshCw, BookMarked } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { searchBooks } from '@/lib/googleBooks';
-import { SAMPLE_BOOKS } from '@/lib/theme';
+import { searchBooks, FALLBACK_TRENDING, EDITORS_PICKS } from '@/lib/googleBooks';
+
 import BookGrid from '@/components/books/BookGrid';
 import { useAuth } from '@/lib/AuthContext';
 
 const TRENDING_QUERIES = ['bestseller 2024', 'science fiction award winner', 'mystery thriller', 'literary fiction', 'fantasy epic'];
+
+const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Romance', 'Historical', 'Thriller', 'Non-Fiction'];
 
 export default function DiscoverPage() {
   const { user, isAuthenticated } = useAuth();
@@ -21,6 +23,7 @@ export default function DiscoverPage() {
   const [genRec, setGenRec] = useState(false);
   const [showRecs, setShowRecs] = useState(true);
   const [showPopular, setShowPopular] = useState(true);
+  const [activeGenre, setActiveGenre] = useState('All');
 
   useEffect(() => {
     if (user?.email) {
@@ -40,10 +43,11 @@ export default function DiscoverPage() {
     setLoading(true);
     try {
       const query = TRENDING_QUERIES[Math.floor(Math.random() * TRENDING_QUERIES.length)];
-      const books = await searchBooks(query, 10);
-      setFeaturedBooks(books.filter(b => b.cover_image));
+      const books = await searchBooks(query, 12);
+      const filtered = books.filter(b => b.cover_image);
+      setFeaturedBooks(filtered.length >= 4 ? filtered : FALLBACK_TRENDING);
     } catch (e) {
-      setFeaturedBooks(SAMPLE_BOOKS);
+      setFeaturedBooks(FALLBACK_TRENDING);
     } finally {
       setLoading(false);
     }
@@ -269,13 +273,34 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
         </section>
       )}
 
+      {/* Editor's Picks */}
+      <section className="mb-12">
+        <div className="flex items-center gap-2 mb-5">
+          <BookMarked size={18} style={{ color: 'var(--lx-accent)' }} />
+          <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Editor's Picks</h2>
+        </div>
+        <BookGrid books={EDITORS_PICKS} onSave={saveBook} savedIds={savedIds} />
+      </section>
+
       {/* Trending */}
       {showPopular && <section>
-        <div className="flex items-center gap-2 mb-5">
-          <TrendingUp size={18} style={{ color: 'var(--lx-accent)' }} />
-          <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            Trending
-          </h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={18} style={{ color: 'var(--lx-accent)' }} />
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Trending</h2>
+          </div>
+        </div>
+        {/* Genre filter chips */}
+        <div className="flex flex-wrap gap-2 mb-5">
+          {GENRE_FILTERS.map(g => (
+            <button key={g} onClick={() => setActiveGenre(g)}
+              className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
+              style={{
+                background: activeGenre === g ? 'var(--lx-accent)' : 'var(--bg-card)',
+                color: activeGenre === g ? 'var(--bg-primary)' : 'var(--text-secondary)',
+                border: '1px solid var(--lx-border)'
+              }}>{g}</button>
+          ))}
         </div>
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
@@ -284,7 +309,11 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
             ))}
           </div>
         ) : (
-          <BookGrid books={featuredBooks} onSave={saveBook} savedIds={savedIds} />
+          <BookGrid
+            books={activeGenre === 'All' ? featuredBooks : featuredBooks.filter(b => (b.categories || []).some(c => c.toLowerCase().includes(activeGenre.toLowerCase())))}
+            onSave={saveBook}
+            savedIds={savedIds}
+          />
         )}
       </section>}
     </div>
