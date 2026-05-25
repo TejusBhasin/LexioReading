@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
-const BOOK_JOKES = [
-  "I'm reading a book about anti-gravity. It's impossible to put down.",
-  "Why did the book join the gym? To get well-read.",
-  "A book fell on my head. I only have my shelf to blame.",
-  "I told my wife she should embrace her mistakes. She hugged me.",
-  "Why don't books win at poker? They always show their spine.",
-  "My reading list is so long, by the time I finish it, books will read themselves.",
-  "What do you call a book club stuck on the same novel for 3 years? A cult.",
-  "Why was the math book sad? Too many problems.",
-  "I tried to write a joke about books. Still working on the punchline.",
-  "What's the difference between a cat and a comma? One has claws at the end of its paws, the other is a pause at the end of a clause.",
-  "Why do books make terrible comedians? Their delivery is always flat.",
-  "I asked the library if they had books about paranoia. The librarian whispered: 'They're right behind you.'",
-];
-
 const CLASSIFIED_STATS = [
   { label: 'Books added to Lexio libraries', value: '12,847', icon: '📚' },
   { label: 'Reading sessions logged', value: '3,291', icon: '⏱️' },
@@ -47,6 +32,8 @@ export default function EasterEggPage() {
   const [typed, setTyped] = useState('');
   const [cursor, setCursor] = useState(true);
   const [jokeIdx, setJokeIdx] = useState(0);
+  const [jokes, setJokes] = useState([]);
+  const [loadingJokes, setLoadingJokes] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [bookIdea, setBookIdea] = useState(null);
 
@@ -56,8 +43,8 @@ export default function EasterEggPage() {
       setTyped(TYPING_TEXT.slice(0, i + 1));
       i++;
       if (i >= TYPING_TEXT.length) {
-        clearInterval(interval);
-        setTimeout(() => setRevealed(true), 400);
+      clearInterval(interval);
+      setTimeout(() => { setRevealed(true); generateJokes(); }, 400);
       }
     }, 28);
     return () => clearInterval(interval);
@@ -67,6 +54,24 @@ export default function EasterEggPage() {
     const blink = setInterval(() => setCursor(c => !c), 530);
     return () => clearInterval(blink);
   }, []);
+
+  async function generateJokes() {
+    setLoadingJokes(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate 10 short, clever, and funny book/reading-related jokes. Mix puns, observational humor, and nerdy bookworm humor. Keep each joke to 1-2 sentences max. Make them fresh and original.`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            jokes: { type: 'array', items: { type: 'string' } }
+          }
+        }
+      });
+      setJokes(result?.jokes || []);
+      setJokeIdx(0);
+    } catch (e) {}
+    setLoadingJokes(false);
+  }
 
   async function generateBookIdea() {
     setGenerating(true);
@@ -149,18 +154,28 @@ Be creative, hilarious, and surprising. Think "Pride and Prejudice and Zombies" 
 
             {/* Joke Machine */}
             <div className="border p-5" style={{ borderColor: `${green}30`, background: `${green}05` }}>
-              <div className="text-xs mb-3" style={{ color: faintGreen }}>{'>'} MODULE: JOKE_DATABASE.exe — {BOOK_JOKES.length} ENTRIES LOADED</div>
-              <div className="text-lg font-bold mb-3">📖 BOOK JOKE #{jokeIdx + 1} / {BOOK_JOKES.length}</div>
+              <div className="text-xs mb-3" style={{ color: faintGreen }}>{'>'} MODULE: JOKE_DATABASE.exe — {jokes.length || '?'} ENTRIES LOADED</div>
+              <div className="text-lg font-bold mb-3">📖 BOOK JOKE #{jokeIdx + 1}{jokes.length > 0 ? ` / ${jokes.length}` : ''}</div>
               <div className="text-base mb-5 italic" style={{ color: green, minHeight: '3rem' }}>
-                "{BOOK_JOKES[jokeIdx]}"
+                {loadingJokes ? '> GENERATING JOKES...' : jokes[jokeIdx] ? `"${jokes[jokeIdx]}"` : '> LOADING...'}
               </div>
+              <div className="flex gap-3 flex-wrap">
               <button
-                onClick={() => setJokeIdx(i => (i + 1) % BOOK_JOKES.length)}
+                onClick={() => setJokeIdx(i => (i + 1) % Math.max(jokes.length, 1))}
                 className="text-xs px-5 py-2 border transition-all hover:opacity-70"
                 style={{ borderColor: green, color: green, background: 'transparent' }}
               >
                 [LOAD NEXT JOKE]
               </button>
+              <button
+                onClick={generateJokes}
+                disabled={loadingJokes}
+                className="text-xs px-5 py-2 border transition-all hover:opacity-70"
+                style={{ borderColor: `${green}50`, color: dimGreen, background: 'transparent' }}
+              >
+                {loadingJokes ? '[GENERATING...]' : '[NEW JOKES]'}
+              </button>
+              </div>
             </div>
 
             {/* AI Book Idea Generator */}
