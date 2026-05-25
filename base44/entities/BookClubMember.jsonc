@@ -1,0 +1,145 @@
+{
+  "name": "BookClubMember",
+  "type": "object",
+  "properties": {
+    "club_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "member"
+      ],
+      "default": "member"
+    }
+  },
+  "required": [
+    "club_id",
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "data.club_id": {
+            "$in": [
+              {
+                "$query": {
+                  "collection": "ReadingClub",
+                  "filter": {
+                    "creator_email": "{{user.email}}"
+                  },
+                  "pipeline": [
+                    {
+                      "$project": {
+                        "_id": 0,
+                        "id": "$id"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "data.club_id": {
+            "$in": [
+              {
+                "$query": {
+                  "collection": "ReadingClub",
+                  "filter": {
+                    "member_emails": "{{user.email}}"
+                  },
+                  "pipeline": [
+                    {
+                      "$project": {
+                        "_id": 0,
+                        "id": "$id"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "data.club_id": {
+            "$in": [
+              {
+                "$query": {
+                  "collection": "ReadingClub",
+                  "filter": {
+                    "creator_email": "{{user.email}}"
+                  },
+                  "pipeline": [
+                    {
+                      "$project": {
+                        "_id": 0,
+                        "id": "$id"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "data.club_id": {
+            "$in": [
+              {
+                "$query": {
+                  "collection": "ReadingClub",
+                  "filter": {
+                    "creator_email": "{{user.email}}"
+                  },
+                  "pipeline": [
+                    {
+                      "$project": {
+                        "_id": 0,
+                        "id": "$id"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
