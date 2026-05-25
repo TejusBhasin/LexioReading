@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download } from 'lucide-react';
+import ProfileExport from '@/components/profile/ProfileExport';
 import PrivacyTab from '@/components/profile/PrivacyTab';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -12,6 +13,7 @@ const TABS = [
   { id: 'privacy', label: 'Privacy', icon: User },
   { id: 'history', label: 'Chat History', icon: MessageSquare },
   { id: 'theme', label: 'Personalize', icon: Palette },
+  { id: 'export', label: 'Profile Card', icon: Download },
 ];
 
 const PACING_OPTIONS = [
@@ -424,8 +426,6 @@ export default function ProfilePage() {
               ))}
             </div>
           </div>
-
-          {/* Color Scheme */}
           <div>
             <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Color Scheme</h3>
             <div className="flex gap-2">
@@ -433,37 +433,21 @@ export default function ProfilePage() {
                 { value: 'dark', label: 'Dark' },
                 { value: 'light', label: 'Light' },
               ].map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => {
-                    const updated = { ...prefs, color_scheme: opt.value };
-                    setPrefs(updated);
-                    applyTheme(updated);
-                  }}
+                <button key={opt.value} onClick={() => { const updated = { ...prefs, color_scheme: opt.value }; setPrefs(updated); applyTheme(updated); }}
                   className="px-5 py-2 rounded font-medium transition-all"
-                  style={{
-                    background: prefs.color_scheme === opt.value ? 'var(--lx-accent)' : 'var(--bg-elevated)',
-                    color: prefs.color_scheme === opt.value ? 'var(--bg-primary)' : 'var(--text-secondary)',
-                    border: `1px solid ${prefs.color_scheme === opt.value ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
-                  }}
-                >
+                  style={{ background: prefs.color_scheme === opt.value ? 'var(--lx-accent)' : 'var(--bg-elevated)', color: prefs.color_scheme === opt.value ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${prefs.color_scheme === opt.value ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
                   {opt.label}
                 </button>
               ))}
             </div>
           </div>
-
-          {/* Presets */}
           <div>
             <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Color Presets</h3>
             <div className="flex flex-wrap gap-3">
               {PRESET_COLORS.map(preset => (
-                <button
-                  key={preset.name}
-                  onClick={() => applyPreset(preset)}
+                <button key={preset.name} onClick={() => applyPreset(preset)}
                   className="flex items-center gap-2 px-3 py-2 rounded transition-all"
-                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}
-                >
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
                   <div className="w-4 h-4 rounded-full" style={{ background: preset.primary }} />
                   <div className="w-4 h-4 rounded-full" style={{ background: preset.accent }} />
                   <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{preset.name}</span>
@@ -471,8 +455,6 @@ export default function ProfilePage() {
               ))}
             </div>
           </div>
-
-          {/* Custom Colors */}
           <div>
             <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Custom Colors</h3>
             <div className="grid grid-cols-3 gap-4">
@@ -484,30 +466,24 @@ export default function ProfilePage() {
                 <div key={key}>
                   <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>{label}</label>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={prefs[key] || '#e8c547'}
-                      onChange={e => {
-                        const updated = { ...prefs, [key]: e.target.value };
-                        setPrefs(updated);
-                        applyTheme(updated);
-                      }}
-                      className="w-10 h-10 rounded cursor-pointer border-0 p-0.5"
-                      style={{ background: 'var(--bg-elevated)' }}
-                    />
-                    <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-                      {prefs[key] || '#e8c547'}
-                    </span>
+                    <input type="color" value={prefs[key] || '#e8c547'}
+                      onChange={e => { const updated = { ...prefs, [key]: e.target.value }; setPrefs(updated); applyTheme(updated); }}
+                      className="w-10 h-10 rounded cursor-pointer border-0 p-0.5" style={{ background: 'var(--bg-elevated)' }} />
+                    <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{prefs[key] || '#e8c547'}</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-
           <button onClick={savePrefs} disabled={saving} className="lx-btn-primary">
             {saved ? <><Check size={14} /> Saved!</> : saving ? 'Saving...' : 'Save Theme'}
           </button>
         </div>
+      )}
+
+      {/* PROFILE EXPORT */}
+      {tab === 'export' && (
+        <ProfileExport user={user} />
       )}
     </div>
   );

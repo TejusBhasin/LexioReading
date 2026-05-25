@@ -25,6 +25,11 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
         has_spoilers: hasSpoilers,
         approved: true,
       });
+      // Award review points
+      try {
+        const { awardPoints } = await import('@/lib/points');
+        await awardPoints(userEmail, 'review', username);
+      } catch (e) {}
       onSubmitted();
     } catch (e) {}
     setSubmitting(false);
