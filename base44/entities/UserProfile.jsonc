@@ -1,0 +1,98 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_library": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_stats": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_reviews": {
+      "type": "boolean",
+      "default": true
+    },
+    "tc_agreed": {
+      "type": "boolean",
+      "default": false
+    },
+    "tc_agreed_date": {
+      "type": "string"
+    },
+    "age_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "age_filter": {
+      "type": "string",
+      "enum": [
+        "all",
+        "teen",
+        "adult"
+      ],
+      "default": "all"
+    },
+    "blacklisted_themes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "gcal_connected": {
+      "type": "boolean",
+      "default": false
+    },
+    "reading_reminder_days": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reading_reminder_time": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "user_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "data.is_public": true
+        }
+      ]
+    },
+    "update": {
+      "user_email": "{{user.email}}"
+    },
+    "delete": {
+      "user_email": "{{user.email}}"
+    }
+  }
+}
