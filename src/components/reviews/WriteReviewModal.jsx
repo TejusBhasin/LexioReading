@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Star } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { awardPoints } from '@/lib/points';
 
 export default function WriteReviewModal({ book, username, userEmail, onClose, onSubmitted }) {
   const [rating, setRating] = useState(0);
@@ -25,11 +26,7 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
         has_spoilers: hasSpoilers,
         approved: true,
       });
-      // Award review points
-      try {
-        const { awardPoints } = await import('@/lib/points');
-        await awardPoints(userEmail, 'review', username);
-      } catch (e) {}
+      await awardPoints(userEmail, 'review', username);
       onSubmitted();
     } catch (e) {}
     setSubmitting(false);

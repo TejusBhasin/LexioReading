@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, ChevronDown } from 'lucide-react';
+import { Send, Sparkles } from 'lucide-react';
+import { awardPoints } from '@/lib/points';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 function uuidv4() {
@@ -204,6 +205,7 @@ Keep responses focused and under 300 words unless listing many books.`,
       });
 
       setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
+      await awardPoints(user.email, 'chat', user.full_name);
     } catch (e) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I had trouble with that. Please try again!' }]);
     } finally {
