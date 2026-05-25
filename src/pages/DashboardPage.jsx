@@ -89,29 +89,12 @@ export default function DashboardPage() {
       <div className="mb-8 flex items-start justify-between">
         <div>
           <h1 className="font-display text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          Welcome back, {user?.full_name?.split(' ')[0] || 'Reader'} 👋
+            Welcome back, {user?.full_name?.split(' ')[0] || 'Reader'} 👋
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Here's your reading overview</p>
-          </div>
-          <button onClick={() => setShowTourPrompt(true)} title="Take the setup tour again"
-            className="lx-btn-ghost text-xs py-1.5 px-2 flex items-center gap-1">
-            <HelpCircle size={13} /> Tour
-          </button>
-          </div>
-        <button
-          onClick={() => {
-            // Re-trigger the setup tour by clearing onboarding_complete
-            import('@/api/base44Client').then(({ base44 }) => {
-              base44.entities.UserProfile.filter({ user_email: user.email }).then(p => {
-                if (p[0]) base44.entities.UserProfile.update(p[0].id, { onboarding_complete: false });
-                window.location.reload();
-              });
-            });
-          }}
-          className="flex items-center gap-1 text-xs py-1.5 px-3 rounded transition-all flex-shrink-0"
-          style={{ color: 'var(--text-muted)', border: '1px solid var(--lx-border)', background: 'var(--bg-card)' }}
-          title="Retake the setup tour"
-        >
+        </div>
+        <button onClick={() => setShowTourPrompt(true)} title="Retake the setup tour"
+          className="lx-btn-ghost text-xs py-1.5 px-2 flex items-center gap-1 flex-shrink-0">
           <HelpCircle size={13} /> Tour
         </button>
       </div>
