@@ -228,7 +228,7 @@ Be creative, hilarious, and surprising. Think "Pride and Prejudice and Zombies" 
             {/* Footer */}
             <div className="text-center py-4">
               <div className="text-xs mb-4" style={{ color: faintGreen }}>
-                ████ THIS PAGE IS CLASSIFIED ████ DO NOT SCREENSHOT ████ (please do, it took forever) ████
+                ████ THIS PAGE IS CLASSIFIED ████ YES, WE'RE SERIOUS. DON'T SHARE THIS PAGE. ████
               </div>
               <a href="/discover" className="text-sm underline" style={{ color: dimGreen }}>
                 {'>'} [ESC] RETURN TO REALITY
