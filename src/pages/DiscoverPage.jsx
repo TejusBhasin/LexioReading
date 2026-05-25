@@ -257,7 +257,7 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
           </div>
 
           {recommendations.length > 0 ? (
-            <BookGrid books={recommendations} onSave={saveBook} savedIds={savedIds} />
+            <BookGrid books={recommendations.filter(r => r.book_cover)} onSave={saveBook} savedIds={savedIds} />
           ) : (
             <div
               className="py-10 rounded-lg text-center"
@@ -279,7 +279,7 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
           <BookMarked size={18} style={{ color: 'var(--lx-accent)' }} />
           <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Editor's Picks</h2>
         </div>
-        <BookGrid books={EDITORS_PICKS} onSave={saveBook} savedIds={savedIds} />
+        <BookGrid books={EDITORS_PICKS.filter(b => b.cover_image)} onSave={saveBook} savedIds={savedIds} />
       </section>
 
       {/* Trending */}

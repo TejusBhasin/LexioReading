@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, ShoppingCart, Star, Sparkles, RefreshCw, ExternalLink, PenSquare } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Sparkles, RefreshCw, PenSquare, Share2, Trash2, Clock, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getBookById, searchBooks } from '@/lib/googleBooks';
 import { useAuth } from '@/lib/AuthContext';
@@ -40,6 +40,10 @@ export default function BookDetailPage() {
   const [showWriteModal, setShowWriteModal] = useState(false);
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [ageVerified, setAgeVerified] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [noteSaved, setNoteSaved] = useState(false);
+  const [currentPage, setCurrentPage] = useState('');
+  const [shareMsg, setShareMsg] = useState('');
 
   useEffect(() => {
     loadBook();
@@ -86,7 +90,11 @@ export default function BookDetailPage() {
   async function loadLibraryEntry() {
     try {
       const entries = await base44.entities.UserLibrary.filter({ user_email: user.email, book_id: id });
-      if (entries.length > 0) setLibraryEntry(entries[0]);
+      if (entries.length > 0) {
+        setLibraryEntry(entries[0]);
+        setNotes(entries[0].notes || '');
+        setCurrentPage(entries[0].current_page ? String(entries[0].current_page) : '');
+      }
       const lib = await base44.entities.UserLibrary.filter({ user_email: user.email });
       setSavedIds(lib.map(l => l.book_id));
     } catch (e) {}
@@ -191,6 +199,52 @@ Return as JSON array with title and author for each.`,
     } catch (e) {}
   }
 
+  async function removeFromLibrary() {
+    if (!libraryEntry?.id) return;
+    if (!confirm('Remove this book from your library?')) return;
+    await base44.entities.UserLibrary.delete(libraryEntry.id);
+    setLibraryEntry(null);
+    setSavedIds(prev => prev.filter(sid => sid !== id));
+    setNotes('');
+    setCurrentPage('');
+  }
+
+  async function updateRating(rating) {
+    if (!user) { navigate('/login'); return; }
+    if (libraryEntry?.id) {
+      const updated = await base44.entities.UserLibrary.update(libraryEntry.id, { rating });
+      setLibraryEntry(updated);
+    } else {
+      const entry = await base44.entities.UserLibrary.create({
+        user_email: user.email, book_id: id, book_title: book.title,
+        book_author: book.author, book_cover: book.cover_image,
+        status: 'want_to_read', rating, date_added: new Date().toISOString(),
+      });
+      setLibraryEntry(entry);
+      setSavedIds(prev => [...prev, id]);
+    }
+  }
+
+  async function saveNotes() {
+    if (!libraryEntry?.id) return;
+    await base44.entities.UserLibrary.update(libraryEntry.id, {
+      notes,
+      current_page: currentPage ? parseInt(currentPage) : null,
+    });
+    setNoteSaved(true);
+    setTimeout(() => setNoteSaved(false), 2000);
+  }
+
+  function shareBook() {
+    try {
+      navigator.clipboard.writeText(window.location.href);
+      setShareMsg('Copied!');
+    } catch (e) {
+      setShareMsg('Copy URL manually');
+    }
+    setTimeout(() => setShareMsg(''), 2500);
+  }
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 flex items-center justify-center">
@@ -253,6 +307,11 @@ Return as JSON array with title and author for each.`,
           <div className="flex items-center gap-4 mb-4 text-sm" style={{ color: 'var(--text-muted)' }}>
             {book.published_date && <span>{book.published_date.slice(0, 4)}</span>}
             {book.page_count > 0 && <span>{book.page_count} pages</span>}
+            {book.page_count > 0 && (
+              <span className="flex items-center gap-1">
+                <Clock size={12} /> ~{Math.ceil(book.page_count / 60)}h read
+              </span>
+            )}
             {book.average_rating > 0 && (
               <span className="flex items-center gap-1">
                 <Star size={13} fill="var(--lx-accent)" style={{ color: 'var(--lx-accent)' }} />
@@ -269,9 +328,9 @@ Return as JSON array with title and author for each.`,
           )}
 
           {/* Actions */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {/* Library status */}
-            <div className="flex gap-1 flex-wrap">
+          <div className="space-y-3 mb-6">
+            {/* Status + remove */}
+            <div className="flex gap-1 flex-wrap items-center">
               {STATUS_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
@@ -286,17 +345,76 @@ Return as JSON array with title and author for each.`,
                   {opt.label}
                 </button>
               ))}
+              {libraryEntry?.id && (
+                <button onClick={removeFromLibrary} title="Remove from library"
+                  className="text-xs px-2.5 py-1.5 rounded transition-all"
+                  style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                  <Trash2 size={11} />
+                </button>
+              )}
             </div>
 
-            {/* Amazon */}
-            <a
-              href={amazonUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="lx-btn-primary text-sm py-1.5"
-            >
-              <ShoppingCart size={13} /> Buy on Amazon
-            </a>
+            {/* Star rating */}
+            {isAuthenticated && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Your rating:</span>
+                <div className="flex gap-0.5 items-center">
+                  {[1,2,3,4,5].map(star => (
+                    <button key={star} onClick={() => updateRating(star)} className="transition-transform hover:scale-110">
+                      <Star size={18}
+                        fill={star <= (libraryEntry?.rating || 0) ? 'var(--lx-accent)' : 'transparent'}
+                        style={{ color: 'var(--lx-accent)' }} />
+                    </button>
+                  ))}
+                  {(libraryEntry?.rating || 0) > 0 && (
+                    <button onClick={() => updateRating(0)} className="ml-1" style={{ color: 'var(--text-muted)' }}>
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Page progress */}
+            {libraryEntry?.status === 'reading' && book.page_count > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Page:</span>
+                <input type="number" min="0" max={book.page_count}
+                  className="lx-input text-xs"
+                  style={{ width: '72px' }}
+                  placeholder="Current"
+                  value={currentPage}
+                  onChange={e => setCurrentPage(e.target.value)}
+                  onBlur={saveNotes}
+                />
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>of {book.page_count}</span>
+                {currentPage && parseInt(currentPage) > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
+                      <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.round(parseInt(currentPage)/book.page_count*100))}%`, background: 'var(--lx-accent)' }} />
+                    </div>
+                    <span className="text-xs font-bold" style={{ color: 'var(--lx-accent)' }}>
+                      {Math.round(parseInt(currentPage)/book.page_count*100)}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Buttons row */}
+            <div className="flex flex-wrap gap-2">
+              <a href={amazonUrl} target="_blank" rel="noopener noreferrer" className="lx-btn-primary text-sm py-1.5">
+                <ShoppingCart size={13} /> Buy on Amazon
+              </a>
+              <button onClick={shareBook} className="lx-btn-ghost text-sm py-1.5">
+                <Share2 size={13} /> {shareMsg || 'Share'}
+              </button>
+              {libraryEntry?.status === 'reading' && (
+                <Link to="/reading-log" className="lx-btn-ghost text-sm py-1.5">
+                  <Clock size={13} /> Log Session
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Description */}
@@ -329,6 +447,25 @@ Return as JSON array with title and author for each.`,
           </p>
         )}
       </div>
+
+      {/* Personal Notes */}
+      {isAuthenticated && libraryEntry?.id && (
+        <div className="mb-10 p-6 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+          <h2 className="font-display text-lg font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <PenSquare size={16} style={{ color: 'var(--lx-accent)' }} /> My Notes
+          </h2>
+          <textarea
+            className="lx-input resize-none text-sm"
+            rows={3}
+            placeholder="Private notes, quotes, or thoughts about this book..."
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+          />
+          <button onClick={saveNotes} className="lx-btn-ghost text-xs py-1.5 mt-2">
+            {noteSaved ? '✓ Saved' : 'Save Notes'}
+          </button>
+        </div>
+      )}
 
       {/* Reviews */}
       <div className="mb-10">

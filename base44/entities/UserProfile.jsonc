@@ -56,22 +56,6 @@
     "onboarding_complete": {
       "type": "boolean",
       "default": false
-    },
-    "reading_reminder_days": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "reading_reminder_time": {
-      "type": "string"
-    },
-    "whatsapp_phone": {
-      "type": "string"
-    },
-    "whatsapp_reminders_enabled": {
-      "type": "boolean",
-      "default": false
     }
   },
   "required": [
