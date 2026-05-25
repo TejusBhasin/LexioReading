@@ -117,8 +117,21 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
           const books = await searchBooks(`${rec.book_title} ${rec.book_author}`, 1);
           const cover = books[0]?.cover_image || null;
           const bookId = books[0]?.google_books_id || rec.book_title.replace(/\s+/g, '-').toLowerCase();
-
           await base44.entities.Recommendation.create({
+            user_email: user.email,
+            book_id: bookId,
+            book_title: rec.book_title,
+            book_author: rec.book_author,
+            book_cover: cover,
+            book_categories: rec.book_categories || [],
+            reasoning: rec.reasoning,
+            hook: rec.hook,
+            source: 'auto',
+            dismissed: false,
+          });
+        } catch (e) {}
+      }));
+      await loadRecommendations();
     } catch (e) {
       console.error(e);
     } finally {
