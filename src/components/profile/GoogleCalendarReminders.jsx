@@ -32,13 +32,26 @@ export default function GoogleCalendarReminders({ user }) {
       }
     } catch (e) {}
 
+    await checkConnection();
+    setChecking(false);
+  }
+
+  async function checkConnection() {
     try {
-      await base44.functions.invoke('testGcalConnection', {});
-      setConnected(true);
+      const res = await base44.functions.invoke('testGcalConnection', {});
+      if (res.data?.connected) {
+        setConnected(true);
+        setError('');
+        return true;
+      } else {
+        setError(res.data?.detail || res.data?.error || 'Not connected');
+        setConnected(false);
+        return false;
+      }
     } catch (e) {
       setConnected(false);
+      return false;
     }
-    setChecking(false);
   }
 
   async function connect() {
@@ -48,15 +61,22 @@ export default function GoogleCalendarReminders({ user }) {
       const timer = setInterval(async () => {
         if (!popup || popup.closed) {
           clearInterval(timer);
-          try {
-            await base44.functions.invoke('testGcalConnection', {});
-            setConnected(true);
-          } catch (e) {
-            setConnected(false);
-          }
+          setChecking(true);
+          // Wait 2s for Base44 to store the connection, then retry up to 5 times
+          let attempts = 0;
+          const retry = setInterval(async () => {
+            attempts++;
+            const ok = await checkConnection();
+            if (ok || attempts >= 5) {
+              clearInterval(retry);
+              setChecking(false);
+            }
+          }, 2000);
         }
       }, 500);
-    } catch (e) {}
+    } catch (e) {
+      setError(e.message || 'Failed to open connect window');
+    }
   }
 
   async function disconnect() {
