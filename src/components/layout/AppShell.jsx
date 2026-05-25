@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles, Menu, X, Newspaper } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
 import SetupTour from '@/components/onboarding/SetupTour.jsx';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { path: '/reading-log', icon: Clock, label: 'Log' },
   { path: '/reviews', icon: Star, label: 'Reviews' },
   { path: '/clubs', icon: Users, label: 'Clubs' },
+  { path: '/forums', icon: Newspaper, label: 'Forums' },
   { path: '/chat', icon: MessageSquare, label: 'Chat' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
