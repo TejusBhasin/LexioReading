@@ -11,7 +11,7 @@ function isWrappedSeason() {
   // Nov 1 - Feb 1
   if (month === 11 || month === 12) return true;
   if (month === 1 && day <= 1) return true;
-  return true; // Always on for dev/demo - in production check above
+  return false;
 }
 
 const PERSONALITY_TYPES = [

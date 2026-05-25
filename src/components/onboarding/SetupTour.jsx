@@ -3,7 +3,7 @@ import { Check, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
 
-const STEPS = ['welcome', 'genres', 'content', 'done'];
+const STEPS = ['welcome', 'genres', 'content', 'streak', 'done'];
 
 const CONTENT_THEMES = [
   'Romance', 'Violence', 'Death/Loss', 'Addiction', 'War', 'Abuse', 'Mental illness'
@@ -148,6 +148,36 @@ export default function SetupTour({ user, userProfile, onComplete }) {
             <div className="flex gap-2">
               <button onClick={() => setStep(1)} className="lx-btn-ghost flex-1 justify-center">Back</button>
               <button onClick={() => setStep(3)} className="lx-btn-primary flex-1 justify-center">Continue</button>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 'streak' && (
+          <div>
+            <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+              🔥 Streak &amp; Points System
+            </h2>
+            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Stay motivated with Lexio's Duolingo-style streak system!</p>
+            <div className="space-y-3 mb-6">
+              {[
+                { emoji: '🔥', title: 'Daily Streak', desc: 'Log a reading session every day to build your streak.' },
+                { emoji: '🛡️', title: 'Streak Freeze', desc: 'Auto-activates to protect your streak if you miss a day. Buy with 15 points.' },
+                { emoji: '❄️', title: 'Ultra Freeze', desc: 'Manually activate a 7-day streak shield. Costs 30 points.' },
+                { emoji: '⚡', title: 'Earn Points', desc: 'Log (+3) · Review (+5) · Chat (+1) · Finish a book (+10) · Max 19/day' },
+                { emoji: '🏆', title: 'Leaderboard', desc: 'Opt-in to compete with readers worldwide.' },
+              ].map(({ emoji, title, desc }) => (
+                <div key={title} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
+                  <span className="text-2xl flex-shrink-0">{emoji}</span>
+                  <div>
+                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{title}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setStep(2)} className="lx-btn-ghost flex-1 justify-center">Back</button>
+              <button onClick={() => setStep(4)} className="lx-btn-primary flex-1 justify-center">Got it!</button>
             </div>
           </div>
         )}

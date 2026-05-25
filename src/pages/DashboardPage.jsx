@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Compass, MessageSquare, Star, Clock, CheckCircle, Bookmark, ArrowRight, Sparkles, Users, Lock, PenLine } from 'lucide-react';
+import { BookOpen, Compass, MessageSquare, Star, Clock, CheckCircle, Bookmark, ArrowRight, Sparkles, Users, Lock, PenLine, HelpCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -80,11 +80,29 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 pb-24 md:pb-8">
       {/* Welcome */}
-      <div className="mb-8">
-        <h1 className="font-display text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          Welcome back, {user?.full_name?.split(' ')[0] || 'Reader'} 👋
-        </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Here's your reading overview</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="font-display text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            Welcome back, {user?.full_name?.split(' ')[0] || 'Reader'} 👋
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Here's your reading overview</p>
+        </div>
+        <button
+          onClick={() => {
+            // Re-trigger the setup tour by clearing onboarding_complete
+            import('@/api/base44Client').then(({ base44 }) => {
+              base44.entities.UserProfile.filter({ user_email: user.email }).then(p => {
+                if (p[0]) base44.entities.UserProfile.update(p[0].id, { onboarding_complete: false });
+                window.location.reload();
+              });
+            });
+          }}
+          className="flex items-center gap-1 text-xs py-1.5 px-3 rounded transition-all flex-shrink-0"
+          style={{ color: 'var(--text-muted)', border: '1px solid var(--lx-border)', background: 'var(--bg-card)' }}
+          title="Retake the setup tour"
+        >
+          <HelpCircle size={13} /> Tour
+        </button>
       </div>
 
       {/* Stats */}

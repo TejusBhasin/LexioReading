@@ -138,6 +138,9 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
       console.error(e);
     } finally {
       setGenRec(false);
+      if (!result?.recommendations?.length) {
+        console.error('No recommendations returned');
+      }
     }
   }
 
@@ -209,7 +212,7 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
           <input
             className="lx-input pl-9"
-            placeholder=""
+            placeholder="Search books by title, author, or genre..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />

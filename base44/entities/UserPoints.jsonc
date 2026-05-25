@@ -1,0 +1,69 @@
+{
+  "name": "UserPoints",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "total_points": {
+      "type": "number",
+      "default": 0
+    },
+    "daily_points": {
+      "type": "number",
+      "default": 0
+    },
+    "daily_points_date": {
+      "type": "string"
+    },
+    "streak_days": {
+      "type": "number",
+      "default": 0
+    },
+    "last_log_date": {
+      "type": "string"
+    },
+    "streak_freeze_count": {
+      "type": "number",
+      "default": 0
+    },
+    "ultra_freeze_active": {
+      "type": "boolean",
+      "default": false
+    },
+    "ultra_freeze_expires": {
+      "type": "string"
+    },
+    "leaderboard_opt_in": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "user_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "data.leaderboard_opt_in": true
+        }
+      ]
+    },
+    "update": {
+      "user_email": "{{user.email}}"
+    },
+    "delete": {
+      "user_email": "{{user.email}}"
+    }
+  }
+}

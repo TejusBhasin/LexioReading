@@ -11,14 +11,51 @@ const DEMO_RESPONSES = [
   "Great question! As a demo user, I can tell you a bit about books. For full personalized recommendations, create a free account!",
 ];
 
+const SUGGESTIONS = [
+  'Recommend something like Harry Potter but darker',
+  'I want a fast-paced thriller',
+  'Best books for learning about AI',
+  'Something emotional that made people cry',
+  'Underrated sci-fi from the last 5 years',
+];
+
 export default function ChatInterface({ user, sessionId: initialSessionId, onNewSession }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [userContext, setUserContext] = useState(null);
   const [loading, setLoading] = useState(false);
   const [sessionId] = useState(initialSessionId || uuidv4());
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const isDemo = !user;
+
+  useEffect(() => {
+    if (user?.email) loadUserContext();
+  }, [user]);
+
+  async function loadUserContext() {
+    try {
+      const [prefs, lib, profile] = await Promise.all([
+        base44.entities.UserPreferences.filter({ user_email: user.email }),
+        base44.entities.UserLibrary.filter({ user_email: user.email }),
+        base44.entities.UserProfile.filter({ user_email: user.email }),
+      ]);
+      const p = prefs[0] || {};
+      const finished = lib.filter(b => b.status === 'finished').map(b => b.book_title).slice(0, 5);
+      const reading = lib.filter(b => b.status === 'reading').map(b => b.book_title).slice(0, 3);
+      setUserContext({
+        genres: (p.favorite_genres || []).join(', ') || 'not set',
+        moods: (p.moods || []).join(', ') || 'not set',
+        pacing: p.pacing || 'any',
+        difficulty: p.difficulty || 'any',
+        dislikes: (p.disliked_content || []).join(', ') || 'none',
+        dislikedGenres: (p.disliked_genres || []).join(', ') || 'none',
+        finished,
+        reading,
+        username: profile[0]?.username || user.full_name || '',
+      });
+    } catch (e) {}
+  }
 
   useEffect(() => {
     if (user?.email && sessionId) {
@@ -87,8 +124,20 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
       // Build context from recent messages
       const recentMessages = messages.slice(-10).map(m => `${m.role}: ${m.content}`).join('\n');
 
+      const contextStr = userContext ? `
+User reading profile:
+- Favorite genres: ${userContext.genres}
+- Reading moods: ${userContext.moods}
+- Pacing preference: ${userContext.pacing}
+- Difficulty preference: ${userContext.difficulty}
+- Disliked content: ${userContext.dislikes}
+- Disliked genres: ${userContext.dislikedGenres}
+- Recently finished: ${userContext.finished.join(', ') || 'none'}
+- Currently reading: ${userContext.reading.join(', ') || 'none'}` : '';
+
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: `You are Lexio, an expert AI book companion. You help users discover books they'll love through natural conversation.
+${contextStr}
 
 Previous conversation:
 ${recentMessages}
@@ -96,8 +145,8 @@ ${recentMessages}
 User message: "${text}"
 
 Your job:
-1. Recommend specific books with titles and authors
-2. Explain WHY each book matches their request
+1. Recommend specific books with titles and authors — always use the user's preferences above
+2. Explain WHY each book matches their request and profile
 3. Ask follow-up questions to refine recommendations
 4. Be enthusiastic but concise — bullet points work well for book lists
 5. Format book recommendations as: **Title** by Author — brief reason
@@ -105,6 +154,9 @@ Your job:
 Keep responses focused and under 300 words unless listing many books.`,
         model: 'claude_sonnet_4_6'
       });
+
+      // Award chat point
+      import('@/lib/points').then(({ awardPoints }) => awardPoints(user.email, 'chat', userContext?.username || ''));
 
       const aiContent = typeof response === 'string' ? response : response?.text || 'Here are some recommendations for you!';
 
@@ -194,6 +246,17 @@ Keep responses focused and under 300 words unless listing many books.`,
           <p className="text-xs text-center mb-2" style={{ color: 'var(--text-muted)' }}>
             Demo mode — <a href="/signup" style={{ color: 'var(--lx-accent)' }}>Sign up</a> for full AI chat
           </p>
+        )}
+        {messages.length <= 1 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {SUGGESTIONS.slice(0, 3).map(s => (
+              <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }}
+                className="text-xs px-2.5 py-1 rounded transition-all truncate max-w-[200px]"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--lx-border)' }}>
+                {s}
+              </button>
+            ))}
+          </div>
         )}
         <div className="flex gap-2">
           <input

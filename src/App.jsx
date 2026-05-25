@@ -19,6 +19,7 @@ import ReviewsPage from '@/pages/ReviewsPage';
 import ReadingLogPage from '@/pages/ReadingLogPage';
 import VaultPage from '@/pages/VaultPage';
 import WrappedPage from '@/pages/WrappedPage';
+import PointNotificationContainer from '@/components/streak/PointNotification';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, isAuthenticated } = useAuth();
@@ -78,6 +79,7 @@ function App() {
           <AuthenticatedApp />
         </Router>
         <Toaster />
+        <PointNotificationContainer />
       </QueryClientProvider>
     </AuthProvider>
   );
