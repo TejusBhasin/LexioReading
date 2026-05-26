@@ -117,19 +117,20 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
     }
 
     try {
-      await base44.entities.ChatMessage.create({ user_email: user.email, role: 'user', content: text, session_id: sessionId });
+      await base44.entities.ChatMessage.create({
+        user_email: user.email, role: 'user', content: text,
+        session_id: sessionId,
+        ...(sessionTitle ? { session_title: sessionTitle } : {})
+      });
+      if (sessionTitle && onNewSession) onNewSession(sessionId, sessionTitle);
 
       const recentMessages = messages.slice(-10).map(m => `${m.role}: ${m.content}`).join('\n');
 
       // Auto-name the session from first user message
       const isFirstMessage = messages.filter(m => m.role === 'user').length === 0;
-      if (isFirstMessage && onNewSession) {
-        const title = text.slice(0, 50).trim() + (text.length > 50 ? '...' : '');
-        onNewSession(sessionId, title);
-        await base44.entities.ChatMessage.filter({ user_email: user.email, session_id: sessionId }, 'created_date', 1).then(existing => {
-          if (existing.length === 0) return;
-        }).catch(() => {});
-      }
+      const sessionTitle = isFirstMessage
+        ? (text.slice(0, 50).trim() + (text.length > 50 ? '...' : ''))
+        : null;
 
       const contextStr = userContext ? `
 USER READING PROFILE (personalize everything based on this):

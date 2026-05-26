@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, MessageSquare, Clock, Sparkles } from 'lucide-react';
+import { Plus, MessageSquare, Sparkles, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ChatInterface from '@/components/chat/ChatInterface';
@@ -55,6 +55,15 @@ export default function ChatPage() {
     }
   }
 
+  async function deleteSession(sid, e) {
+    e.stopPropagation();
+    if (!window.confirm('Delete this chat?')) return;
+    const msgs = await base44.entities.ChatMessage.filter({ user_email: user.email, session_id: sid });
+    await Promise.all(msgs.map(m => base44.entities.ChatMessage.delete(m.id)));
+    setSessions(prev => prev.filter(s => s.id !== sid));
+    if (activeSession === sid) setActiveSession(null);
+  }
+
   function newChat() {
     const newId = uuidv4();
     setActiveSession(newId);
@@ -107,18 +116,25 @@ export default function ChatPage() {
             <button
               key={s.id}
               onClick={() => setActiveSession(s.id)}
-              className="w-full text-left px-4 py-3 border-b transition-all"
+              className="group w-full text-left px-4 py-3 border-b transition-all"
               style={{
                 borderColor: 'var(--lx-border)',
                 background: activeSession === s.id ? 'var(--bg-elevated)' : 'transparent',
                 borderLeft: activeSession === s.id ? `2px solid var(--lx-accent)` : '2px solid transparent',
               }}
             >
-              <div className="flex items-center gap-2">
-                <MessageSquare size={13} style={{ color: 'var(--text-muted)' }} />
-                <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+              <div className="flex items-center gap-2 pr-1">
+                <MessageSquare size={13} style={{ color: 'var(--text-muted)' }} className="flex-shrink-0" />
+                <span className="text-sm font-medium truncate flex-1" style={{ color: 'var(--text-primary)' }}>
                   {s.title || 'Chat'}
                 </span>
+                <button
+                  onClick={(e) => deleteSession(s.id, e)}
+                  className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-0.5 rounded hover:opacity-100 transition-opacity"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  <Trash2 size={12} />
+                </button>
               </div>
               {s.lastMessage && (
                 <p className="text-xs mt-0.5 truncate pl-5" style={{ color: 'var(--text-muted)' }}>
