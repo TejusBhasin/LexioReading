@@ -27,9 +27,9 @@ export default function DiscoverPage() {
   const FOR_YOU_LIST = [
     { title: "I'm Glad My Mom Died", author: 'Jennette McCurdy', category: 'Humor' },
     { title: 'Hidden Potential', author: 'Adam Grant', category: 'Business' },
-    { title: 'Spare', author: 'Prince Harry', category: 'Biography' },
-    { title: 'Fourth Wing', author: 'Rebecca Yarros', category: 'Fiction' },
-    { title: 'Happy Place', author: 'Emily Henry', category: 'Realistic Fiction' },
+    { title: 'I Am Malala', author: 'Malala Yousafzai', category: 'Biography' },
+    { title: 'The Midnight Library', author: 'Matt Haig', category: 'Fiction' },
+    { title: 'They Both Die at the End', author: 'Adam Silvera', category: 'Realistic Fiction' },
     { title: 'Outlive', author: 'Peter Attia', category: 'Nonfiction' },
   ];
 
