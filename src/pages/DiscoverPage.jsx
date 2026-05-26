@@ -69,6 +69,9 @@ export default function DiscoverPage() {
         8
       );
       setRecommendations(recs);
+      if (recs.length === 0) {
+        generateRecommendations();
+      }
     } catch (e) {}
   }
 
@@ -214,9 +217,9 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
       {/* Search */}
       <form onSubmit={handleSearch} className="flex gap-2 mb-10">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
           <input
-            className="lx-input pl-9"
+            className="lx-input pl-10"
             placeholder="Search books by title, author, or genre..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -263,7 +266,7 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
           </div>
 
           {recommendations.length > 0 ? (
-            <BookGrid books={recommendations.filter(r => r.book_cover)} onSave={saveBook} savedIds={savedIds} />
+            <BookGrid books={recommendations} onSave={saveBook} savedIds={savedIds} />
           ) : (
             <div
               className="py-10 rounded-lg text-center"
