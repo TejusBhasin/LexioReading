@@ -121,7 +121,7 @@ export default function ForumsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 pb-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <h1 className="font-display text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Forums</h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>A place for readers to talk about anything</p>
