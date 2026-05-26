@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ForumPostCard from '@/components/forums/ForumPostCard';
 import NewPostModal from '@/components/forums/NewPostModal';
-import PostDetailModal from '@/components/forums/PostDetailModal';
+import PostDetailPage from '@/components/forums/PostDetailPage';
 
 const SORT_OPTIONS = [
   { value: 'hot', label: 'Hot', icon: Flame },
@@ -106,8 +106,20 @@ export default function ForumsPage() {
 
   const filtered = getSortedFiltered();
 
+  if (selectedPost) {
+    return (
+      <PostDetailPage
+        post={selectedPost}
+        user={user}
+        userProfile={userProfile}
+        onBack={() => setSelectedPost(null)}
+        onVotePost={handleVote}
+      />
+    );
+  }
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 pb-24 md:pb-8">
+    <div className="max-w-3xl mx-auto px-4 py-6 pb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -202,22 +214,13 @@ export default function ForumsPage() {
         </div>
       )}
 
-      {/* Modals */}
+      {/* New Post Modal */}
       {showNewPost && (
         <NewPostModal
           user={user}
           userProfile={userProfile}
           onClose={() => setShowNewPost(false)}
           onCreated={() => { setShowNewPost(false); loadPosts(); }}
-        />
-      )}
-      {selectedPost && (
-        <PostDetailModal
-          post={selectedPost}
-          user={user}
-          userProfile={userProfile}
-          onClose={() => setSelectedPost(null)}
-          onVotePost={handleVote}
         />
       )}
     </div>

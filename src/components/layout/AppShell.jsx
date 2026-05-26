@@ -198,25 +198,6 @@ export default function AppShell({ children, user }) {
         </AnimatePresence>
       </main>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t"
-        style={{
-          background: 'var(--bg-secondary)',
-          borderColor: 'var(--lx-border)',
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        }}>
-        {BOTTOM_NAV_ITEMS.map(({ path, icon: BotIcon, label }) => {
-          const active = location.pathname === path;
-          return (
-            <Link key={path} to={path}
-              className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors"
-              style={{ color: active ? 'var(--lx-accent)' : 'var(--text-muted)' }}>
-              <BotIcon size={20} />
-              <span className="text-[10px] font-medium">{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
 
     </div>
   );
