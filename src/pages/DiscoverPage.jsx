@@ -44,8 +44,8 @@ export default function DiscoverPage() {
     setLoading(true);
     try {
       const query = TRENDING_QUERIES[Math.floor(Math.random() * TRENDING_QUERIES.length)];
-      const books = await searchBooks(query, 12);
-      const filtered = books.filter(b => b.cover_image);
+      const books = await searchBooks(query, 20);
+      const filtered = books.filter(b => b.cover_image && b.published_date && b.published_date >= '2020');
       setFeaturedBooks(filtered.length >= 4 ? filtered : FALLBACK_TRENDING);
     } catch (e) {
       setFeaturedBooks(FALLBACK_TRENDING);
@@ -79,23 +79,20 @@ export default function DiscoverPage() {
     if (!user) return;
     setGenRec(true);
     try {
+      // Clear old recs first
+      const old = await base44.entities.Recommendation.filter({ user_email: user.email });
+      await Promise.all(old.map(r => base44.entities.Recommendation.delete(r.id)));
+
       const prefs = await base44.entities.UserPreferences.filter({ user_email: user.email });
       const p = prefs[0] || {};
       const lib = await base44.entities.UserLibrary.filter({ user_email: user.email });
       const finishedBooks = lib.filter(b => b.status === 'finished').map(b => b.book_title).slice(0, 5);
+      const hasPrefs = (p.favorite_genres || []).length > 0 || (p.favorite_books || []).length > 0 || finishedBooks.length > 0;
+
+      const personalContext = hasPrefs ? `\nPersonalize based on: genres I like: ${(p.favorite_genres||[]).join(', ')||'any'}; books I've loved: ${(p.favorite_books||[]).join(', ')||'none'}; books I finished: ${finishedBooks.join(', ')||'none'}; moods: ${(p.moods||[]).join(', ')||'any'}.` : '';
 
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are a book recommendation AI for Lexio. Generate 6 personalized book recommendations.
-
-User preferences:
-- Favorite genres: ${(p.favorite_genres || []).join(', ') || 'not set'}
-- Favorite books: ${(p.favorite_books || []).join(', ') || 'not set'}
-- Moods: ${(p.moods || []).join(', ') || 'not set'}
-- Pacing preference: ${p.pacing || 'any'}
-- Dislikes: ${(p.disliked_content || []).join(', ') || 'none'}
-- Recently finished: ${finishedBooks.join(', ') || 'none yet'}
-
-Return exactly 6 recommendations in this JSON format. Each must be a real, published book.`,
+        prompt: `Give me 10 of the best, most interesting and talked-about books published in 2020 or later. Mix genres: literary fiction, fantasy, thriller, sci-fi, romance, non-fiction. Pick books that are popular, critically acclaimed, and engaging.${personalContext} Each book MUST be real, well-known, and have been published in 2020 or later.`,
         response_json_schema: {
           type: 'object',
           properties: {
@@ -113,24 +110,21 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
               }
             }
           }
-        },
-        model: 'claude_sonnet_4_6'
+        }
       });
 
       const recs = result?.recommendations || [];
-
-      // Fetch covers and save
       await Promise.all(recs.map(async (rec) => {
         try {
           const books = await searchBooks(`${rec.book_title} ${rec.book_author}`, 1);
-          const cover = books[0]?.cover_image || null;
-          const bookId = books[0]?.google_books_id || rec.book_title.replace(/\s+/g, '-').toLowerCase();
+          const book = books[0];
+          if (!book?.cover_image) return; // skip books without a cover
           await base44.entities.Recommendation.create({
             user_email: user.email,
-            book_id: bookId,
+            book_id: book.google_books_id,
             book_title: rec.book_title,
             book_author: rec.book_author,
-            book_cover: cover,
+            book_cover: book.cover_image,
             book_categories: rec.book_categories || [],
             reasoning: rec.reasoning,
             hook: rec.hook,
@@ -220,7 +214,7 @@ Return exactly 6 recommendations in this JSON format. Each must be a real, publi
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
           <input
             className="lx-input pl-10"
-            placeholder="Search books by title, author, or genre..."
+            placeholder=""
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />

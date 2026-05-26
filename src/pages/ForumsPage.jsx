@@ -139,7 +139,7 @@ export default function ForumsPage() {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
           <input
             className="lx-input pl-9"
-            placeholder="Search posts, keywords, tags, authors..."
+            placeholder=""
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
