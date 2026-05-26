@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Sparkles, Search, TrendingUp, RefreshCw, BookMarked } from 'lucide-react';
+import { Sparkles, Search, TrendingUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { searchBooks, FALLBACK_TRENDING, EDITORS_PICKS } from '@/lib/googleBooks';
+import { searchBooks, FALLBACK_TRENDING } from '@/lib/googleBooks';
 
 import BookGrid from '@/components/books/BookGrid';
 import { useAuth } from '@/lib/AuthContext';
@@ -17,28 +17,44 @@ export default function DiscoverPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [featuredBooks, setFeaturedBooks] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
+  const [forYouBooks, setForYouBooks] = useState([]);
   const [savedIds, setSavedIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [genRec, setGenRec] = useState(false);
-  const [showRecs, setShowRecs] = useState(true);
   const [showPopular, setShowPopular] = useState(true);
   const [activeGenre, setActiveGenre] = useState('All');
+
+  const FOR_YOU_LIST = [
+    { title: "I'm Glad My Mom Died", author: 'Jennette McCurdy', category: 'Humor' },
+    { title: 'Hidden Potential', author: 'Adam Grant', category: 'Business' },
+    { title: 'Spare', author: 'Prince Harry', category: 'Biography' },
+    { title: 'Fourth Wing', author: 'Rebecca Yarros', category: 'Fiction' },
+    { title: 'Happy Place', author: 'Emily Henry', category: 'Realistic Fiction' },
+    { title: 'Outlive', author: 'Peter Attia', category: 'Nonfiction' },
+  ];
 
   useEffect(() => {
     if (user?.email) {
       loadSaved();
-      loadRecommendations();
       base44.entities.UserPreferences.filter({ user_email: user.email }).then(p => {
-        if (p[0]) {
-          setShowRecs(p[0].show_recommendations !== false);
-          setShowPopular(p[0].show_popular !== false);
-        }
+        if (p[0]) setShowPopular(p[0].show_popular !== false);
       }).catch(() => {});
     }
     loadFeatured();
+    loadForYouBooks();
   }, [user]);
+
+  async function loadForYouBooks() {
+    const results = await Promise.all(
+      FOR_YOU_LIST.map(async ({ title, author, category }) => {
+        const books = await searchBooks(`${title} ${author}`, 1);
+        const book = books[0];
+        if (!book?.cover_image) return null;
+        return { ...book, _category: category };
+      })
+    );
+    setForYouBooks(results.filter(Boolean));
+  }
 
   async function loadFeatured() {
     setLoading(true);
@@ -61,85 +77,9 @@ export default function DiscoverPage() {
     } catch (e) {}
   }
 
-  async function loadRecommendations() {
-    try {
-      const recs = await base44.entities.Recommendation.filter(
-        { user_email: user.email, dismissed: false },
-        '-created_date',
-        8
-      );
-      setRecommendations(recs);
-      if (recs.length === 0) {
-        generateRecommendations();
-      }
-    } catch (e) {}
-  }
 
-  async function generateRecommendations() {
-    if (!user) return;
-    setGenRec(true);
-    try {
-      // Clear old recs first
-      const old = await base44.entities.Recommendation.filter({ user_email: user.email });
-      await Promise.all(old.map(r => base44.entities.Recommendation.delete(r.id)));
 
-      const prefs = await base44.entities.UserPreferences.filter({ user_email: user.email });
-      const p = prefs[0] || {};
-      const lib = await base44.entities.UserLibrary.filter({ user_email: user.email });
-      const finishedBooks = lib.filter(b => b.status === 'finished').map(b => b.book_title).slice(0, 5);
-      const hasPrefs = (p.favorite_genres || []).length > 0 || (p.favorite_books || []).length > 0 || finishedBooks.length > 0;
 
-      const personalContext = hasPrefs ? `\nPersonalize based on: genres I like: ${(p.favorite_genres||[]).join(', ')||'any'}; books I've loved: ${(p.favorite_books||[]).join(', ')||'none'}; books I finished: ${finishedBooks.join(', ')||'none'}; moods: ${(p.moods||[]).join(', ')||'any'}.` : '';
-
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Give me 10 of the best, most interesting and talked-about books published in 2020 or later. Mix genres: literary fiction, fantasy, thriller, sci-fi, romance, non-fiction. Pick books that are popular, critically acclaimed, and engaging.${personalContext} Each book MUST be real, well-known, and have been published in 2020 or later.`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            recommendations: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  book_title: { type: 'string' },
-                  book_author: { type: 'string' },
-                  reasoning: { type: 'string' },
-                  hook: { type: 'string' },
-                  book_categories: { type: 'array', items: { type: 'string' } },
-                }
-              }
-            }
-          }
-        }
-      });
-
-      const recs = result?.recommendations || [];
-      await Promise.all(recs.map(async (rec) => {
-        try {
-          const books = await searchBooks(`${rec.book_title} ${rec.book_author}`, 1);
-          const book = books[0];
-          if (!book?.cover_image) return; // skip books without a cover
-          await base44.entities.Recommendation.create({
-            user_email: user.email,
-            book_id: book.google_books_id,
-            book_title: rec.book_title,
-            book_author: rec.book_author,
-            book_cover: book.cover_image,
-            book_categories: rec.book_categories || [],
-            reasoning: rec.reasoning,
-            hook: rec.hook,
-            source: 'auto',
-            dismissed: false,
-          });
-        } catch (e) {}
-      }));
-      await loadRecommendations();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setGenRec(false);
-    }
-  }
 
   async function handleSearch(e) {
     e.preventDefault();
@@ -239,51 +179,18 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {/* AI Recommendations */}
-      {isAuthenticated && showRecs && (
+      {/* For You */}
+      {isAuthenticated && (
         <section className="mb-12">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
-              <Sparkles size={18} style={{ color: 'var(--lx-accent)' }} />
-              <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                For You
-              </h2>
-            </div>
-            <button
-              onClick={generateRecommendations}
-              disabled={genRec}
-              className="lx-btn-ghost text-sm py-1.5"
-            >
-              <RefreshCw size={13} className={genRec ? 'animate-spin' : ''} />
-              {genRec ? 'Thinking...' : 'Refresh'}
-            </button>
+          <div className="flex items-center gap-2 mb-5">
+            <Sparkles size={18} style={{ color: 'var(--lx-accent)' }} />
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>For You</h2>
           </div>
-
-          {recommendations.length > 0 ? (
-            <BookGrid books={recommendations} onSave={saveBook} savedIds={savedIds} />
-          ) : (
-            <div
-              className="py-10 rounded-lg text-center"
-              style={{ background: 'var(--bg-card)', border: '1px dashed var(--lx-border)' }}
-            >
-              <Sparkles size={24} className="mx-auto mb-3" style={{ color: 'var(--lx-accent)' }} />
-              <p className="mb-3" style={{ color: 'var(--text-secondary)' }}>No recommendations yet</p>
-              <button onClick={generateRecommendations} disabled={genRec} className="lx-btn-primary">
-                {genRec ? 'Generating...' : 'Generate Recommendations'}
-              </button>
-            </div>
-          )}
+          <BookGrid books={forYouBooks} onSave={saveBook} savedIds={savedIds} />
         </section>
       )}
 
-      {/* Editor's Picks */}
-      <section className="mb-12">
-        <div className="flex items-center gap-2 mb-5">
-          <BookMarked size={18} style={{ color: 'var(--lx-accent)' }} />
-          <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Editor's Picks</h2>
-        </div>
-        <BookGrid books={EDITORS_PICKS.filter(b => b.cover_image)} onSave={saveBook} savedIds={savedIds} />
-      </section>
+
 
       {/* Trending */}
       {showPopular && <section>
