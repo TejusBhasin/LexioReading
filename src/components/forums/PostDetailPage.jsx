@@ -133,7 +133,7 @@ export default function PostDetailPage({ post, user, userProfile, onBack, onVote
   const score = (post.upvotes || 0) - (post.downvotes || 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'var(--bg-primary)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <div className="fixed inset-0 z-[200] flex flex-col" style={{ background: 'var(--bg-primary)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Top bar with back button */}
       <div className="flex items-center gap-3 px-4 py-3 border-b flex-shrink-0" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)' }}>
         <button onClick={onBack} className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
