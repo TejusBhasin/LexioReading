@@ -3,13 +3,37 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, Search, TrendingUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { searchBooks, FALLBACK_TRENDING } from '@/lib/googleBooks';
-
 import BookGrid from '@/components/books/BookGrid';
 import { useAuth } from '@/lib/AuthContext';
 
 const TRENDING_QUERIES = ['bestseller 2024', 'science fiction award winner', 'mystery thriller', 'literary fiction', 'fantasy epic'];
-
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Romance', 'Historical', 'Thriller', 'Non-Fiction'];
+
+const FOR_YOU_POOL = [
+  { title: "The Hitchhiker's Guide to the Galaxy", author: 'Douglas Adams', category: 'Humor' },
+  { title: 'Good Omens', author: 'Terry Pratchett', category: 'Humor' },
+  { title: 'Hidden Potential', author: 'Adam Grant', category: 'Business' },
+  { title: 'Atomic Habits', author: 'James Clear', category: 'Business' },
+  { title: 'The 7 Habits of Highly Effective Teens', author: 'Sean Covey', category: 'Business' },
+  { title: 'The House in the Cerulean Sea', author: 'TJ Klune', category: 'Fantasy' },
+  { title: 'Project Hail Mary', author: 'Andy Weir', category: 'Fiction' },
+  { title: 'The Midnight Library', author: 'Matt Haig', category: 'Fiction' },
+  { title: 'The Alchemist', author: 'Paulo Coelho', category: 'Fiction' },
+  { title: "Harry Potter and the Sorcerer's Stone", author: 'J.K. Rowling', category: 'Fantasy' },
+  { title: 'Percy Jackson and the Lightning Thief', author: 'Rick Riordan', category: 'Fantasy' },
+  { title: 'To All the Boys I\'ve Loved Before', author: 'Jenny Han', category: 'Realistic Fiction' },
+  { title: 'Anna and the French Kiss', author: 'Stephanie Perkins', category: 'Realistic Fiction' },
+  { title: 'The Sun is Also a Star', author: 'Nicola Yoon', category: 'Realistic Fiction' },
+  { title: 'Factfulness', author: 'Hans Rosling', category: 'Nonfiction' },
+  { title: 'Outlive', author: 'Peter Attia', category: 'Nonfiction' },
+  { title: "Ender's Game", author: 'Orson Scott Card', category: 'Fiction' },
+  { title: 'The Giver', author: 'Lois Lowry', category: 'Fiction' },
+];
+
+function pickRandomSix() {
+  const shuffled = [...FOR_YOU_POOL].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 6);
+}
 
 export default function DiscoverPage() {
   const { user, isAuthenticated } = useAuth();
@@ -24,15 +48,6 @@ export default function DiscoverPage() {
   const [showPopular, setShowPopular] = useState(true);
   const [activeGenre, setActiveGenre] = useState('All');
 
-  const FOR_YOU_LIST = [
-    { title: "I'm Glad My Mom Died", author: 'Jennette McCurdy', category: 'Humor' },
-    { title: 'Hidden Potential', author: 'Adam Grant', category: 'Business' },
-    { title: 'I Am Malala', author: 'Malala Yousafzai', category: 'Biography' },
-    { title: 'The Midnight Library', author: 'Matt Haig', category: 'Fiction' },
-    { title: 'They Both Die at the End', author: 'Adam Silvera', category: 'Realistic Fiction' },
-    { title: 'Outlive', author: 'Peter Attia', category: 'Nonfiction' },
-  ];
-
   useEffect(() => {
     if (user?.email) {
       loadSaved();
@@ -45,8 +60,9 @@ export default function DiscoverPage() {
   }, [user]);
 
   async function loadForYouBooks() {
+    const picked = pickRandomSix();
     const results = await Promise.all(
-      FOR_YOU_LIST.map(async ({ title, author, category }) => {
+      picked.map(async ({ title, author, category }) => {
         const books = await searchBooks(`${title} ${author}`, 1);
         const book = books[0];
         if (!book?.cover_image) return null;
@@ -76,10 +92,6 @@ export default function DiscoverPage() {
       setSavedIds(lib.map(l => l.book_id));
     } catch (e) {}
   }
-
-
-
-
 
   async function handleSearch(e) {
     e.preventDefault();
@@ -190,42 +202,41 @@ export default function DiscoverPage() {
         </section>
       )}
 
-
-
       {/* Trending */}
-      {showPopular && <section>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={18} style={{ color: 'var(--lx-accent)' }} />
-            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Trending</h2>
+      {showPopular && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={18} style={{ color: 'var(--lx-accent)' }} />
+              <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Trending</h2>
+            </div>
           </div>
-        </div>
-        {/* Genre filter chips */}
-        <div className="flex flex-wrap gap-2 mb-5">
-          {GENRE_FILTERS.map(g => (
-            <button key={g} onClick={() => setActiveGenre(g)}
-              className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
-              style={{
-                background: activeGenre === g ? 'var(--lx-accent)' : 'var(--bg-card)',
-                color: activeGenre === g ? 'var(--bg-primary)' : 'var(--text-secondary)',
-                border: '1px solid var(--lx-border)'
-              }}>{g}</button>
-          ))}
-        </div>
-        {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="rounded" style={{ aspectRatio: '2/3', background: 'var(--bg-card)', animation: 'pulse 1.5s infinite' }} />
+          <div className="flex flex-wrap gap-2 mb-5">
+            {GENRE_FILTERS.map(g => (
+              <button key={g} onClick={() => setActiveGenre(g)}
+                className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
+                style={{
+                  background: activeGenre === g ? 'var(--lx-accent)' : 'var(--bg-card)',
+                  color: activeGenre === g ? 'var(--bg-primary)' : 'var(--text-secondary)',
+                  border: '1px solid var(--lx-border)'
+                }}>{g}</button>
             ))}
           </div>
-        ) : (
-          <BookGrid
-            books={activeGenre === 'All' ? featuredBooks : featuredBooks.filter(b => (b.categories || []).some(c => c.toLowerCase().includes(activeGenre.toLowerCase())))}
-            onSave={saveBook}
-            savedIds={savedIds}
-          />
-        )}
-      </section>}
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className="rounded" style={{ aspectRatio: '2/3', background: 'var(--bg-card)', animation: 'pulse 1.5s infinite' }} />
+              ))}
+            </div>
+          ) : (
+            <BookGrid
+              books={activeGenre === 'All' ? featuredBooks : featuredBooks.filter(b => (b.categories || []).some(c => c.toLowerCase().includes(activeGenre.toLowerCase())))}
+              onSave={saveBook}
+              savedIds={savedIds}
+            />
+          )}
+        </section>
+      )}
     </div>
   );
 }
