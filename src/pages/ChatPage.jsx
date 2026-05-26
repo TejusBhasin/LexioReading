@@ -141,6 +141,7 @@ export default function ChatPage() {
 
         {activeSession ? (
           <ChatInterface
+            key={activeSession}
             user={user}
             sessionId={activeSession}
             onNewSession={(id, title) => {

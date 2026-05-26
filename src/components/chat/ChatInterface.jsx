@@ -52,13 +52,20 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
 
   async function loadUserContext() {
     try {
-      const [prefs, lib] = await Promise.all([
+      const [prefs, lib, clubs, reviews, posts] = await Promise.all([
         base44.entities.UserPreferences.filter({ user_email: user.email }),
         base44.entities.UserLibrary.filter({ user_email: user.email }),
+        base44.entities.BookClubMember.filter({ user_email: user.email }),
+        base44.entities.Review.filter({ user_email: user.email }, '-created_date', 5),
+        base44.entities.ForumPost.filter({ author_email: user.email }, '-created_date', 3),
       ]);
       const p = prefs[0] || {};
-      const finished = lib.filter(b => b.status === 'finished').map(b => b.book_title).slice(0, 5);
+      const finished = lib.filter(b => b.status === 'finished').map(b => b.book_title).slice(0, 8);
       const reading = lib.filter(b => b.status === 'reading').map(b => b.book_title).slice(0, 3);
+      const wantToRead = lib.filter(b => b.status === 'want_to_read').map(b => b.book_title).slice(0, 5);
+      const clubNames = clubs.map(c => c.club_id).slice(0, 5);
+      const recentReviews = reviews.map(r => `${r.book_title} (${r.rating}/5)`).slice(0, 5);
+      const recentPosts = posts.map(p => p.title).slice(0, 3);
       setUserContext({
         genres: (p.favorite_genres || []).join(', ') || 'not set',
         moods: (p.moods || []).join(', ') || 'not set',
@@ -69,6 +76,10 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
         favoriteBooks: (p.favorite_books || []).join(', ') || 'none',
         finished,
         reading,
+        wantToRead,
+        clubCount: clubs.length,
+        recentReviews,
+        recentPosts,
       });
     } catch (e) {}
   }
@@ -110,20 +121,32 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
 
       const recentMessages = messages.slice(-10).map(m => `${m.role}: ${m.content}`).join('\n');
 
+      // Auto-name the session from first user message
+      const isFirstMessage = messages.filter(m => m.role === 'user').length === 0;
+      if (isFirstMessage && onNewSession) {
+        const title = text.slice(0, 50).trim() + (text.length > 50 ? '...' : '');
+        onNewSession(sessionId, title);
+        await base44.entities.ChatMessage.filter({ user_email: user.email, session_id: sessionId }, 'created_date', 1).then(existing => {
+          if (existing.length === 0) return;
+        }).catch(() => {});
+      }
+
       const contextStr = userContext ? `
-USER READING PROFILE (use this to personalize ALL recommendations):
+USER READING PROFILE (personalize everything based on this):
 - Favorite genres: ${userContext.genres}
 - Reading moods: ${userContext.moods}
-- Pacing preference: ${userContext.pacing}
-- Difficulty preference: ${userContext.difficulty}
-- Disliked content: ${userContext.dislikes}
-- Disliked genres: ${userContext.dislikedGenres}
-- All-time favorite books: ${userContext.favoriteBooks}
+- Pacing: ${userContext.pacing} | Difficulty: ${userContext.difficulty}
+- Dislikes: ${userContext.dislikes} | Disliked genres: ${userContext.dislikedGenres}
+- Favorite books: ${userContext.favoriteBooks}
+- Currently reading: ${userContext.reading.join(', ') || 'none'}
 - Recently finished: ${userContext.finished.join(', ') || 'none'}
-- Currently reading: ${userContext.reading.join(', ') || 'none'}` : '';
+- Want to read: ${userContext.wantToRead.join(', ') || 'none'}
+- Book clubs joined: ${userContext.clubCount || 0}
+- Recent reviews: ${userContext.recentReviews.join(', ') || 'none'}
+- Recent forum posts: ${userContext.recentPosts.join(', ') || 'none'}` : '';
 
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are Lexio, an expert AI book companion. You help users discover books they'll love through natural conversation.
+        prompt: `You are Lexio, a friendly AI assistant for the Lexio reading app. You help users with ANYTHING related to books and reading — recommendations, book clubs, reviews, tracking reading, finding books similar to ones they loved, discussing themes, authors, genres, reading challenges, and more.
 ${contextStr}
 
 Previous conversation:
@@ -131,13 +154,13 @@ ${recentMessages}
 
 User message: "${text}"
 
-Your job:
-1. Recommend specific books with titles and authors — always use the user's profile above
-2. Explain WHY each book matches their request and profile
-3. Ask follow-up questions to refine recommendations
-4. Format book recommendations as: **Title** by Author — brief reason
-
-Keep responses focused and under 300 words unless listing many books.`,
+Your rules:
+1. ONLY answer questions related to books, reading, authors, genres, book clubs, reviews, reading habits, or the Lexio app features (library, clubs, reviews, reading log, streaks, forums). 
+2. If the user asks about something completely unrelated to reading or Lexio (e.g. cooking, sports, coding), kindly redirect them: acknowledge their question briefly, then steer back to books or Lexio. Never be rude.
+3. When recommending books, always reference their profile above and explain WHY it matches them.
+4. Help with book clubs: suggest books for clubs, discussion questions, reading schedules.
+5. Format book recommendations as: **Title** by Author — brief reason.
+6. Keep responses under 300 words unless listing many books.`,
         model: 'claude_sonnet_4_6'
       });
 
@@ -220,7 +243,7 @@ Keep responses focused and under 300 words unless listing many books.`,
         )}
         <div className="flex gap-2">
           <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
-            placeholder="Ask me about books... 'I want something dark and twisty'"
+            placeholder="Ask me anything — books, clubs, recommendations..."
             className="lx-input flex-1" />
           <button onClick={sendMessage} disabled={!input.trim() || loading} className="lx-btn-primary px-4"
             style={{ opacity: !input.trim() || loading ? 0.5 : 1 }}>

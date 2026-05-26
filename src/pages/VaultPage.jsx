@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Unlock, Plus, Trash2, Eye, EyeOff, ShieldCheck, X, CreditCard, KeyRound, Mail } from 'lucide-react';
+import { Lock, Unlock, Plus, Trash2, Eye, EyeOff, ShieldCheck, X, CreditCard, KeyRound, Mail, Image, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -22,6 +22,7 @@ export default function VaultPage() {
   const [showNumbers, setShowNumbers] = useState({});
   const [form, setForm] = useState({ card_name: '', card_number: '', expiration_date: '', notes: '', image_url_1: '', image_url_2: '' });
   const [saving, setSaving] = useState(false);
+  const [uploadingImg, setUploadingImg] = useState({ img1: false, img2: false });
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoverySent, setRecoverySent] = useState(false);
@@ -91,6 +92,15 @@ export default function VaultPage() {
       });
       setRecoverySent(true);
     } catch (e) {}
+  }
+
+  async function handleImageUpload(field, file) {
+    if (!file) return;
+    const key = field === 'image_url_1' ? 'img1' : 'img2';
+    setUploadingImg(prev => ({ ...prev, [key]: true }));
+    const res = await base44.integrations.Core.UploadFile({ file });
+    setForm(f => ({ ...f, [field]: res.file_url }));
+    setUploadingImg(prev => ({ ...prev, [key]: false }));
   }
 
   async function addEntry() {
@@ -263,12 +273,34 @@ export default function VaultPage() {
                 <textarea className="lx-input resize-none" rows={2} placeholder="PIN, branch info, etc." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
               </div>
               <div>
-                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Card Image URL 1</label>
-                <input className="lx-input" placeholder="https://..." value={form.image_url_1} onChange={e => setForm(f => ({ ...f, image_url_1: e.target.value }))} />
+                <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Card Image (Front)</label>
+                {form.image_url_1 ? (
+                  <div className="relative inline-block">
+                    <img src={form.image_url_1} alt="front" className="h-20 rounded object-cover" />
+                    <button onClick={() => setForm(f => ({ ...f, image_url_1: '' }))} className="absolute top-0.5 right-0.5 p-0.5 rounded-full" style={{ background: 'rgba(0,0,0,0.6)' }}><X size={11} style={{ color: 'white' }} /></button>
+                  </div>
+                ) : (
+                  <label className="flex items-center gap-2 cursor-pointer lx-btn-ghost w-fit text-sm">
+                    {uploadingImg.img1 ? <Loader2 size={13} className="animate-spin" /> : <Image size={13} />}
+                    {uploadingImg.img1 ? 'Uploading...' : 'Upload Front Image'}
+                    <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload('image_url_1', e.target.files[0])} />
+                  </label>
+                )}
               </div>
               <div>
-                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Card Image URL 2</label>
-                <input className="lx-input" placeholder="https://..." value={form.image_url_2} onChange={e => setForm(f => ({ ...f, image_url_2: e.target.value }))} />
+                <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Card Image (Back)</label>
+                {form.image_url_2 ? (
+                  <div className="relative inline-block">
+                    <img src={form.image_url_2} alt="back" className="h-20 rounded object-cover" />
+                    <button onClick={() => setForm(f => ({ ...f, image_url_2: '' }))} className="absolute top-0.5 right-0.5 p-0.5 rounded-full" style={{ background: 'rgba(0,0,0,0.6)' }}><X size={11} style={{ color: 'white' }} /></button>
+                  </div>
+                ) : (
+                  <label className="flex items-center gap-2 cursor-pointer lx-btn-ghost w-fit text-sm">
+                    {uploadingImg.img2 ? <Loader2 size={13} className="animate-spin" /> : <Image size={13} />}
+                    {uploadingImg.img2 ? 'Uploading...' : 'Upload Back Image'}
+                    <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload('image_url_2', e.target.files[0])} />
+                  </label>
+                )}
               </div>
               <button onClick={addEntry} disabled={saving || !form.card_name.trim()} className="lx-btn-primary w-full justify-center">
                 {saving ? 'Saving...' : 'Save Card'}
