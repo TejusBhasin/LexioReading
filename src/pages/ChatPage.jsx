@@ -67,13 +67,7 @@ export default function ChatPage() {
   function newChat() {
     const newId = uuidv4();
     setActiveSession(newId);
-    setSessions(prev => [{
-      id: newId,
-      title: 'New Chat',
-      lastMessage: '',
-      date: new Date().toISOString(),
-      messages: []
-    }, ...prev]);
+    // Don't add to sessions list yet — it appears after first message is sent & named
   }
 
   if (!isAuthenticated) {
@@ -130,7 +124,7 @@ export default function ChatPage() {
                 </span>
                 <button
                   onClick={(e) => deleteSession(s.id, e)}
-                  className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-0.5 rounded hover:opacity-100 transition-opacity"
+                  className="flex-shrink-0 p-1 rounded transition-opacity opacity-40 hover:opacity-100"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   <Trash2 size={12} />
@@ -161,7 +155,11 @@ export default function ChatPage() {
             user={user}
             sessionId={activeSession}
             onNewSession={(id, title) => {
-              setSessions(prev => prev.map(s => s.id === id ? { ...s, title } : s));
+              setSessions(prev => {
+                const exists = prev.find(s => s.id === id);
+                if (exists) return prev.map(s => s.id === id ? { ...s, title } : s);
+                return [{ id, title, lastMessage: '', date: new Date().toISOString(), messages: [] }, ...prev];
+              });
             }}
           />
         ) : (

@@ -117,20 +117,29 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
     }
 
     try {
-      await base44.entities.ChatMessage.create({
-        user_email: user.email, role: 'user', content: text,
-        session_id: sessionId,
-        ...(sessionTitle ? { session_title: sessionTitle } : {})
-      });
-      if (sessionTitle && onNewSession) onNewSession(sessionId, sessionTitle);
+      // Generate a clean short title async (non-blocking) on first message
+      if (isFirstMessage && onNewSession) {
+        base44.integrations.Core.InvokeLLM({
+          prompt: `Create a short 3-5 word title for a book chat that started with this message: "${text}". Output ONLY the title, no quotes, no punctuation at end. Examples: "Books like Harry Potter", "Dark fantasy recommendations", "Help with reading list".`,
+          model: 'gpt_5_mini'
+        }).then(title => {
+          const t = typeof title === 'string' ? title.trim() : text.slice(0, 45).trim();
+          onNewSession(sessionId, t);
+          // Update the existing messages with this title
+          base44.entities.ChatMessage.filter({ user_email: user.email, session_id: sessionId }).then(existing => {
+            existing.forEach(m => base44.entities.ChatMessage.update(m.id, { session_title: t }));
+          }).catch(() => {});
+        }).catch(() => {
+          onNewSession(sessionId, text.slice(0, 45).trim());
+        });
+      }
+
+      await base44.entities.ChatMessage.create({ user_email: user.email, role: 'user', content: text, session_id: sessionId });
 
       const recentMessages = messages.slice(-10).map(m => `${m.role}: ${m.content}`).join('\n');
 
-      // Auto-name the session from first user message
+      // Auto-name the session from first user message using LLM
       const isFirstMessage = messages.filter(m => m.role === 'user').length === 0;
-      const sessionTitle = isFirstMessage
-        ? (text.slice(0, 50).trim() + (text.length > 50 ? '...' : ''))
-        : null;
 
       const contextStr = userContext ? `
 USER READING PROFILE (personalize everything based on this):
