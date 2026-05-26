@@ -9,31 +9,28 @@ import { useAuth } from '@/lib/AuthContext';
 const TRENDING_QUERIES = ['bestseller 2024', 'science fiction award winner', 'mystery thriller', 'literary fiction', 'fantasy epic'];
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Romance', 'Historical', 'Thriller', 'Non-Fiction'];
 
-const FOR_YOU_POOL = [
-  { title: "The Hitchhiker's Guide to the Galaxy", author: 'Douglas Adams', category: 'Humor' },
-  { title: 'Good Omens', author: 'Terry Pratchett', category: 'Humor' },
-  { title: 'Hidden Potential', author: 'Adam Grant', category: 'Business' },
-  { title: 'Atomic Habits', author: 'James Clear', category: 'Business' },
-  { title: 'The 7 Habits of Highly Effective Teens', author: 'Sean Covey', category: 'Business' },
-  { title: 'The House in the Cerulean Sea', author: 'TJ Klune', category: 'Fantasy' },
-  { title: 'Project Hail Mary', author: 'Andy Weir', category: 'Fiction' },
-  { title: 'The Midnight Library', author: 'Matt Haig', category: 'Fiction' },
-  { title: 'The Alchemist', author: 'Paulo Coelho', category: 'Fiction' },
-  { title: "Harry Potter and the Sorcerer's Stone", author: 'J.K. Rowling', category: 'Fantasy' },
-  { title: 'Percy Jackson and the Lightning Thief', author: 'Rick Riordan', category: 'Fantasy' },
-  { title: 'To All the Boys I\'ve Loved Before', author: 'Jenny Han', category: 'Realistic Fiction' },
-  { title: 'Anna and the French Kiss', author: 'Stephanie Perkins', category: 'Realistic Fiction' },
-  { title: 'The Sun is Also a Star', author: 'Nicola Yoon', category: 'Realistic Fiction' },
-  { title: 'Factfulness', author: 'Hans Rosling', category: 'Nonfiction' },
-  { title: 'Outlive', author: 'Peter Attia', category: 'Nonfiction' },
-  { title: "Ender's Game", author: 'Orson Scott Card', category: 'Fiction' },
-  { title: 'The Giver', author: 'Lois Lowry', category: 'Fiction' },
+const FOR_YOU_QUERIES = [
+  'funny teen comedy novel', 'humorous middle grade fiction', 'laugh out loud young adult',
+  'cozy fantasy adventure', 'magical school wizards teens', 'epic quest fantasy young adult',
+  'sci-fi adventure teens robots', 'space exploration young adult science fiction',
+  'heartwarming coming of age story', 'feel good romance teens', 'summer love teen fiction',
+  'friendship adventure middle school', 'mystery puzzle solving teens',
+  'sports championship underdog teen', 'music band teens young adult',
+  'time travel adventure teens', 'animal adventure heartwarming', 'road trip teens friends',
+  'small town mystery teens', 'art creativity teen fiction', 'gaming virtual reality teens',
+  'superhero powers teens', 'detective mystery young adult', 'food cooking teen fiction',
+  'dance performance teens novel', 'theater drama high school fiction',
+  'ocean marine biology adventure teens', 'camping wilderness survival teens',
+  'positive mindset self improvement teens', 'science experiment discovery teens',
+  'math competition academic teens fiction', 'debate speech team teens novel',
+  'photography art teen coming of age', 'baking food truck teens fiction',
+  'volunteering community teens feel good', 'travel abroad exchange student teens',
+  'garden nature healing teens fiction', 'coding startup teens young adult',
+  'environmental activism teens hopeful', 'historical adventure brave teens',
+  'mythology retelling teens fun', 'fairy tale retelling young adult',
+  'heist clever funny teens', 'game show competition teens novel',
+  'pen pal letters teens friendship', 'new school friendship fresh start teens',
 ];
-
-function pickRandomSix() {
-  const shuffled = [...FOR_YOU_POOL].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 6);
-}
 
 export default function DiscoverPage() {
   const { user, isAuthenticated } = useAuth();
@@ -60,16 +57,15 @@ export default function DiscoverPage() {
   }, [user]);
 
   async function loadForYouBooks() {
-    const picked = pickRandomSix();
-    const results = await Promise.all(
-      picked.map(async ({ title, author, category }) => {
-        const books = await searchBooks(`${title} ${author}`, 1);
-        const book = books[0];
-        if (!book?.cover_image) return null;
-        return { ...book, _category: category };
-      })
+    const shuffled = [...FOR_YOU_QUERIES].sort(() => Math.random() - 0.5);
+    const selectedQueries = shuffled.slice(0, 4);
+    const allResults = await Promise.all(
+      selectedQueries.map(q => searchBooks(q, 10).catch(() => []))
     );
-    setForYouBooks(results.filter(Boolean));
+    const pool = allResults.flat().filter(b => b?.cover_image);
+    const unique = Object.values(Object.fromEntries(pool.map(b => [b.google_books_id || b.title, b])));
+    const randomSix = [...unique].sort(() => Math.random() - 0.5).slice(0, 6);
+    setForYouBooks(randomSix);
   }
 
   async function loadFeatured() {
