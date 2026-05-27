@@ -116,6 +116,9 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
       return;
     }
 
+    // Declare before use
+    const isFirstMessage = messages.filter(m => m.role === 'user').length === 0;
+
     try {
       // Generate a clean short title async (non-blocking) on first message
       if (isFirstMessage && onNewSession) {
@@ -125,7 +128,6 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
         }).then(title => {
           const t = typeof title === 'string' ? title.trim() : text.slice(0, 45).trim();
           onNewSession(sessionId, t);
-          // Update the existing messages with this title
           base44.entities.ChatMessage.filter({ user_email: user.email, session_id: sessionId }).then(existing => {
             existing.forEach(m => base44.entities.ChatMessage.update(m.id, { session_title: t }));
           }).catch(() => {});
@@ -137,9 +139,6 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
       await base44.entities.ChatMessage.create({ user_email: user.email, role: 'user', content: text, session_id: sessionId });
 
       const recentMessages = messages.slice(-10).map(m => `${m.role}: ${m.content}`).join('\n');
-
-      // Auto-name the session from first user message using LLM
-      const isFirstMessage = messages.filter(m => m.role === 'user').length === 0;
 
       const contextStr = userContext ? `
 USER READING PROFILE (personalize everything based on this):
@@ -190,9 +189,13 @@ Your rules:
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }
 
+  function handleScrollAreaKey(e) {
+    if (e.key === ' ') e.preventDefault();
+  }
+
   return (
     <div className="flex flex-col h-full" style={{ minHeight: '500px' }}>
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-hide" onKeyDown={handleScrollAreaKey} tabIndex={-1} style={{ outline: 'none' }}>
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
