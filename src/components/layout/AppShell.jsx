@@ -84,7 +84,7 @@ export default function AppShell({ children, user }) {
   }
 
   return (
-    <div className="h-full overflow-hidden lx-bg flex flex-col">
+    <div className="h-screen overflow-hidden lx-bg flex flex-col">
       {showTour && user && (
         <SetupTour
           user={user}
@@ -184,7 +184,7 @@ export default function AppShell({ children, user }) {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 min-h-0 overflow-y-auto">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location.pathname}
@@ -192,6 +192,7 @@ export default function AppShell({ children, user }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
+            className="h-full"
           >
             {children}
           </motion.div>
