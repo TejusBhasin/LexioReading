@@ -83,8 +83,24 @@ export default function AppShell({ children, user }) {
     } catch (e) {}
   }
 
+  // Prevent spacebar from scrolling anywhere outside inputs
+  useEffect(() => {
+    const prevent = (e) => {
+      if (e.key === ' ' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) && !e.target.isContentEditable) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener('keydown', prevent, { capture: true });
+    document.addEventListener('keydown', prevent, { capture: true });
+    return () => {
+      window.removeEventListener('keydown', prevent, { capture: true });
+      document.removeEventListener('keydown', prevent, { capture: true });
+    };
+  }, []);
+
   return (
-    <div className="h-screen overflow-hidden lx-bg flex flex-col">
+    <div className="overflow-hidden lx-bg flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh' }}>
       {showTour && user && (
         <SetupTour
           user={user}
@@ -184,7 +200,15 @@ export default function AppShell({ children, user }) {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 min-h-0 overflow-y-auto">
+      <main
+        className="flex-1 min-h-0 overflow-y-auto"
+        style={{ overscrollBehavior: 'none' }}
+        onKeyDown={(e) => {
+          if (e.key === ' ' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) && !e.target.isContentEditable) {
+            e.preventDefault();
+          }
+        }}
+      >
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location.pathname}

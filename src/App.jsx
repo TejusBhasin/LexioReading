@@ -86,12 +86,17 @@ const AuthenticatedApp = () => {
 function App() {
   useEffect(() => {
     const prevent = (e) => {
-      if (e.key === ' ' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName) && !e.target.isContentEditable) {
+      if (e.key === ' ' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) && !e.target.isContentEditable) {
         e.preventDefault();
+        e.stopPropagation();
       }
     };
-    document.addEventListener('keydown', prevent);
-    return () => document.removeEventListener('keydown', prevent);
+    window.addEventListener('keydown', prevent, { capture: true });
+    document.addEventListener('keydown', prevent, { capture: true });
+    return () => {
+      window.removeEventListener('keydown', prevent, { capture: true });
+      document.removeEventListener('keydown', prevent, { capture: true });
+    };
   }, []);
 
   return (
