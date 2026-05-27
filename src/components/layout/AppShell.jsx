@@ -84,7 +84,7 @@ export default function AppShell({ children, user }) {
   }
 
   return (
-    <div className="min-h-screen lx-bg flex flex-col">
+    <div className="h-full overflow-hidden lx-bg flex flex-col">
       {showTour && user && (
         <SetupTour
           user={user}
@@ -184,7 +184,7 @@ export default function AppShell({ children, user }) {
       )}
 
       {/* Main Content */}
-      <main className="flex-1">
+      <main className="flex-1 overflow-y-auto">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location.pathname}

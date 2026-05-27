@@ -194,7 +194,7 @@ Your rules:
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ minHeight: '500px' }}>
+    <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-hide" onKeyDown={handleScrollAreaKey} tabIndex={-1} style={{ outline: 'none' }}>
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
