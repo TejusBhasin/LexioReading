@@ -82,9 +82,9 @@ export default function SetupTour({ user, userProfile, onComplete }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.85)' }}>
-      <div className="w-full max-w-lg rounded-xl p-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+      <div className="w-full max-w-sm rounded-xl p-5 max-h-[85vh] overflow-y-auto" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
         {/* Progress */}
-        <div className="flex gap-1.5 mb-8">
+        <div className="flex gap-1.5 mb-6">
           {STEPS.map((s, i) => (
             <div key={s} className="flex-1 h-1 rounded-full transition-all"
               style={{ background: i <= step ? 'var(--lx-accent)' : 'var(--lx-border)' }} />
@@ -121,7 +121,7 @@ export default function SetupTour({ user, userProfile, onComplete }) {
               What do you love reading?
             </h2>
             <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Pick at least 2 genres.</p>
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap gap-1.5 mb-5">
               {GENRE_OPTIONS.map(g => {
                 const sel = genres.includes(g);
                 return (
@@ -152,7 +152,7 @@ export default function SetupTour({ user, userProfile, onComplete }) {
               Any themes to avoid?
             </h2>
             <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Optional — we'll filter these from recommendations.</p>
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap gap-1.5 mb-5">
               {CONTENT_THEMES.map(t => {
                 const sel = blacklisted.includes(t);
                 return (
@@ -178,8 +178,8 @@ export default function SetupTour({ user, userProfile, onComplete }) {
             <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
               🗺️ Explore Lexio
             </h2>
-            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Here's everything you can do:</p>
-            <div className="space-y-2 mb-6">
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Here's everything you can do:</p>
+            <div className="space-y-1 mb-5 max-h-60 overflow-y-auto">
               {[
                 { emoji: '📚', title: 'Library', desc: 'Track every book you read, are reading, or want to read. Add ratings and notes.' },
                 { emoji: '✍️', title: 'Reading Log', desc: 'Log reading sessions with time, mood, and reflections. Build streaks!' },
@@ -190,11 +190,11 @@ export default function SetupTour({ user, userProfile, onComplete }) {
                 { emoji: '🔒', title: 'Vault', desc: 'Securely store your library cards and membership info with PIN protection.' },
                 { emoji: '🎁', title: 'Wrapped', desc: 'See your year in books — stats, top genres, and reading highlights.' },
               ].map(({ emoji, title, desc }) => (
-                <div key={title} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
-                  <span className="text-xl flex-shrink-0">{emoji}</span>
+                <div key={title} className="flex items-start gap-2 p-2 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
+                  <span className="text-lg flex-shrink-0">{emoji}</span>
                   <div>
-                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{title}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+                    <p className="font-bold text-xs" style={{ color: 'var(--text-primary)' }}>{title}</p>
+                    <p className="text-xs mt-0.25" style={{ color: 'var(--text-muted)' }}>{desc}</p>
                   </div>
                 </div>
               ))}
@@ -212,7 +212,7 @@ export default function SetupTour({ user, userProfile, onComplete }) {
               👥 Reading Clubs
             </h2>
             <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Join or create clubs to read together with others.</p>
-            <div className="space-y-2 mb-6">
+            <div className="space-y-1.5 mb-5">
               {[
                 { emoji: '💬', title: 'Discussion Club', desc: 'A casual space to talk about books, share thoughts, and explore together.' },
                 { emoji: '👥', title: 'Administrative Club', desc: 'Admin-led club with structured tracking — pages read, time spent, and mood logs.' },
@@ -241,7 +241,7 @@ export default function SetupTour({ user, userProfile, onComplete }) {
               🔥 Streak &amp; Points System
             </h2>
             <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Stay motivated with Lexio's Duolingo-style streak system!</p>
-            <div className="space-y-3 mb-6">
+            <div className="space-y-2 mb-5">
               {[
                 { emoji: '🔥', title: 'Daily Streak', desc: 'Log a reading session every day to build your streak.' },
                 { emoji: '🛡️', title: 'Streak Freeze', desc: 'Auto-activates to protect your streak if you miss a day. Buy with 15 points.' },
@@ -249,11 +249,11 @@ export default function SetupTour({ user, userProfile, onComplete }) {
                 { emoji: '⚡', title: 'Earn Points', desc: 'Log (+3) · Review (+5) · Chat (+1) · Finish a book (+10) · Max 19/day' },
                 { emoji: '🏆', title: 'Leaderboard', desc: 'Opt-in to compete with readers worldwide.' },
               ].map(({ emoji, title, desc }) => (
-                <div key={title} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
-                  <span className="text-2xl flex-shrink-0">{emoji}</span>
+                <div key={title} className="flex items-start gap-2 p-2 rounded-lg text-sm" style={{ background: 'var(--bg-elevated)' }}>
+                  <span className="text-lg flex-shrink-0">{emoji}</span>
                   <div>
-                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{title}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+                    <p className="font-bold" style={{ color: 'var(--text-primary)' }}>{title}</p>
+                    <p className="text-xs mt-0.25" style={{ color: 'var(--text-muted)' }}>{desc}</p>
                   </div>
                 </div>
               ))}
@@ -271,8 +271,8 @@ export default function SetupTour({ user, userProfile, onComplete }) {
             <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
               🎓 Schools
             </h2>
-            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Lexio supports school environments for teachers and classrooms.</p>
-            <div className="space-y-2 mb-6">
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Lexio supports school environments for teachers and classrooms.</p>
+            <div className="space-y-1 mb-5 max-h-60 overflow-y-auto">
               {[
                 { emoji: '🏫', title: 'Join a School', desc: 'Use a join code from your teacher. Note: school membership is permanent — you cannot leave once joined.' },
                 { emoji: '➕', title: 'Create a School', desc: 'Teachers can create a school and invite students using a join code.' },
