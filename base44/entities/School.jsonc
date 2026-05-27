@@ -1,0 +1,57 @@
+{
+  "name": "School",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "creator_email": {
+      "type": "string"
+    },
+    "join_code": {
+      "type": "string"
+    },
+    "theme_primary": {
+      "type": "string",
+      "default": "#f5a623"
+    },
+    "theme_accent": {
+      "type": "string",
+      "default": "#e8854a"
+    },
+    "theme_secondary": {
+      "type": "string",
+      "default": "#1a1a1a"
+    },
+    "theme_locked": {
+      "type": "boolean",
+      "default": true
+    },
+    "restrictions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Features to disable: 'vault', 'forums', 'clubs', 'chat', 'reviews', 'wrapped', 'discover'"
+    },
+    "member_count": {
+      "type": "number",
+      "default": 1
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "allow_dual_mode": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name",
+    "creator_email"
+  ]
+}

@@ -24,6 +24,7 @@ import TermsPrivacyPage from '@/pages/TermsPrivacyPage';
 import UserPublicProfilePage from '@/pages/UserPublicProfilePage';
 import EasterEggPage from '@/pages/EasterEggPage';
 import ForumsPage from '@/pages/ForumsPage';
+import SchoolAdminPage from '@/pages/SchoolAdminPage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
 const AuthenticatedApp = () => {
@@ -76,6 +77,7 @@ const AuthenticatedApp = () => {
         <Route path="/u/:username" element={<UserPublicProfilePage />} />
         <Route path="/secret" element={<EasterEggPage />} />
         <Route path="/forums" element={<ForumsPage />} />
+        <Route path="/school-admin" element={<SchoolAdminPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AppShell>

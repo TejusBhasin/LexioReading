@@ -208,6 +208,7 @@ export default function ClubsPage() {
                   <option value="discussion">Discussion (No tracking, open chat)</option>
                   <option value="collaborative">Collaborative (Book club with discussion chains)</option>
                   <option value="administrative">Administrative (Track member stats, controlled access)</option>
+                  <option value="logging">Logging (See all members' reading logs in a dashboard)</option>
                 </select>
               </div>
               <div className="flex items-center justify-between p-2 rounded" style={{ background: 'var(--bg-elevated)' }}>
@@ -243,7 +244,7 @@ export default function ClubsPage() {
 }
 
 function ClubCard({ club, userEmail, onJoin, isMember }) {
-  const clubTypeIcon = club.club_type === 'administrative' ? '👥' : club.club_type === 'collaborative' ? '📚' : '💬';
+  const clubTypeIcon = club.club_type === 'administrative' ? '👥' : club.club_type === 'collaborative' ? '📚' : club.club_type === 'logging' ? '📊' : '💬';
   return (
     <div className="lx-card p-5 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">

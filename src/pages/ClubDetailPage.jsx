@@ -4,6 +4,7 @@ import { ArrowLeft, Settings, Users, Trophy, BookOpen, MessageSquare, X, Trash2,
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ClubMembers from '@/components/clubs/ClubMembers';
+import LoggingClubDashboard from '@/components/clubs/LoggingClubDashboard';
 import ClubLeaderboard from '@/components/clubs/ClubLeaderboard';
 import BookClubChains from '@/components/clubs/BookClubChains';
 
@@ -107,7 +108,7 @@ export default function ClubDetailPage() {
           <div className="flex items-center gap-3 mb-2">
             <h1 className="font-display text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{club.name}</h1>
             <span className="text-2xl">
-              {club.club_type === 'administrative' ? '👥' : club.club_type === 'collaborative' ? '📚' : '💬'}
+              {club.club_type === 'administrative' ? '👥' : club.club_type === 'collaborative' ? '📚' : club.club_type === 'logging' ? '📊' : '💬'}
             </span>
             {!club.is_visible && <Key size={14} style={{ color: 'var(--lx-accent)' }} />}
           </div>
@@ -144,8 +145,9 @@ export default function ClubDetailPage() {
         {[
           { id: 'overview', label: 'Overview', icon: BookOpen },
           { id: 'members', label: 'Members', icon: Users },
-          ...(club.club_type !== 'discussion' ? [{ id: 'leaderboard', label: 'Leaderboard', icon: Trophy }] : []),
+          ...(club.club_type !== 'discussion' && club.club_type !== 'logging' ? [{ id: 'leaderboard', label: 'Leaderboard', icon: Trophy }] : []),
           ...(club.club_type === 'collaborative' ? [{ id: 'chains', label: 'Discussion Chains', icon: MessageSquare }] : []),
+          ...(club.club_type === 'logging' && isAdmin ? [{ id: 'dashboard', label: 'Log Dashboard', icon: BookOpen }] : []),
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium whitespace-nowrap transition-all"
@@ -190,6 +192,8 @@ export default function ClubDetailPage() {
       )}
 
       {tab === 'members' && <ClubMembers club={club} members={members} isAdmin={isAdmin} />}
+      {tab === 'dashboard' && club.club_type === 'logging' && <LoggingClubDashboard club={club} members={members} isAdmin={isAdmin} />}
+      {tab === 'overview' && club.club_type === 'logging' && !isAdmin && <LoggingClubDashboard club={club} members={members} isAdmin={false} />}
       {tab === 'leaderboard' && <ClubLeaderboard club={club} members={members} />}
       {tab === 'chains' && <BookClubChains club={club} schedule={schedules[0]} user={user} />}
 

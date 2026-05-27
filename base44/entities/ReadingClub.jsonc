@@ -35,7 +35,8 @@
       "enum": [
         "administrative",
         "discussion",
-        "collaborative"
+        "collaborative",
+        "logging"
       ],
       "default": "discussion"
     },
@@ -67,29 +68,5 @@
   "required": [
     "name",
     "creator_email"
-  ],
-  "rls": {
-    "create": {
-      "creator_email": "{{user.email}}"
-    },
-    "read": {
-      "$or": [
-        {
-          "data.is_visible": true
-        },
-        {
-          "data.member_emails": "{{user.email}}"
-        },
-        {
-          "creator_email": "{{user.email}}"
-        }
-      ]
-    },
-    "update": {
-      "creator_email": "{{user.email}}"
-    },
-    "delete": {
-      "creator_email": "{{user.email}}"
-    }
-  }
+  ]
 }

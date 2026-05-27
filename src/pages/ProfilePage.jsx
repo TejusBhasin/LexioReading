@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap } from 'lucide-react';
 import ProfileExport from '@/components/profile/ProfileExport';
+import JoinCreateSchool from '@/components/schools/JoinCreateSchool';
 import PrivacyTab from '@/components/profile/PrivacyTab';
 
 import { base44 } from '@/api/base44Client';
@@ -15,6 +16,7 @@ const TABS = [
   { id: 'history', label: 'Chat History', icon: MessageSquare },
   { id: 'theme', label: 'Personalize', icon: Palette },
   { id: 'export', label: 'Export Card', icon: Download },
+  { id: 'school', label: 'School', icon: GraduationCap },
 ];
 
 const PACING_OPTIONS = [
@@ -401,6 +403,20 @@ export default function ProfilePage() {
 
       {tab === 'export' && (
         <ProfileExport user={user} />
+      )}
+
+      {tab === 'school' && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>School Mode</h3>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Schools are managed environments for teachers and students. Joining is permanent, but your data always stays with you.</p>
+          </div>
+          <JoinCreateSchool user={user} />
+          {/* Link to admin panel */}
+          <a href="/school-admin" className="lx-btn-ghost text-sm flex items-center gap-2 w-full justify-center">
+            <GraduationCap size={14} /> Manage My School (Admin Panel)
+          </a>
+        </div>
       )}
 
       {/* THEME */}

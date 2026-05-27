@@ -29,7 +29,7 @@ function TandC() {
 import { base44 } from '@/api/base44Client';
 import { GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
 
-const STEPS = ['welcome', 'genres', 'content', 'streak', 'done'];
+const STEPS = ['welcome', 'genres', 'content', 'features', 'clubs', 'streak', 'schools', 'done'];
 
 const CONTENT_THEMES = [
   'Romance', 'Violence', 'Death/Loss', 'Addiction', 'War', 'Abuse', 'Mental illness'
@@ -173,6 +173,68 @@ export default function SetupTour({ user, userProfile, onComplete }) {
           </div>
         )}
 
+        {currentStep === 'features' && (
+          <div>
+            <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+              🗺️ Explore Lexio
+            </h2>
+            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Here's everything you can do:</p>
+            <div className="space-y-2 mb-6">
+              {[
+                { emoji: '📚', title: 'Library', desc: 'Track every book you read, are reading, or want to read. Add ratings and notes.' },
+                { emoji: '✍️', title: 'Reading Log', desc: 'Log reading sessions with time, mood, and reflections. Build streaks!' },
+                { emoji: '🔍', title: 'Discover', desc: 'Search millions of books, see trending titles, and get AI-powered picks.' },
+                { emoji: '💬', title: 'AI Chat', desc: 'Your personal AI book companion. Ask for recommendations or discuss anything.' },
+                { emoji: '⭐', title: 'Reviews', desc: 'Write reviews for books and read what other readers think.' },
+                { emoji: '🗣️', title: 'Forums', desc: 'Post discussions, ask questions, and connect with the reading community.' },
+                { emoji: '🔒', title: 'Vault', desc: 'Securely store your library cards and membership info with PIN protection.' },
+                { emoji: '🎁', title: 'Wrapped', desc: 'See your year in books — stats, top genres, and reading highlights.' },
+              ].map(({ emoji, title, desc }) => (
+                <div key={title} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
+                  <span className="text-xl flex-shrink-0">{emoji}</span>
+                  <div>
+                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{title}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setStep(STEPS.indexOf('content'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
+              <button onClick={() => setStep(STEPS.indexOf('clubs'))} className="lx-btn-primary flex-1 justify-center">Next</button>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 'clubs' && (
+          <div>
+            <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+              👥 Reading Clubs
+            </h2>
+            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Join or create clubs to read together with others.</p>
+            <div className="space-y-2 mb-6">
+              {[
+                { emoji: '💬', title: 'Discussion Club', desc: 'A casual space to talk about books, share thoughts, and explore together.' },
+                { emoji: '👥', title: 'Administrative Club', desc: 'Admin-led club with structured tracking — pages read, time spent, and mood logs.' },
+                { emoji: '📚', title: 'Collaborative Club', desc: 'Read the same book together with chapter-based discussion chains and milestones.' },
+                { emoji: '📊', title: 'Logging Club', desc: 'The admin sees a comprehensive dashboard of all members\' reading logs — sessions, times, books, genres, and more. Great for teachers or managers.' },
+              ].map(({ emoji, title, desc }) => (
+                <div key={title} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
+                  <span className="text-xl flex-shrink-0">{emoji}</span>
+                  <div>
+                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{title}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setStep(STEPS.indexOf('features'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
+              <button onClick={() => setStep(STEPS.indexOf('streak'))} className="lx-btn-primary flex-1 justify-center">Next</button>
+            </div>
+          </div>
+        )}
+
         {currentStep === 'streak' && (
           <div>
             <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
@@ -197,12 +259,43 @@ export default function SetupTour({ user, userProfile, onComplete }) {
               ))}
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setStep(2)} className="lx-btn-ghost flex-1 justify-center">Back</button>
-              <button onClick={() => setStep(4)} className="lx-btn-primary flex-1 justify-center">Got it!</button>
+              <button onClick={() => setStep(STEPS.indexOf('clubs'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
+              <button onClick={() => setStep(STEPS.indexOf('schools'))} className="lx-btn-primary flex-1 justify-center">Next</button>
             </div>
           </div>
         )}
 
+
+        {currentStep === 'schools' && (
+          <div>
+            <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+              🎓 Schools
+            </h2>
+            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Lexio supports school environments for teachers and classrooms.</p>
+            <div className="space-y-2 mb-6">
+              {[
+                { emoji: '🏫', title: 'Join a School', desc: 'Use a join code from your teacher. Note: school membership is permanent — you cannot leave once joined.' },
+                { emoji: '➕', title: 'Create a School', desc: 'Teachers can create a school and invite students using a join code.' },
+                { emoji: '🎨', title: 'School Themes', desc: 'Schools can apply a mandatory color theme to all members\' Lexio experience.' },
+                { emoji: '🔐', title: 'Feature Control', desc: 'School admins can restrict specific features (forums, vault, chat, etc.) for members.' },
+                { emoji: '📊', title: 'Admin Dashboard', desc: 'School admins see detailed reading stats — sessions, books, time spent — for every member.' },
+                { emoji: '↩️', title: 'Removing Members', desc: 'Admins can remove students, instantly returning them to normal Lexio mode. All data (logs, library) stays intact.' },
+              ].map(({ emoji, title, desc }) => (
+                <div key={title} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
+                  <span className="text-xl flex-shrink-0">{emoji}</span>
+                  <div>
+                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{title}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setStep(STEPS.indexOf('streak'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
+              <button onClick={() => setStep(STEPS.indexOf('done'))} className="lx-btn-primary flex-1 justify-center">Almost done!</button>
+            </div>
+          </div>
+        )}
 
         {currentStep === 'done' && (
           <div className="text-center">
@@ -216,6 +309,7 @@ export default function SetupTour({ user, userProfile, onComplete }) {
             <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
               Your reading profile is ready. Start discovering books tailored to you.
             </p>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Explore every feature — your reading life starts now.</p>
             <button onClick={finish} disabled={saving} className="lx-btn-primary w-full justify-center">
               {saving ? 'Saving...' : 'Start Reading'}
             </button>

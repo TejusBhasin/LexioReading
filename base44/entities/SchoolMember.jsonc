@@ -1,0 +1,45 @@
+{
+  "name": "SchoolMember",
+  "type": "object",
+  "properties": {
+    "school_id": {
+      "type": "string"
+    },
+    "school_name": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "member"
+      ],
+      "default": "member"
+    },
+    "dual_mode_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "currently_school_mode": {
+      "type": "boolean",
+      "default": true
+    },
+    "joined_date": {
+      "type": "string"
+    },
+    "kicked": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "school_id",
+    "user_email"
+  ]
+}
