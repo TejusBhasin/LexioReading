@@ -1,0 +1,45 @@
+{
+  "name": "UserSafeness",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "is_banned": {
+      "type": "boolean",
+      "default": false
+    },
+    "banned_from_forums": {
+      "type": "boolean",
+      "default": false
+    },
+    "banned_from_clubs": {
+      "type": "boolean",
+      "default": false
+    },
+    "banned_from_comments": {
+      "type": "boolean",
+      "default": false
+    },
+    "banned_from_discussions": {
+      "type": "boolean",
+      "default": false
+    },
+    "banned_from_chat": {
+      "type": "boolean",
+      "default": false
+    },
+    "ban_reason": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, TrendingUp, Clock, Flame } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useUserSafeness } from '@/hooks/useUserSafeness';
 import { useAuth } from '@/lib/AuthContext';
 import ForumPostCard from '@/components/forums/ForumPostCard';
 import NewPostModal from '@/components/forums/NewPostModal';
@@ -14,6 +15,9 @@ const SORT_OPTIONS = [
 
 export default function ForumsPage() {
   const { user, isAuthenticated } = useAuth();
+  const { isRestrictedFrom } = useUserSafeness(user?.email);
+  const forumsRestricted = isRestrictedFrom('forums');
+  const commentsRestricted = isRestrictedFrom('comments');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -126,10 +130,13 @@ export default function ForumsPage() {
           <h1 className="font-display text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Forums</h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>A place for readers to talk about anything</p>
         </div>
-        {isAuthenticated && (
+        {isAuthenticated && !forumsRestricted && (
           <button onClick={() => setShowNewPost(true)} className="lx-btn-primary">
             <Plus size={15} /> New Post
           </button>
+        )}
+        {forumsRestricted && (
+          <span className="text-xs px-3 py-1.5 rounded" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--lx-border)' }}>Forums restricted</span>
         )}
       </div>
 
@@ -194,7 +201,7 @@ export default function ForumsPage() {
           <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>
             {search || activeTag ? 'Try a different search or tag.' : 'Be the first to post something!'}
           </p>
-          {isAuthenticated && (
+          {isAuthenticated && !forumsRestricted && (
             <button onClick={() => setShowNewPost(true)} className="lx-btn-primary">
               <Plus size={15} /> Create First Post
             </button>
@@ -215,7 +222,7 @@ export default function ForumsPage() {
       )}
 
       {/* New Post Modal */}
-      {showNewPost && (
+      {showNewPost && !forumsRestricted && (
         <NewPostModal
           user={user}
           userProfile={userProfile}

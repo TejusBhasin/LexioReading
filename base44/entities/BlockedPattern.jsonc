@@ -1,0 +1,28 @@
+{
+  "name": "BlockedPattern",
+  "type": "object",
+  "properties": {
+    "pattern": {
+      "type": "string"
+    },
+    "pattern_type": {
+      "type": "string",
+      "enum": [
+        "email",
+        "username"
+      ],
+      "default": "email"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "pattern",
+    "pattern_type"
+  ]
+}

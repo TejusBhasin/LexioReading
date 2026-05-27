@@ -5,6 +5,7 @@ import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, C
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
 import SetupTour from '@/components/onboarding/SetupTour.jsx';
+import BanScreen from '@/components/safety/BanScreen.jsx';
 
 const NAV_ITEMS = [
   { path: '/', icon: LayoutDashboard, label: 'Home' },
@@ -36,6 +37,8 @@ export default function AppShell({ children, user }) {
   const [showTour, setShowTour] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isBanned, setIsBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -73,9 +76,41 @@ export default function AppShell({ children, user }) {
 
   async function loadUserProfile() {
     try {
-      const p = await base44.entities.UserProfile.filter({ user_email: user.email });
+      const [p, safetyRecs, blockedPatterns] = await Promise.all([
+        base44.entities.UserProfile.filter({ user_email: user.email }),
+        base44.entities.UserSafeness.filter({ user_email: user.email }),
+        base44.entities.BlockedPattern.filter({ is_active: true }),
+      ]);
+
+      // Check full ban
+      const safety = safetyRecs[0];
+      if (safety?.is_banned) {
+        setIsBanned(true);
+        setBanReason(safety.ban_reason || 'Your account has been restricted by a moderator.');
+        return;
+      }
+
+      // Check blocked email patterns
+      const emailBlocked = blockedPatterns
+        .filter(bp => bp.pattern_type === 'email' && bp.is_active)
+        .some(bp => user.email?.toLowerCase().includes(bp.pattern.toLowerCase()));
+      if (emailBlocked) {
+        setIsBanned(true);
+        setBanReason('This email address is not permitted on Lexio.');
+        return;
+      }
+
       if (p[0]) {
         setUserProfile(p[0]);
+        // Check blocked username patterns
+        const usernameBlocked = blockedPatterns
+          .filter(bp => bp.pattern_type === 'username' && bp.is_active)
+          .some(bp => p[0].username?.toLowerCase().includes(bp.pattern.toLowerCase()));
+        if (usernameBlocked) {
+          setIsBanned(true);
+          setBanReason('This username is not permitted on Lexio.');
+          return;
+        }
         if (!p[0].onboarding_complete) setShowTour(true);
       } else {
         setShowTour(true);
@@ -101,6 +136,7 @@ export default function AppShell({ children, user }) {
 
   return (
     <div className="overflow-hidden lx-bg flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh' }}>
+      {isBanned && <BanScreen reason={banReason} />}
       {showTour && user && (
         <SetupTour
           user={user}
@@ -223,7 +259,13 @@ export default function AppShell({ children, user }) {
         </AnimatePresence>
       </main>
 
-
+      {/* Support Footer */}
+      <div className="flex-shrink-0 text-center py-1.5 text-xs" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--lx-border)', background: 'var(--bg-secondary)' }}>
+        Questions? Concerns? Support?{' '}
+        <a href="mailto:Tejusbhasin17@gmail.com" style={{ color: 'var(--lx-accent)' }}>
+          Email Tejusbhasin17@gmail.com
+        </a>
+      </div>
     </div>
   );
 }
