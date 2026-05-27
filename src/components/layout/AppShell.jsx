@@ -258,14 +258,6 @@ export default function AppShell({ children, user }) {
           </motion.div>
         </AnimatePresence>
       </main>
-
-      {/* Support Footer */}
-      <div className="flex-shrink-0 text-center py-1.5 text-xs" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--lx-border)', background: 'var(--bg-secondary)' }}>
-        Questions? Concerns? Support?{' '}
-        <a href="mailto:Tejusbhasin17@gmail.com" style={{ color: 'var(--lx-accent)' }}>
-          Email Tejusbhasin17@gmail.com
-        </a>
-      </div>
     </div>
   );
 }
