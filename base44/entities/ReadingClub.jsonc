@@ -68,5 +68,49 @@
   "required": [
     "name",
     "creator_email"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "data.creator_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.is_visible": true
+        },
+        {
+          "data.member_emails": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.creator_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.creator_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }
