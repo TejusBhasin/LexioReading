@@ -39,6 +39,11 @@ export default function TermsPrivacyPage() {
               Lexio contains links to external services (Amazon, Google Books, etc.). We are not responsible for the content, services, or policies of third-party websites.
             </p>
 
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Admin Access and Safety</h3>
+            <p>
+              Lexio administrators may access user account data and content for safety, security, and abuse prevention purposes. This includes investigating violations of these terms, protecting community members, and preventing illegal activity.
+            </p>
+
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Modifications and Termination</h3>
             <p>
               Lexio reserves the right to modify, suspend, or discontinue the service at any time. We may terminate accounts that violate these terms.
@@ -95,6 +100,7 @@ export default function TermsPrivacyPage() {
               <li><strong>Google Calendar:</strong> Only if you connect it for reading reminders (you control this)</li>
               <li><strong>Google Books API:</strong> To fetch book metadata (no personal info shared)</li>
               <li><strong>Other Lexio Users:</strong> Only content you publicly post (reviews, book clubs, public profile)</li>
+              <li><strong>Lexio Administrators:</strong> For safety, abuse prevention, and community protection purposes</li>
               <li><button onClick={() => navigate('/secret')} style={{ color: 'var(--lx-accent)', fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Legal Authorities:</button> Only if required by law</li>
             </ul>
 
