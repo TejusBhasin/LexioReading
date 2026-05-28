@@ -89,12 +89,13 @@ export default function AppShell({ children, user }) {
         base44.entities.UserProfile.filter({ user_email: user.email }),
         base44.entities.UserSafeness.filter({ user_email: user.email }),
         base44.entities.BlockedPattern.filter({ is_active: true }),
-        base44.entities.SchoolMember.filter({ user_email: user.email, kicked: false }),
+        base44.entities.SchoolMember.filter({ user_email: user.email }),
       ]);
 
       // Apply school theme if member of active school
-      if (schoolMemberRecs[0]) {
-        const schools = await base44.entities.School.filter({ id: schoolMemberRecs[0].school_id, is_active: true });
+      const activeSchoolMember = schoolMemberRecs.find(m => !m.kicked);
+      if (activeSchoolMember) {
+        const schools = await base44.entities.School.filter({ id: activeSchoolMember.school_id, is_active: true });
         if (schools[0] && schools[0].theme_locked) {
           const s = schools[0];
           document.documentElement.style.setProperty('--lx-accent', s.theme_primary || '#f5a623');
