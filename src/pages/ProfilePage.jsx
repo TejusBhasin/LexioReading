@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield } from 'lucide-react';
+import AdminDashboard from '@/components/admin/AdminDashboard';
 import ProfileExport from '@/components/profile/ProfileExport';
 import JoinCreateSchool from '@/components/schools/JoinCreateSchool';
 import PrivacyTab from '@/components/profile/PrivacyTab';
@@ -17,6 +18,7 @@ const TABS = [
   { id: 'theme', label: 'Personalize', icon: Palette },
   { id: 'export', label: 'Export Card', icon: Download },
   { id: 'school', label: 'School', icon: GraduationCap },
+  { id: 'admin', label: 'Admin', icon: Shield, adminOnly: true },
 ];
 
 const PACING_OPTIONS = [
@@ -181,7 +183,7 @@ export default function ProfilePage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-8 overflow-x-auto pb-1 scrollbar-hide">
-        {TABS.map(({ id, label, icon: TabIcon }) => (
+        {TABS.filter(t => !t.adminOnly || user?.role === 'admin').map(({ id, label, icon: TabIcon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
@@ -417,6 +419,10 @@ export default function ProfilePage() {
             <GraduationCap size={14} /> Manage My School (Admin Panel)
           </a>
         </div>
+      )}
+
+      {tab === 'admin' && user?.role === 'admin' && (
+        <AdminDashboard user={user} />
       )}
 
       {/* THEME */}
