@@ -124,9 +124,9 @@ function SafetyTab() {
                   value={form.ban_reason || ''} onChange={e => setForm(f => ({ ...f, ban_reason: e.target.value }))} />
                 <div>
                   <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Ban expires (leave blank = permanent)</label>
-                  <input type="datetime-local" className="lx-input text-sm"
-                    value={form.ban_expires ? form.ban_expires.slice(0, 16) : ''}
-                    onChange={e => setForm(f => ({ ...f, ban_expires: e.target.value ? new Date(e.target.value).toISOString() : '' }))} />
+                  <input type="date" className="lx-input text-sm"
+                    value={form.ban_expires ? form.ban_expires.slice(0, 10) : ''}
+                    onChange={e => setForm(f => ({ ...f, ban_expires: e.target.value ? new Date(e.target.value + 'T23:59:59').toISOString() : '' }))} />
                 </div>
               </div>
             )}
@@ -309,17 +309,17 @@ function PatternsTab() {
 
       {showNew && (
         <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-accent)' }}>
-          <div className="flex gap-2">
-            <input className="lx-input text-sm flex-1" placeholder="Pattern (e.g. spam@, badword)..."
-              value={form.pattern} onChange={e => setForm(f => ({ ...f, pattern: e.target.value }))} />
-            <select className="lx-input text-sm w-32"
+          <textarea className="lx-input text-sm resize-none" rows={5} placeholder="Pattern (e.g. spam@, badword)..."
+            value={form.pattern} onChange={e => setForm(f => ({ ...f, pattern: e.target.value }))} />
+          <div className="flex gap-2 items-center">
+            <select className="lx-input text-sm w-32 flex-shrink-0"
               value={form.pattern_type} onChange={e => setForm(f => ({ ...f, pattern_type: e.target.value }))}>
               <option value="email">Email</option>
               <option value="username">Username</option>
             </select>
+            <input className="lx-input text-sm flex-1" placeholder="Reason (optional)..."
+              value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} />
           </div>
-          <input className="lx-input text-sm" placeholder="Reason (optional)..."
-            value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} />
           <div className="flex gap-2">
             <button onClick={createPattern} disabled={creating || !form.pattern.trim()} className="lx-btn-primary text-sm">
               {creating ? 'Adding...' : 'Add Pattern'}
