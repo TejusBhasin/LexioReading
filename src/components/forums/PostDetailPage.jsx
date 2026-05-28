@@ -23,7 +23,7 @@ function VoteButtons({ item, user, onVote, size = 'normal' }) {
   );
 }
 
-function ReplyBox({ user, postId, parentId, onDone }) {
+function ReplyBox({ user, postId, parentId, parentAuthorEmail, onDone }) {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   async function submit() {
@@ -34,6 +34,14 @@ function ReplyBox({ user, postId, parentId, onDone }) {
       author_email: user.email, author_username: user.full_name || user.email.split('@')[0],
       upvotes: 0, downvotes: 0, voted_by: [],
     });
+    if (parentAuthorEmail && parentAuthorEmail !== user.email) {
+      base44.entities.Notification.create({
+        user_email: parentAuthorEmail, type: 'forum_reply',
+        title: 'Someone replied to your comment',
+        body: `${user.full_name || user.email.split('@')[0]}: "${text.trim().slice(0, 80)}"`,
+        link: '/forums', group_key: postId, is_read: false,
+      });
+    }
     setLoading(false);
     onDone();
   }
@@ -69,7 +77,7 @@ function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth
           )}
         </div>
         {replying && (
-          <ReplyBox user={user} postId={comment.post_id} parentId={comment.id}
+          <ReplyBox user={user} postId={comment.post_id} parentId={comment.id} parentAuthorEmail={comment.author_email}
             onDone={() => { setReplying(false); onReply(); }} />
         )}
       </div>
@@ -124,6 +132,14 @@ export default function PostDetailPage({ post, user, userProfile, onBack, onVote
       upvotes: 0, downvotes: 0, voted_by: [],
     });
     await base44.entities.ForumPost.update(post.id, { comment_count: (post.comment_count || 0) + 1 });
+    if (post.author_email && post.author_email !== user.email) {
+      base44.entities.Notification.create({
+        user_email: post.author_email, type: 'forum_reply',
+        title: 'New comment on your post',
+        body: `${user.full_name || user.email.split('@')[0]}: "${commentText.trim().slice(0, 80)}"`,
+        link: '/forums', group_key: post.id, is_read: false,
+      });
+    }
     setCommentText('');
     setPosting(false);
     loadComments();

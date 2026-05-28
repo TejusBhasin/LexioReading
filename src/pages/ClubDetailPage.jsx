@@ -60,8 +60,20 @@ export default function ClubDetailPage() {
 
   async function saveSettings() {
     setSaving(true);
+    const bookChanged = settingsForm.current_book_title && settingsForm.current_book_title !== club.current_book_title;
     const updated = await base44.entities.ReadingClub.update(club.id, settingsForm);
     setClub(updated);
+    if (bookChanged) {
+      const memberEmails = (club.member_emails || []).filter(e => e !== user?.email);
+      if (memberEmails.length > 0) {
+        base44.entities.Notification.bulkCreate(memberEmails.map(email => ({
+          user_email: email, type: 'club_new_book',
+          title: `${club.name} started a new book`,
+          body: settingsForm.current_book_title,
+          link: `/club/${club.id}`, group_key: club.id, is_read: false,
+        })));
+      }
+    }
     setSaving(false);
     setShowSettings(false);
   }

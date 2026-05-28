@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles, Menu, X, Newspaper } from 'lucide-react';
+import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
 import SetupTour from '@/components/onboarding/SetupTour.jsx';
@@ -95,9 +96,10 @@ export default function AppShell({ children, user }) {
         }
       }
 
-      // Check full ban
+      // Check full ban (with optional expiry)
       const safety = safetyRecs[0];
-      if (safety?.is_banned) {
+      const banExpired = safety?.ban_expires && new Date(safety.ban_expires) < new Date();
+      if (safety?.is_banned && !banExpired) {
         setIsBanned(true);
         setBanReason(safety.ban_reason || 'Your account has been restricted by a moderator.');
         return;
@@ -191,6 +193,7 @@ export default function AppShell({ children, user }) {
           </nav>
 
           <div className="flex items-center gap-2">
+            {user && <NotificationBell user={user} />}
             {/* Mobile hamburger */}
             <button
               className="md:hidden p-2 rounded transition-colors"

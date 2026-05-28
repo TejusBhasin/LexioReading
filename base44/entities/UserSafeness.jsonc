@@ -12,6 +12,10 @@
       "type": "boolean",
       "default": false
     },
+    "ban_expires": {
+      "type": "string",
+      "description": "ISO date string. If set and past, ban is automatically lifted."
+    },
     "banned_from_forums": {
       "type": "boolean",
       "default": false
