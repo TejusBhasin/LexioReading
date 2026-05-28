@@ -1,0 +1,86 @@
+{
+  "name": "BookClub",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "creator_email": {
+      "type": "string"
+    },
+    "cover_image": {
+      "type": "string"
+    },
+    "current_book_id": {
+      "type": "string"
+    },
+    "current_book_title": {
+      "type": "string"
+    },
+    "member_count": {
+      "type": "number",
+      "default": 1
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true
+    },
+    "genres": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "name",
+    "creator_email"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.is_public": true
+        },
+        {
+          "data.member_emails": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
