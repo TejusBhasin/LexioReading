@@ -18,7 +18,7 @@ const TABS = [
   { id: 'theme', label: 'Personalize', icon: Palette },
   { id: 'export', label: 'Export Card', icon: Download },
   { id: 'school', label: 'School', icon: GraduationCap },
-  { id: 'admin', label: 'Admin', icon: Shield, adminOnly: true },
+  { id: 'admin', label: 'Admin', icon: Shield },
 ];
 
 const PACING_OPTIONS = [
@@ -183,7 +183,7 @@ export default function ProfilePage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-8 overflow-x-auto pb-1 scrollbar-hide">
-        {TABS.filter(t => !t.adminOnly || user?.role === 'admin').map(({ id, label, icon: TabIcon }) => (
+        {TABS.map(({ id, label, icon: TabIcon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
@@ -421,7 +421,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {tab === 'admin' && user?.role === 'admin' && (
+      {tab === 'admin' && (
         <AdminDashboard user={user} />
       )}
 
