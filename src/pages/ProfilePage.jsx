@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
+import ContactForm from '@/components/profile/ContactForm';
 import ProfileExport from '@/components/profile/ProfileExport';
 import JoinCreateSchool from '@/components/schools/JoinCreateSchool';
 import PrivacyTab from '@/components/profile/PrivacyTab';
@@ -509,8 +510,15 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* Contact Us */}
+      {user && (
+        <div className="mt-12 pt-8 border-t" style={{ borderColor: 'var(--lx-border)' }}>
+          <ContactForm user={user} />
+        </div>
+      )}
+
       {/* Footer with TC Link */}
-      <div className="mt-12 pt-8 border-t" style={{ borderColor: 'var(--lx-border)' }}>
+      <div className="mt-8 pt-6 border-t" style={{ borderColor: 'var(--lx-border)' }}>
         <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
           <Link to="/terms-privacy" style={{ color: 'var(--lx-accent)' }} className="underline hover:opacity-80">
             Terms and Conditions / Privacy Policy

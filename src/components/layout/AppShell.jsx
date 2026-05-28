@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles, Menu, X, Newspaper, Target, Quote, Trophy } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
-const FEATURE_NAV = [
+const OTHER_NAV = [
   { path: '/goal', icon: Target, label: 'Reading Goal' },
   { path: '/quotes', icon: Quote, label: 'Quotes' },
   { path: '/challenges', icon: Trophy, label: 'Challenges' },
@@ -28,9 +28,6 @@ const FEATURE_NAV = [
 
 const EXTRA_NAV = [
   { path: '/vault', icon: Lock, label: 'Vault' },
-  { path: '/goal', icon: Target, label: 'Goal' },
-  { path: '/quotes', icon: Quote, label: 'Quotes' },
-  { path: '/challenges', icon: Trophy, label: 'Challenges' },
 ];
 
 const BOTTOM_NAV_ITEMS = [
@@ -47,6 +44,7 @@ export default function AppShell({ children, user }) {
   const [showTour, setShowTour] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [otherOpen, setOtherOpen] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
   const [banReason, setBanReason] = useState('');
   const menuRef = useRef(null);
@@ -59,7 +57,7 @@ export default function AppShell({ children, user }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [mobileMenuOpen]);
 
-  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileMenuOpen(false); setOtherOpen(false); }, [location.pathname]);
 
   useEffect(() => {
     if (user?.email) {
@@ -199,6 +197,31 @@ export default function AppShell({ children, user }) {
                 </Link>
               );
             })}
+            {/* Other dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setOtherOpen(o => !o)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium transition-all"
+                style={{
+                  color: OTHER_NAV.some(n => location.pathname === n.path) ? 'var(--lx-accent)' : 'var(--text-secondary)',
+                  backgroundColor: OTHER_NAV.some(n => location.pathname === n.path) ? 'var(--bg-elevated)' : 'transparent',
+                }}
+              >
+                Other <ChevronDown size={13} className={otherOpen ? 'rotate-180' : ''} style={{ transition: 'transform 0.15s' }} />
+              </button>
+              {otherOpen && (
+                <div className="absolute top-full right-0 mt-1 w-44 rounded-lg shadow-lg py-1 z-50"
+                  style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+                  {OTHER_NAV.map(({ path, icon: OIcon, label }) => (
+                    <Link key={path} to={path}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:opacity-80"
+                      style={{ color: location.pathname === path ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
+                      <OIcon size={14} /> {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -239,7 +262,7 @@ export default function AppShell({ children, user }) {
         <div ref={menuRef} className="md:hidden fixed left-0 right-0 z-40 border-b shadow-lg"
           style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', top: 'calc(3.5rem + env(safe-area-inset-top, 0px))' }}>
           <nav className="px-4 py-3 space-y-1">
-            {[...NAV_ITEMS, { path: '/goal', icon: Target, label: 'Reading Goal' }, { path: '/quotes', icon: Quote, label: 'Quotes' }, { path: '/challenges', icon: Trophy, label: 'Challenges' }, { path: '/vault', icon: Lock, label: 'Vault' }].map(({ path, icon: MIcon, label }) => {
+            {[...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].map(({ path, icon: MIcon, label }) => {
               const active = location.pathname === path;
               return (
                 <Link key={path} to={path}
