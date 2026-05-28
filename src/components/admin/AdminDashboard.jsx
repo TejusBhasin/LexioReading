@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Megaphone, Ban, Search, Plus, Trash2, Check, X, AlertTriangle } from 'lucide-react';
+import { Shield, Megaphone, Ban, Search, Plus, Trash2, Check, X, AlertTriangle, Mail } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const ADMIN_TABS = [
   { id: 'safety', label: '🛡️ User Safety' },
   { id: 'broadcasts', label: '📢 Broadcasts' },
   { id: 'patterns', label: '🚫 Blocked Patterns' },
+  { id: 'contacts', label: '📬 Contact Requests' },
 ];
 
 const BAN_FEATURES = [
@@ -349,6 +350,79 @@ function PatternsTab() {
   );
 }
 
+// ─── Contact Requests Tab ─────────────────────────────────────────────────────
+function ContactRequestsTab() {
+  const [requests, setRequests] = useState([]);
+  const [replyForm, setReplyForm] = useState({});
+  const [saving, setSaving] = useState(null);
+
+  useEffect(() => { loadRequests(); }, []);
+
+  async function loadRequests() {
+    const all = await base44.entities.ContactRequest.list('-created_date', 100);
+    setRequests(all);
+  }
+
+  async function sendReply(req) {
+    const reply = replyForm[req.id];
+    if (!reply?.trim()) return;
+    setSaving(req.id);
+    await base44.entities.ContactRequest.update(req.id, { admin_reply: reply, status: 'replied' });
+    setRequests(prev => prev.map(r => r.id === req.id ? { ...r, admin_reply: reply, status: 'replied' } : r));
+    setReplyForm(f => ({ ...f, [req.id]: '' }));
+    setSaving(null);
+  }
+
+  async function closeRequest(id) {
+    await base44.entities.ContactRequest.update(id, { status: 'closed' });
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'closed' } : r));
+  }
+
+  const statusColor = { open: '#f97316', replied: '#10b981', closed: 'var(--text-muted)' };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{requests.length} total request(s)</p>
+      {requests.length === 0 && <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>No contact requests yet.</p>}
+      {requests.map(req => (
+        <div key={req.id} className="rounded-xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: `1px solid ${req.status === 'open' ? 'rgba(249,115,22,0.4)' : 'var(--lx-border)'}` }}>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{req.subject}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{req.user_email} · {new Date(req.created_date).toLocaleDateString()}</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ color: statusColor[req.status] || 'var(--text-muted)', background: 'var(--bg-elevated)' }}>{req.status}</span>
+              {req.status !== 'closed' && (
+                <button onClick={() => closeRequest(req.id)} className="text-xs" style={{ color: 'var(--text-muted)' }}>Close</button>
+              )}
+            </div>
+          </div>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{req.message}</p>
+          {req.admin_reply && (
+            <div className="p-3 rounded text-sm" style={{ background: 'rgba(245,166,35,0.08)', borderLeft: '2px solid var(--lx-accent)' }}>
+              <p className="text-xs font-bold mb-1" style={{ color: 'var(--lx-accent)' }}>Your Reply</p>
+              <p style={{ color: 'var(--text-secondary)' }}>{req.admin_reply}</p>
+            </div>
+          )}
+          {req.status !== 'closed' && (
+            <div className="flex gap-2">
+              <input className="lx-input text-sm flex-1" placeholder="Reply to user..."
+                value={replyForm[req.id] || ''}
+                onChange={e => setReplyForm(f => ({ ...f, [req.id]: e.target.value }))}
+                onKeyDown={e => e.key === 'Enter' && sendReply(req)}
+              />
+              <button onClick={() => sendReply(req)} disabled={saving === req.id || !replyForm[req.id]?.trim()} className="lx-btn-primary text-sm px-3">
+                {saving === req.id ? '...' : <Mail size={14} />}
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Main AdminDashboard ───────────────────────────────────────────────────────
 export default function AdminDashboard({ user }) {
   const [tab, setTab] = useState('safety');
@@ -373,6 +447,7 @@ export default function AdminDashboard({ user }) {
       {tab === 'safety' && <SafetyTab />}
       {tab === 'broadcasts' && <BroadcastsTab adminEmail={user?.email} />}
       {tab === 'patterns' && <PatternsTab />}
+      {tab === 'contacts' && <ContactRequestsTab />}
     </div>
   );
 }
