@@ -25,6 +25,9 @@ import UserPublicProfilePage from '@/pages/UserPublicProfilePage';
 import EasterEggPage from '@/pages/EasterEggPage';
 import ForumsPage from '@/pages/ForumsPage';
 import SchoolAdminPage from '@/pages/SchoolAdminPage';
+import ReadingGoalPage from '@/pages/ReadingGoalPage';
+import BookQuotesPage from '@/pages/BookQuotesPage';
+import ChallengesPage from '@/pages/ChallengesPage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
 const AuthenticatedApp = () => {
@@ -78,6 +81,9 @@ const AuthenticatedApp = () => {
         <Route path="/secret" element={<EasterEggPage />} />
         <Route path="/forums" element={<ForumsPage />} />
         <Route path="/school-admin" element={<SchoolAdminPage />} />
+        <Route path="/goal" element={<ReadingGoalPage />} />
+        <Route path="/quotes" element={<BookQuotesPage />} />
+        <Route path="/challenges" element={<ChallengesPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AppShell>

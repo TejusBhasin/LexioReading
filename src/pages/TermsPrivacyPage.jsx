@@ -39,9 +39,30 @@ export default function TermsPrivacyPage() {
               Lexio contains links to external services (Amazon, Google Books, etc.). We are not responsible for the content, services, or policies of third-party websites.
             </p>
 
-            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Admin Access and Safety</h3>
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Content Standards — Posts, Forums, and Clubs</h3>
             <p>
-              Lexio administrators may access user account data and content for safety, security, and abuse prevention purposes. This includes investigating violations of these terms, protecting community members, and preventing illegal activity.
+              All content posted on Lexio — including reviews, forum posts, discussions, and reading clubs — must be genuine, meaningful, and reading-related. The following are strictly prohibited and will result in immediate content removal and potential account suspension:
+            </p>
+            <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
+              <li><strong>Fake content:</strong> Fabricated reviews, false reading logs, made-up book clubs, or any other dishonest content.</li>
+              <li><strong>Nondescript content:</strong> Posts, clubs, or reviews that lack meaningful substance (e.g., single-character titles, gibberish descriptions, placeholder text).</li>
+              <li><strong>Joke or spam content:</strong> Forum posts, club names, or reviews created purely for humor, trolling, or flooding — with no legitimate reading purpose.</li>
+              <li><strong>Impersonation:</strong> Creating clubs or profiles designed to impersonate real people, authors, or organizations.</li>
+            </ul>
+
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Admin Access, Safety, and Banning</h3>
+            <p>
+              Lexio administrators reserve the right to ban, suspend, or restrict any user account at any time, with or without prior notice, for any violation of these Terms — or at their sole discretion in the interest of community safety. This includes, but is not limited to:
+            </p>
+            <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
+              <li>Posting hateful, abusive, illegal, or harassing content</li>
+              <li>Creating fake, nondescript, or spam posts, forums, reviews, or clubs</li>
+              <li>Evading a previous ban or suspension</li>
+              <li>Harassing or threatening other users</li>
+              <li>Any behavior deemed harmful to the Lexio community</li>
+            </ul>
+            <p style={{ marginTop: '0.5rem' }}>
+              Bans may be temporary or permanent. Administrators may also restrict access to specific features (forums, clubs, chat) rather than issuing a full ban. All moderation decisions are final. If you believe a ban was issued in error, you may contact support to appeal.
             </p>
 
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Modifications and Termination</h3>

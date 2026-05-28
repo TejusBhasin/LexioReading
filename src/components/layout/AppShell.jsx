@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles, Menu, X, Newspaper } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Sparkles, Menu, X, Newspaper, Target, Quote, Trophy } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
@@ -20,8 +20,17 @@ const NAV_ITEMS = [
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
+const FEATURE_NAV = [
+  { path: '/goal', icon: Target, label: 'Reading Goal' },
+  { path: '/quotes', icon: Quote, label: 'Quotes' },
+  { path: '/challenges', icon: Trophy, label: 'Challenges' },
+];
+
 const EXTRA_NAV = [
   { path: '/vault', icon: Lock, label: 'Vault' },
+  { path: '/goal', icon: Target, label: 'Goal' },
+  { path: '/quotes', icon: Quote, label: 'Quotes' },
+  { path: '/challenges', icon: Trophy, label: 'Challenges' },
 ];
 
 const BOTTOM_NAV_ITEMS = [
@@ -230,7 +239,7 @@ export default function AppShell({ children, user }) {
         <div ref={menuRef} className="md:hidden fixed left-0 right-0 z-40 border-b shadow-lg"
           style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', top: 'calc(3.5rem + env(safe-area-inset-top, 0px))' }}>
           <nav className="px-4 py-3 space-y-1">
-            {[...NAV_ITEMS, ...EXTRA_NAV].map(({ path, icon: MIcon, label }) => {
+            {[...NAV_ITEMS, { path: '/goal', icon: Target, label: 'Reading Goal' }, { path: '/quotes', icon: Quote, label: 'Quotes' }, { path: '/challenges', icon: Trophy, label: 'Challenges' }, { path: '/vault', icon: Lock, label: 'Vault' }].map(({ path, icon: MIcon, label }) => {
               const active = location.pathname === path;
               return (
                 <Link key={path} to={path}
