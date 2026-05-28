@@ -184,7 +184,7 @@ export default function ProfilePage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-8 overflow-x-auto pb-1 scrollbar-hide">
-        {TABS.map(({ id, label, icon: TabIcon }) => (
+        {TABS.filter(t => t.id !== 'admin' || user?.role === 'admin').map(({ id, label, icon: TabIcon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
