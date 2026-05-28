@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, RotateCcw } from 'lucide-react';
+import { Trophy, RotateCcw, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -43,10 +43,15 @@ const EXTRA_CHALLENGES = [
 export default function ChallengesPage() {
   const { user } = useAuth();
   const STORAGE_KEY = `lexio_bingo_${user?.email}_2026`;
+  const SQUARES_KEY = `lexio_bingo_squares_${user?.email}_2026`;
   const [checked, setChecked] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
   });
-  const [library, setLibrary] = useState({ total: 0, finished: 0, reviews: 0 });
+  const [squares, setSquares] = useState(() => {
+    try { const s = localStorage.getItem(SQUARES_KEY); return s ? JSON.parse(s) : BINGO_SQUARES; } catch { return BINGO_SQUARES; }
+  });
+  const [generating, setGenerating] = useState(false);
+  const [library, setLibrary] = useState({ total: 0, finished: 0, reviews: 0, genres: [] });
 
   useEffect(() => {
     if (user?.email) loadStats();
@@ -57,11 +62,32 @@ export default function ChallengesPage() {
       base44.entities.UserLibrary.filter({ user_email: user.email }),
       base44.entities.Review.filter({ user_email: user.email }),
     ]);
-    setLibrary({ total: lib.length, finished: lib.filter(b => b.status === 'finished').length, reviews: revs.length });
+    const genres = [...new Set(lib.flatMap(b => b.tags || []))].slice(0, 6);
+    setLibrary({ total: lib.length, finished: lib.filter(b => b.status === 'finished').length, reviews: revs.length, genres });
+  }
+
+  async function generateAISquares() {
+    setGenerating(true);
+    const prompt = `Generate 25 fun, creative, and specific reading bingo challenge squares for a book reader.
+User info: ${library.finished} books finished, reads genres: ${library.genres.join(', ') || 'various'}.
+Make them diverse: some easy, some hard, some genre-specific, some general, some social.
+Return ONLY a JSON array of 25 short strings (max 8 words each), no numbering. Example format:
+["Read a book set in Asia", "Finish a book in one day", ...]`;
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      response_json_schema: { type: 'object', properties: { squares: { type: 'array', items: { type: 'string' } } } }
+    });
+    const newSquares = result?.squares?.slice(0, 25) || BINGO_SQUARES;
+    // Ensure 25 squares, with free square at index 12
+    while (newSquares.length < 25) newSquares.push(BINGO_SQUARES[newSquares.length]);
+    newSquares[12] = '⭐ FREE\nRead any book';
+    setSquares(newSquares);
+    localStorage.setItem(SQUARES_KEY, JSON.stringify(newSquares));
+    setGenerating(false);
   }
 
   function toggle(i) {
-    if (i === 12) return; // free square
+    if (i === 12) return;
     const next = checked.includes(i) ? checked.filter(x => x !== i) : [...checked, i];
     setChecked(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -70,9 +96,10 @@ export default function ChallengesPage() {
   function reset() {
     setChecked([]);
     localStorage.removeItem(STORAGE_KEY);
+    generateAISquares();
   }
 
-  const completedCount = checked.length + 1; // +1 for free
+  const completedCount = checked.length + 1;
   const hasBingo = () => {
     const grid = Array(25).fill(false);
     checked.forEach(i => grid[i] = true);
@@ -92,9 +119,14 @@ export default function ChallengesPage() {
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Complete squares to get BINGO · {completedCount}/25 done</p>
         </div>
-        <button onClick={reset} className="lx-btn-ghost text-sm py-1.5">
-          <RotateCcw size={13} /> Reset
-        </button>
+        <div className="flex gap-2">
+          <button onClick={generateAISquares} disabled={generating} className="lx-btn-primary text-sm py-1.5">
+            <Sparkles size={13} /> {generating ? 'Generating...' : 'AI Generate'}
+          </button>
+          <button onClick={reset} disabled={generating} className="lx-btn-ghost text-sm py-1.5">
+            <RotateCcw size={13} /> Reset
+          </button>
+        </div>
       </div>
 
       {hasBingo() && (
@@ -110,7 +142,7 @@ export default function ChallengesPage() {
           <div key={l} className="h-8 flex items-center justify-center font-display font-bold text-lg"
             style={{ color: 'var(--lx-accent)' }}>{l}</div>
         ))}
-        {BINGO_SQUARES.map((sq, i) => {
+        {squares.map((sq, i) => {
           const isFree = i === 12;
           const done = isFree || checked.includes(i);
           return (

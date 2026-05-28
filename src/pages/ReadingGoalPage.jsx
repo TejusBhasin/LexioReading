@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Check, BookOpen, TrendingUp, Edit2 } from 'lucide-react';
+import { Target, Check, BookOpen, TrendingUp, Edit2, Sparkles, Plus, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -10,18 +10,62 @@ export default function ReadingGoalPage() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ target_books: 12, target_pages: 0 });
   const [saving, setSaving] = useState(false);
+  const [customGoals, setCustomGoals] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`lexio_custom_goals_${null}`) || '[]'); } catch { return []; }
+  });
+  const [newGoal, setNewGoal] = useState('');
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [loadingAI, setLoadingAI] = useState(false);
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
-    if (user?.email) loadData();
+    if (user?.email) {
+      loadData();
+      const stored = localStorage.getItem(`lexio_custom_goals_${user.email}`);
+      if (stored) setCustomGoals(JSON.parse(stored));
+    }
   }, [user]);
+
+  function saveCustomGoals(goals) {
+    setCustomGoals(goals);
+    localStorage.setItem(`lexio_custom_goals_${user.email}`, JSON.stringify(goals));
+  }
+
+  function addCustomGoal() {
+    if (!newGoal.trim()) return;
+    saveCustomGoals([...customGoals, { text: newGoal.trim(), done: false }]);
+    setNewGoal('');
+  }
+
+  function toggleCustomGoal(i) {
+    const next = customGoals.map((g, idx) => idx === i ? { ...g, done: !g.done } : g);
+    saveCustomGoals(next);
+  }
+
+  function removeCustomGoal(i) {
+    saveCustomGoals(customGoals.filter((_, idx) => idx !== i));
+  }
+
+  async function generateAIGoals() {
+    setLoadingAI(true);
+    const finishedCount = library.filter(b => {
+      const d = b.date_finished || b.updated_date;
+      return d && new Date(d).getFullYear() === currentYear;
+    }).length;
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Generate 5 personalized, motivating reading goals for a reader who has finished ${finishedCount} books this year. Make them specific, achievable, and inspiring. Mix genre goals, habit goals, and social goals.`,
+      response_json_schema: { type: 'object', properties: { goals: { type: 'array', items: { type: 'string' } } } }
+    });
+    setAiSuggestions(result?.goals || []);
+    setLoadingAI(false);
+  }
 
   async function loadData() {
     const [goals, lib] = await Promise.all([
       base44.entities.ReadingGoal.filter({ user_email: user.email, year: currentYear }),
-      base44.entities.UserLibrary.filter({ user_email: user.email, status: 'finished' }),
+      base44.entities.UserLibrary.filter({ user_email: user.email }),
     ]);
-    setLibrary(lib);
+    setLibrary(lib.filter(b => b.status === 'finished'));
     if (goals[0]) {
       setGoal(goals[0]);
       setForm({ target_books: goals[0].target_books || 12, target_pages: goals[0].target_pages || 0 });
@@ -87,6 +131,48 @@ export default function ReadingGoalPage() {
           </button>
         </div>
       )}
+
+      {/* Custom Goals */}
+      <div className="lx-card p-5 mb-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>My Reading Goals</h3>
+          <button onClick={generateAIGoals} disabled={loadingAI} className="lx-btn-ghost text-xs py-1">
+            <Sparkles size={11} /> {loadingAI ? 'Thinking...' : 'AI Suggest'}
+          </button>
+        </div>
+        {aiSuggestions.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Tap to add:</p>
+            {aiSuggestions.map((s, i) => (
+              <button key={i} onClick={() => { saveCustomGoals([...customGoals, { text: s, done: false }]); setAiSuggestions(prev => prev.filter((_, j) => j !== i)); }}
+                className="w-full text-left text-xs px-3 py-2 rounded-lg transition-all"
+                style={{ background: 'rgba(245,166,35,0.08)', border: '1px dashed var(--lx-accent)', color: 'var(--text-secondary)' }}>
+                <Plus size={11} className="inline mr-1" />{s}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <input className="lx-input text-sm flex-1" placeholder="Add a custom goal..."
+            value={newGoal} onChange={e => setNewGoal(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addCustomGoal()} />
+          <button onClick={addCustomGoal} className="lx-btn-primary text-sm px-3"><Plus size={14} /></button>
+        </div>
+        <div className="space-y-2">
+          {customGoals.map((g, i) => (
+            <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--bg-elevated)', opacity: g.done ? 0.6 : 1 }}>
+              <button onClick={() => toggleCustomGoal(i)}
+                className="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0"
+                style={{ borderColor: g.done ? 'var(--lx-accent)' : 'var(--lx-border)', background: g.done ? 'var(--lx-accent)' : 'transparent' }}>
+                {g.done && <Check size={10} style={{ color: 'var(--bg-primary)' }} />}
+              </button>
+              <span className="flex-1 text-sm" style={{ color: 'var(--text-secondary)', textDecoration: g.done ? 'line-through' : 'none' }}>{g.text}</span>
+              <button onClick={() => removeCustomGoal(i)}><X size={13} style={{ color: 'var(--text-muted)' }} /></button>
+            </div>
+          ))}
+          {customGoals.length === 0 && <p className="text-xs text-center py-2" style={{ color: 'var(--text-muted)' }}>No goals yet — add one or use AI suggestions</p>}
+        </div>
+      </div>
 
       {/* Progress */}
       {goal && !editing && (

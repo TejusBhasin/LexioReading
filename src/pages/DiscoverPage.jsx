@@ -207,17 +207,7 @@ export default function DiscoverPage() {
               <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Trending</h2>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 mb-5">
-            {GENRE_FILTERS.map(g => (
-              <button key={g} onClick={() => setActiveGenre(g)}
-                className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
-                style={{
-                  background: activeGenre === g ? 'var(--lx-accent)' : 'var(--bg-card)',
-                  color: activeGenre === g ? 'var(--bg-primary)' : 'var(--text-secondary)',
-                  border: '1px solid var(--lx-border)'
-                }}>{g}</button>
-            ))}
-          </div>
+
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
               {Array.from({ length: 10 }).map((_, i) => (
@@ -226,7 +216,7 @@ export default function DiscoverPage() {
             </div>
           ) : (
             <BookGrid
-              books={activeGenre === 'All' ? featuredBooks : featuredBooks.filter(b => (b.categories || []).some(c => c.toLowerCase().includes(activeGenre.toLowerCase())))}
+              books={featuredBooks}
               onSave={saveBook}
               savedIds={savedIds}
             />
