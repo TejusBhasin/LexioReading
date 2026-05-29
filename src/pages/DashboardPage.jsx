@@ -65,12 +65,12 @@ export default function DashboardPage() {
             AI-powered book discovery, a personal library tracker, and a reading companion that learns your taste.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
-            <Link to="/signup" className="lx-btn-primary py-3 px-8 text-base">
+            <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-primary py-3 px-8 text-base">
               Get Started Free <ArrowRight size={16} />
-            </Link>
-            <Link to="/login" className="lx-btn-ghost py-3 px-8 text-base">
+            </button>
+            <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-ghost py-3 px-8 text-base">
               Sign In
-            </Link>
+            </button>
           </div>
         </div>
 

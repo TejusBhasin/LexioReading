@@ -4,6 +4,7 @@ import { ArrowLeft, Settings, Users, Trophy, BookOpen, MessageSquare, X, Trash2,
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ClubMembers from '@/components/clubs/ClubMembers';
+import ClubChat from '@/components/clubs/ClubChat';
 import LoggingClubDashboard from '@/components/clubs/LoggingClubDashboard';
 import ClubLeaderboard from '@/components/clubs/ClubLeaderboard';
 import BookClubChains from '@/components/clubs/BookClubChains';
@@ -157,6 +158,7 @@ export default function ClubDetailPage() {
         {[
           { id: 'overview', label: 'Overview', icon: BookOpen },
           { id: 'members', label: 'Members', icon: Users },
+          ...(club.allow_chat !== false ? [{ id: 'chat', label: 'Chat', icon: MessageSquare }] : []),
           ...(club.club_type !== 'discussion' && club.club_type !== 'logging' ? [{ id: 'leaderboard', label: 'Leaderboard', icon: Trophy }] : []),
           ...(club.club_type === 'collaborative' ? [{ id: 'chains', label: 'Discussion Chains', icon: MessageSquare }] : []),
           ...(club.club_type === 'logging' && isAdmin ? [{ id: 'dashboard', label: 'Log Dashboard', icon: BookOpen }] : []),
@@ -203,6 +205,7 @@ export default function ClubDetailPage() {
         </div>
       )}
 
+      {tab === 'chat' && <ClubChat club={club} user={user} />}
       {tab === 'members' && <ClubMembers club={club} members={members} isAdmin={isAdmin} />}
       {tab === 'dashboard' && club.club_type === 'logging' && <LoggingClubDashboard club={club} members={members} isAdmin={isAdmin} />}
       {tab === 'overview' && club.club_type === 'logging' && !isAdmin && <LoggingClubDashboard club={club} members={members} isAdmin={false} />}
