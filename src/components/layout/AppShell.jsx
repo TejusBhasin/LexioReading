@@ -128,8 +128,9 @@ export default function AppShell({ children, user }) {
 
       if (p[0]) {
         setUserProfile(p[0]);
-        // Check if terms version needs re-acceptance
-        if (p[0].tc_version !== CURRENT_TERMS_VERSION) {
+        // Check if terms version needs re-acceptance (use localStorage as fast cache)
+        const localVersion = localStorage.getItem('lexio_terms_version');
+        if (localVersion !== CURRENT_TERMS_VERSION && p[0].tc_version !== CURRENT_TERMS_VERSION) {
           setNeedsTermsAccept(true);
         }
         // Check blocked username patterns

@@ -39,6 +39,8 @@ export default function TermsReAcceptModal({ user, onAccepted }) {
     setSaving(true);
     try {
       const now = new Date().toISOString();
+      // Cache acceptance immediately in localStorage so modal never re-shows
+      localStorage.setItem('lexio_terms_version', CURRENT_TERMS_VERSION);
       await base44.entities.TermsAcceptanceLog.create({
         user_email: user.email,
         user_id: user.id,
