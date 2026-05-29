@@ -153,7 +153,7 @@ export default function TermsPrivacyPage() {
             </p>
 
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Contact</h3>
-            <p>Questions about privacy? Contact support through the app or reach out to our team (TEJUSBHASIN17@GMAIL.COM). We are committed to transparency.
+            <p>Questions about privacy? Contact support through the app or reach out to our team (Support@LexioReading.App). We are committed to transparency.
 
             </p>
           </div>
