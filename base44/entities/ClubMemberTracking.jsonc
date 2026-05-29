@@ -64,19 +64,6 @@
   ],
   "rls": {
     "create": {
-      "data.club_id": {
-        "$in": [
-          {
-            "entity": "ReadingClub",
-            "field": "id",
-            "query": {
-              "created_by_id": "{{user.id}}"
-            }
-          }
-        ]
-      }
-    },
-    "read": {
       "$or": [
         {
           "data.user_email": "{{user.email}}"
@@ -88,7 +75,7 @@
                 "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "created_by_id": "{{user.id}}"
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]
@@ -101,6 +88,7 @@
         }
       ]
     },
+    "read": null,
     "update": {
       "$or": [
         {
@@ -113,7 +101,7 @@
                 "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "created_by_id": "{{user.id}}"
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]
@@ -127,17 +115,29 @@
       ]
     },
     "delete": {
-      "data.club_id": {
-        "$in": [
-          {
-            "entity": "ReadingClub",
-            "field": "id",
-            "query": {
-              "created_by_id": "{{user.id}}"
-            }
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "data.club_id": {
+            "$in": [
+              {
+                "entity": "ReadingClub",
+                "field": "id",
+                "query": {
+                  "data.creator_email": "{{user.email}}"
+                }
+              }
+            ]
           }
-        ]
-      }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }

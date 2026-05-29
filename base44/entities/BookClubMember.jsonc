@@ -26,9 +26,6 @@
   ],
   "rls": {
     "create": {
-      "data.user_email": "{{user.email}}"
-    },
-    "read": {
       "$or": [
         {
           "data.user_email": "{{user.email}}"
@@ -37,10 +34,10 @@
           "data.club_id": {
             "$in": [
               {
-                "entity": "BookClub",
+                "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "created_by_id": "{{user.id}}"
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]
@@ -53,6 +50,7 @@
         }
       ]
     },
+    "read": null,
     "update": {
       "$or": [
         {
@@ -62,10 +60,10 @@
           "data.club_id": {
             "$in": [
               {
-                "entity": "BookClub",
+                "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "created_by_id": "{{user.id}}"
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]
@@ -87,10 +85,10 @@
           "data.club_id": {
             "$in": [
               {
-                "entity": "BookClub",
+                "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "created_by_id": "{{user.id}}"
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]

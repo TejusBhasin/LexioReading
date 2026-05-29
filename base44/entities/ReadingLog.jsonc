@@ -46,26 +46,9 @@
   ],
   "rls": {
     "create": {
-      "data.user_email": "{{user.email}}"
-    },
-    "read": {
       "$or": [
         {
           "data.user_email": "{{user.email}}"
-        },
-        {
-          "data.user_email": {
-            "$in": [
-              {
-                "entity": "ReadingClub",
-                "field": "data.member_emails",
-                "query": {
-                  "created_by_id": "{{user.id}}",
-                  "data.club_type": "logging"
-                }
-              }
-            ]
-          }
         },
         {
           "user_condition": {
@@ -74,11 +57,30 @@
         }
       ]
     },
+    "read": null,
     "update": {
-      "data.user_email": "{{user.email}}"
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "delete": {
-      "data.user_email": "{{user.email}}"
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }

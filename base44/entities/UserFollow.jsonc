@@ -33,10 +33,28 @@
       ]
     },
     "update": {
-      "data.follower_email": "{{user.email}}"
+      "$or": [
+        {
+          "data.follower_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "delete": {
-      "data.follower_email": "{{user.email}}"
+      "$or": [
+        {
+          "data.follower_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }

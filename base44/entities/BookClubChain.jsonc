@@ -44,32 +44,28 @@
   ],
   "rls": {
     "create": {
-      "data.club_id": {
-        "$in": [
-          {
-            "entity": "BookClubMember",
-            "field": "data.club_id",
-            "query": {
-              "data.user_email": "{{user.email}}"
-            }
+      "$or": [
+        {
+          "data.club_id": {
+            "$in": [
+              {
+                "entity": "ReadingClub",
+                "field": "id",
+                "query": {
+                  "data.creator_email": "{{user.email}}"
+                }
+              }
+            ]
           }
-        ]
-      },
-      "created_by_id": "{{user.id}}"
-    },
-    "read": {
-      "data.club_id": {
-        "$in": [
-          {
-            "entity": "BookClubMember",
-            "field": "data.club_id",
-            "query": {
-              "data.user_email": "{{user.email}}"
-            }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
           }
-        ]
-      }
+        }
+      ]
     },
+    "read": null,
     "update": {
       "$or": [
         {
@@ -79,14 +75,18 @@
           "data.club_id": {
             "$in": [
               {
-                "entity": "BookClubMember",
-                "field": "data.club_id",
+                "entity": "ReadingClub",
+                "field": "id",
                 "query": {
-                  "data.user_email": "{{user.email}}",
-                  "data.role": "admin"
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]
@@ -100,14 +100,18 @@
           "data.club_id": {
             "$in": [
               {
-                "entity": "BookClubMember",
-                "field": "data.club_id",
+                "entity": "ReadingClub",
+                "field": "id",
                 "query": {
-                  "data.user_email": "{{user.email}}",
-                  "data.role": "admin"
+                  "data.creator_email": "{{user.email}}"
                 }
               }
             ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]
