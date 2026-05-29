@@ -6,6 +6,7 @@ import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
 import SetupTour from '@/components/onboarding/SetupTour.jsx';
+import TermsReAcceptModal, { CURRENT_TERMS_VERSION } from '@/components/onboarding/TermsReAcceptModal.jsx';
 import BanScreen from '@/components/safety/BanScreen.jsx';
 
 const NAV_ITEMS = [
@@ -48,6 +49,7 @@ export default function AppShell({ children, user }) {
   const [otherOpen, setOtherOpen] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
   const [banReason, setBanReason] = useState('');
+  const [needsTermsAccept, setNeedsTermsAccept] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -126,6 +128,10 @@ export default function AppShell({ children, user }) {
 
       if (p[0]) {
         setUserProfile(p[0]);
+        // Check if terms version needs re-acceptance
+        if (p[0].tc_version !== CURRENT_TERMS_VERSION) {
+          setNeedsTermsAccept(true);
+        }
         // Check blocked username patterns
         const usernameBlocked = blockedPatterns
           .filter(bp => bp.pattern_type === 'username' && bp.is_active)
@@ -140,6 +146,11 @@ export default function AppShell({ children, user }) {
         setShowTour(true);
       }
     } catch (e) {}
+  }
+
+  function handleTermsAccepted() {
+    setNeedsTermsAccept(false);
+    loadUserProfile();
   }
 
   // Prevent spacebar from scrolling anywhere outside inputs
@@ -161,6 +172,9 @@ export default function AppShell({ children, user }) {
   return (
     <div className="overflow-hidden lx-bg flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh' }}>
       {isBanned && <BanScreen reason={banReason} />}
+      {needsTermsAccept && !isBanned && user && (
+        <TermsReAcceptModal user={user} onAccepted={handleTermsAccepted} />
+      )}
       {showTour && user && (
         <SetupTour
           user={user}

@@ -70,9 +70,15 @@ export default function TermsPrivacyPage() {
               Lexio reserves the right to modify, suspend, or discontinue the service at any time. We may terminate accounts that violate these terms.
             </p>
 
-            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Disclaimer</h3>
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Limitation of Liability — Full Waiver</h3>
             <p>
-              Lexio is provided as-is without warranties of any kind. We are not liable for data loss, interruptions, or indirect damages.
+              To the fullest extent permitted by applicable law, <strong style={{ color: 'var(--text-primary)' }}>Lexio, its creators, developers, administrators, moderators, and all affiliated individuals are not liable</strong> for any direct, indirect, incidental, consequential, special, punitive, or exemplary damages of any kind arising from or related to: your use of or inability to use the platform; account suspension or termination; content removal; service interruptions or downtime; third-party content or links; data loss; or any other matter related to Lexio.
+            </p>
+            <p style={{ marginTop: '0.5rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              BY USING LEXIO, YOU EXPRESSLY AGREE NOT TO BRING ANY LEGAL ACTION, LAWSUIT, ARBITRATION CLAIM, OR DEMAND of any kind against any person involved in the creation, development, administration, moderation, or operation of Lexio. This waiver is irrevocable and applies regardless of the nature of the claim or the alleged harm.
+            </p>
+            <p style={{ marginTop: '0.5rem' }}>
+              Lexio is provided as-is without warranties of any kind, express or implied, including warranties of fitness for a particular purpose, merchantability, or uninterrupted availability.
             </p>
 
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Free Service</h3>
@@ -88,6 +94,7 @@ export default function TermsPrivacyPage() {
             Privacy Policy
           </h1>
           <div className="prose space-y-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <p><em style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Terms version: v2, May 2026. All users must re-accept when terms are updated. Acceptance is permanently logged.</em></p>
             <p>
               <strong style={{ color: 'var(--text-primary)' }}>Your Privacy Matters</strong>
             </p>
