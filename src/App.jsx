@@ -29,6 +29,7 @@ import ReadingGoalPage from '@/pages/ReadingGoalPage';
 import ReadingStrengthPage from '@/pages/ReadingStrengthPage';
 import BookQuotesPage from '@/pages/BookQuotesPage';
 import ChallengesPage from '@/pages/ChallengesPage';
+import LandingPage from '@/pages/LandingPage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
 const AuthenticatedApp = () => {
@@ -54,8 +55,7 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
+      return <LandingPage />;
     }
   }
 
