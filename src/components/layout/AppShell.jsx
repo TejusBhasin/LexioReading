@@ -150,7 +150,6 @@ export default function AppShell({ children, user }) {
 
   function handleTermsAccepted() {
     setNeedsTermsAccept(false);
-    loadUserProfile();
   }
 
   // Prevent spacebar from scrolling anywhere outside inputs
