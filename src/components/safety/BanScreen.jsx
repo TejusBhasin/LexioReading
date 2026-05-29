@@ -14,8 +14,8 @@ export default function BanScreen({ reason }) {
       </p>
       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
         If you believe this is a mistake, contact{' '}
-        <a href="mailto:Tejusbhasin17@gmail.com" style={{ color: 'var(--lx-accent)' }}>
-          Tejusbhasin17@gmail.com
+        <a href="mailto:Support@LexioReading.App" style={{ color: 'var(--lx-accent)' }}>
+          Support@LexioReading.App
         </a>
       </p>
     </div>
