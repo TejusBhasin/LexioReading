@@ -251,8 +251,8 @@ export default function AppShell({ children, user }) {
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-2">
-                <Link to="/login" className="lx-btn-ghost text-sm py-1.5 px-3">Sign In</Link>
-                <Link to="/signup" className="lx-btn-primary text-sm py-1.5 px-3">Get Started</Link>
+                <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-ghost text-sm py-1.5 px-3">Sign In</button>
+                <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-primary text-sm py-1.5 px-3">Get Started</button>
               </div>
             )}
           </div>
@@ -277,8 +277,8 @@ export default function AppShell({ children, user }) {
             })}
             {!user && (
               <div className="flex gap-2 pt-2 border-t" style={{ borderColor: 'var(--lx-border)' }}>
-                <Link to="/login" className="lx-btn-ghost text-sm flex-1 justify-center">Sign In</Link>
-                <Link to="/signup" className="lx-btn-primary text-sm flex-1 justify-center">Get Started</Link>
+                <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-ghost text-sm flex-1 justify-center">Sign In</button>
+                <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-primary text-sm flex-1 justify-center">Get Started</button>
               </div>
             )}
           </nav>
