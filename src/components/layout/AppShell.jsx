@@ -181,21 +181,21 @@ export default function AppShell({ children, user }) {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-0.5">
             {NAV_ITEMS.map(({ path, icon: NavIcon, label }) => {
               const active = location.pathname === path;
               return (
                 <Link
                   key={path}
                   to={path}
-                  className="flex items-center gap-2 px-3 py-2 rounded text-sm font-medium transition-all"
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded text-xs font-medium transition-all"
                   style={{
                     color: active ? 'var(--lx-accent)' : 'var(--text-secondary)',
                     backgroundColor: active ? 'var(--bg-elevated)' : 'transparent',
                   }}
                 >
-                  <NavIcon size={15} />
-                  {label}
+                  <NavIcon size={14} />
+                  <span className="hidden lg:inline">{label}</span>
                 </Link>
               );
             })}
@@ -203,13 +203,13 @@ export default function AppShell({ children, user }) {
             <div className="relative">
               <button
                 onClick={() => setOtherOpen(o => !o)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium transition-all"
+                className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-all"
                 style={{
                   color: OTHER_NAV.some(n => location.pathname === n.path) ? 'var(--lx-accent)' : 'var(--text-secondary)',
                   backgroundColor: OTHER_NAV.some(n => location.pathname === n.path) ? 'var(--bg-elevated)' : 'transparent',
                 }}
               >
-                Other <ChevronDown size={13} className={otherOpen ? 'rotate-180' : ''} style={{ transition: 'transform 0.15s' }} />
+                More <ChevronDown size={11} className={otherOpen ? 'rotate-180' : ''} style={{ transition: 'transform 0.15s' }} />
               </button>
               {otherOpen && (
                 <div className="absolute top-full right-0 mt-1 w-44 rounded-lg shadow-lg py-1 z-50"
