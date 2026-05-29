@@ -24,11 +24,6 @@
         },
         {
           "data.following_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
         }
       ]
     },
@@ -45,16 +40,7 @@
       ]
     },
     "delete": {
-      "$or": [
-        {
-          "data.follower_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "data.follower_email": "{{user.email}}"
     }
   }
 }

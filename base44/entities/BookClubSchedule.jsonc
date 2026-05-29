@@ -65,7 +65,7 @@
                 "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "data.creator_email": "{{user.email}}"
+                  "created_by_id": "{{user.id}}"
                 }
               }
             ]
@@ -88,7 +88,7 @@
                 "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "data.creator_email": "{{user.email}}"
+                  "created_by_id": "{{user.id}}"
                 }
               }
             ]
@@ -110,7 +110,7 @@
                 "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "data.creator_email": "{{user.email}}"
+                  "created_by_id": "{{user.id}}"
                 }
               }
             ]
