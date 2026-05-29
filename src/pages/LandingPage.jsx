@@ -94,6 +94,10 @@ export default function LandingPage() {
               Sign In
             </button>
           </div>
+          <p style={{ marginTop: 28, fontSize: 13, color: '#555' }}>
+            Questions or concerns?{' '}
+            <a href="mailto:Support@LexioReading.App" style={{ color: '#f5a623', fontWeight: 600, textDecoration: 'none' }}>Support@LexioReading.App</a>
+          </p>
         </div>
       </section>
 

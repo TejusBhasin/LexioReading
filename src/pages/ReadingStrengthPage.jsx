@@ -17,8 +17,8 @@ function ScoreRing({ score, size = 140, label, color = 'var(--lx-accent)' }) {
             strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease' }} />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-display font-bold" style={{ fontSize: size * 0.22, color }}>{score}</span>
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/100</span>
+          <span className="font-display font-bold" style={{ fontSize: Math.max(size * 0.18, 11), color, lineHeight: 1 }}>{score}</span>
+          {size >= 100 && <span style={{ fontSize: Math.max(size * 0.09, 9), color: 'var(--text-muted)' }}>/100</span>}
         </div>
       </div>
       {label && <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{label}</span>}
