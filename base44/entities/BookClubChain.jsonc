@@ -44,12 +44,36 @@
   ],
   "rls": {
     "create": {
+      "data.club_id": {
+        "$in": [
+          {
+            "entity": "BookClubMember",
+            "field": "data.club_id",
+            "query": {
+              "data.user_email": "{{user.email}}"
+            }
+          }
+        ]
+      },
       "created_by_id": "{{user.id}}"
     },
     "read": {
+      "data.club_id": {
+        "$in": [
+          {
+            "entity": "BookClubMember",
+            "field": "data.club_id",
+            "query": {
+              "data.user_email": "{{user.email}}"
+            }
+          }
+        ]
+      }
+    },
+    "update": {
       "$or": [
         {
-          "data.created_by_id": "{{user.id}}"
+          "created_by_id": "{{user.id}}"
         },
         {
           "data.club_id": {
@@ -58,7 +82,8 @@
                 "entity": "BookClubMember",
                 "field": "data.club_id",
                 "query": {
-                  "data.user_email": "{{user.email}}"
+                  "data.user_email": "{{user.email}}",
+                  "data.role": "admin"
                 }
               }
             ]
@@ -66,11 +91,26 @@
         }
       ]
     },
-    "update": {
-      "created_by_id": "{{user.id}}"
-    },
     "delete": {
-      "created_by_id": "{{user.id}}"
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.club_id": {
+            "$in": [
+              {
+                "entity": "BookClubMember",
+                "field": "data.club_id",
+                "query": {
+                  "data.user_email": "{{user.email}}",
+                  "data.role": "admin"
+                }
+              }
+            ]
+          }
+        }
+      ]
     }
   }
 }
