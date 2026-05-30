@@ -47,6 +47,7 @@ export default function AppShell({ children, user }) {
   const [userProfile, setUserProfile] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [otherOpen, setOtherOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
   const [banReason, setBanReason] = useState('');
   const [needsTermsAccept, setNeedsTermsAccept] = useState(false);
@@ -98,7 +99,7 @@ export default function AppShell({ children, user }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [mobileMenuOpen]);
 
-  useEffect(() => { setMobileMenuOpen(false); setOtherOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileMenuOpen(false); setOtherOpen(false); setMoreOpen(false); }, [location.pathname]);
 
   useEffect(() => {
     if (user?.email) {
@@ -354,7 +355,8 @@ export default function AppShell({ children, user }) {
       <main
         ref={mainRef}
         className="flex-1 min-h-0 overflow-y-auto"
-        style={{ overscrollBehavior: 'none', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        className="flex-1 min-h-0 overflow-y-auto pb-16 md:pb-0"
+        style={{ overscrollBehavior: 'none' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -378,6 +380,65 @@ export default function AppShell({ children, user }) {
         </AnimatePresence>
       </main>
 
+      {/* Mobile Bottom Tab Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t flex"
+        style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        {[
+          { path: '/', icon: LayoutDashboard },
+          { path: '/discover', icon: Compass },
+          { path: '/chat', icon: MessageSquare },
+        ].map(({ path, icon: Icon }) => {
+          const active = location.pathname === path;
+          return (
+            <Link key={path} to={path}
+              className="flex-1 flex items-center justify-center"
+              style={{ minHeight: 52, color: active ? 'var(--lx-accent)' : 'var(--text-muted)' }}>
+              <Icon size={22} />
+            </Link>
+          );
+        })}
+        <button
+          onClick={() => setMoreOpen(true)}
+          className="flex-1 flex items-center justify-center"
+          style={{ minHeight: 52, color: moreOpen ? 'var(--lx-accent)' : 'var(--text-muted)', background: 'transparent', border: 'none' }}>
+          <Menu size={22} />
+        </button>
+      </nav>
+
+      {/* Fullscreen More Menu */}
+      {moreOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex flex-col"
+          style={{ background: 'var(--bg-primary)', paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div className="flex items-center justify-between px-5 h-14 border-b flex-shrink-0"
+            style={{ borderColor: 'var(--lx-border)' }}>
+            <span className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Navigation</span>
+            <button onClick={() => setMoreOpen(false)}
+              className="flex items-center justify-center rounded"
+              style={{ minWidth: 44, minHeight: 44, color: 'var(--text-secondary)' }}>
+              <X size={22} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="grid grid-cols-3 gap-3">
+              {[...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].map(({ path, icon: MIcon, label }) => {
+                const active = location.pathname === path;
+                return (
+                  <Link key={path} to={path}
+                    className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl"
+                    style={{
+                      background: active ? 'var(--lx-accent)' : 'var(--bg-card)',
+                      color: active ? 'var(--bg-primary)' : 'var(--text-secondary)',
+                      border: `1px solid ${active ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+                    }}>
+                    <MIcon size={22} />
+                    <span className="text-xs font-medium text-center">{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
