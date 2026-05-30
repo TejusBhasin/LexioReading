@@ -281,15 +281,17 @@ export default function AppShell({ children, user }) {
 
           <div className="flex items-center gap-2">
             {user && <NotificationBell user={user} />}
-            {/* Mobile hamburger */}
-            <button
-              className="md:hidden flex items-center justify-center rounded transition-colors"
-              style={{ color: 'var(--text-secondary)', minWidth: 44, minHeight: 44 }}
-              onClick={() => setMobileMenuOpen(o => !o)}
-              aria-label="Menu"
-            >
-              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
+            {/* Mobile hamburger — shown only if user enabled it in Personalize */}
+            {prefs?.show_top_hamburger === true && (
+              <button
+                className="md:hidden flex items-center justify-center rounded transition-colors"
+                style={{ color: 'var(--text-secondary)', minWidth: 44, minHeight: 44 }}
+                onClick={() => setMobileMenuOpen(o => !o)}
+                aria-label="Menu"
+              >
+                {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            )}
 
             {user ? (
               <div className="hidden md:flex items-center gap-2">

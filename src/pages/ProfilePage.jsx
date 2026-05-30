@@ -505,6 +505,27 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Mobile options */}
+          <div>
+            <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Mobile Navigation</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Show top menu button</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Show the ☰ hamburger button in the top bar on mobile (in addition to the bottom nav)</p>
+                </div>
+                <button
+                  onClick={() => setPrefs(p => ({ ...p, show_top_hamburger: !p.show_top_hamburger }))}
+                  className="w-11 h-6 rounded-full transition-all flex-shrink-0 relative"
+                  style={{ background: prefs.show_top_hamburger ? 'var(--lx-accent)' : 'var(--border-strong)' }}
+                >
+                  <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+                    style={{ left: prefs.show_top_hamburger ? '22px' : '2px' }} />
+                </button>
+              </div>
+            </div>
+          </div>
+
           <button onClick={savePrefs} disabled={saving} className="lx-btn-primary">
             {saved ? <><Check size={14} /> Saved!</> : saving ? 'Saving...' : 'Save Theme'}
           </button>
