@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown, Zap } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
@@ -40,13 +40,8 @@ const BOTTOM_NAV_ITEMS = [
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
-// Store last visited path per tab root for tab history
-const tabHistory = {};
-BOTTOM_NAV_ITEMS.forEach(item => { tabHistory[item.path] = item.path; });
-
 export default function AppShell({ children, user }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const [prefs, setPrefs] = useState(null);
   const [showTour, setShowTour] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
@@ -93,27 +88,7 @@ export default function AppShell({ children, user }) {
     touchStartY.current = 0;
   }, [pullDistance]);
 
-  // Track last visited path per tab
-  useEffect(() => {
-    const matchedTab = BOTTOM_NAV_ITEMS.find(item => {
-      if (item.path === '/') return location.pathname === '/';
-      return location.pathname.startsWith(item.path);
-    });
-    if (matchedTab) tabHistory[matchedTab.path] = location.pathname;
-  }, [location.pathname]);
 
-  function handleTabPress(item) {
-    const currentTabMatch = BOTTOM_NAV_ITEMS.find(t => {
-      if (t.path === '/') return location.pathname === '/';
-      return location.pathname.startsWith(t.path);
-    });
-    if (currentTabMatch?.path === item.path) {
-      // Already on this tab — scroll to top
-      mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      navigate(tabHistory[item.path] || item.path);
-    }
-  }
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -307,8 +282,8 @@ export default function AppShell({ children, user }) {
             {user && <NotificationBell user={user} />}
             {/* Mobile hamburger */}
             <button
-              className="md:hidden p-2 rounded transition-colors"
-              style={{ color: 'var(--text-secondary)' }}
+              className="md:hidden flex items-center justify-center rounded transition-colors"
+              style={{ color: 'var(--text-secondary)', minWidth: 44, minHeight: 44 }}
               onClick={() => setMobileMenuOpen(o => !o)}
               aria-label="Menu"
             >
@@ -338,8 +313,8 @@ export default function AppShell({ children, user }) {
 
       {/* Mobile Slide-down Menu */}
       {mobileMenuOpen && (
-        <div ref={menuRef} className="md:hidden fixed left-0 right-0 z-40 border-b shadow-lg"
-          style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', top: 'calc(3.5rem + env(safe-area-inset-top, 0px))' }}>
+        <div ref={menuRef} className="md:hidden fixed left-0 right-0 z-40 border-b shadow-lg overflow-y-auto"
+          style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', top: 'calc(3.5rem + env(safe-area-inset-top, 0px))', maxHeight: 'calc(100svh - 3.5rem - env(safe-area-inset-top, 0px))' }}>
           <nav className="px-4 py-3 space-y-1">
             {[...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].map(({ path, icon: MIcon, label }) => {
               const active = location.pathname === path;
@@ -379,7 +354,7 @@ export default function AppShell({ children, user }) {
       <main
         ref={mainRef}
         className="flex-1 min-h-0 overflow-y-auto"
-        style={{ overscrollBehavior: 'none', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 60px)' }}
+        style={{ overscrollBehavior: 'none', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -403,36 +378,6 @@ export default function AppShell({ children, user }) {
         </AnimatePresence>
       </main>
 
-      {/* Mobile Bottom Tab Bar */}
-      <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t flex overflow-x-auto"
-        style={{
-          background: 'var(--bg-secondary)',
-          borderColor: 'var(--lx-border)',
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          scrollbarWidth: 'none',
-        }}
-      >
-        {BOTTOM_NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const active = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
-          return (
-            <button
-              key={item.path}
-              onClick={() => handleTabPress(item)}
-              className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors flex-shrink-0"
-              style={{
-                minHeight: 56,
-                minWidth: 56,
-                color: active ? 'var(--lx-accent)' : 'var(--text-muted)',
-              }}
-            >
-              <Icon size={22} />
-              <span className="text-[10px] font-medium">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
     </div>
   );
 }

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2 } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import ContactForm from '@/components/profile/ContactForm';
 import ProfileExport from '@/components/profile/ProfileExport';
 import JoinCreateSchool from '@/components/schools/JoinCreateSchool';
 import PrivacyTab from '@/components/profile/PrivacyTab';
+import DeleteAccountSection from '@/components/profile/DeleteAccountSection';
 
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -509,6 +510,9 @@ export default function ProfilePage() {
           </button>
         </div>
       )}
+
+      {/* Delete Account */}
+      {user && <DeleteAccountSection user={user} />}
 
       {/* Contact Us */}
       {user && (
