@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown, Zap } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
@@ -40,8 +40,13 @@ const BOTTOM_NAV_ITEMS = [
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
+// Store last visited path per tab root for tab history
+const tabHistory = {};
+BOTTOM_NAV_ITEMS.forEach(item => { tabHistory[item.path] = item.path; });
+
 export default function AppShell({ children, user }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [prefs, setPrefs] = useState(null);
   const [showTour, setShowTour] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
@@ -51,6 +56,64 @@ export default function AppShell({ children, user }) {
   const [banReason, setBanReason] = useState('');
   const [needsTermsAccept, setNeedsTermsAccept] = useState(false);
   const menuRef = useRef(null);
+
+  // Pull-to-refresh state
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+  const mainRef = useRef(null);
+  const PTR_THRESHOLD = 64;
+
+  const handleTouchStart = useCallback((e) => {
+    if (mainRef.current?.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    } else {
+      touchStartY.current = 0;
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!touchStartY.current) return;
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0) {
+      setPullDistance(Math.min(delta * 0.5, PTR_THRESHOLD + 20));
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (pullDistance >= PTR_THRESHOLD) {
+      setIsRefreshing(true);
+      setPullDistance(PTR_THRESHOLD);
+      setTimeout(() => {
+        window.location.reload();
+      }, 600);
+    } else {
+      setPullDistance(0);
+    }
+    touchStartY.current = 0;
+  }, [pullDistance]);
+
+  // Track last visited path per tab
+  useEffect(() => {
+    const matchedTab = BOTTOM_NAV_ITEMS.find(item => {
+      if (item.path === '/') return location.pathname === '/';
+      return location.pathname.startsWith(item.path);
+    });
+    if (matchedTab) tabHistory[matchedTab.path] = location.pathname;
+  }, [location.pathname]);
+
+  function handleTabPress(item) {
+    const currentTabMatch = BOTTOM_NAV_ITEMS.find(t => {
+      if (t.path === '/') return location.pathname === '/';
+      return location.pathname.startsWith(t.path);
+    });
+    if (currentTabMatch?.path === item.path) {
+      // Already on this tab — scroll to top
+      mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate(tabHistory[item.path] || item.path);
+    }
+  }
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -299,10 +362,27 @@ export default function AppShell({ children, user }) {
         </div>
       )}
 
+      {/* Pull-to-Refresh indicator */}
+      {pullDistance > 0 && (
+        <div
+          className="flex items-center justify-center overflow-hidden transition-all duration-150 md:hidden"
+          style={{ height: pullDistance, background: 'var(--bg-secondary)' }}
+        >
+          <div
+            className={`w-6 h-6 rounded-full border-2 ${isRefreshing ? 'animate-spin' : ''}`}
+            style={{ borderColor: 'var(--lx-accent)', borderTopColor: 'transparent' }}
+          />
+        </div>
+      )}
+
       {/* Main Content */}
       <main
+        ref={mainRef}
         className="flex-1 min-h-0 overflow-y-auto"
-        style={{ overscrollBehavior: 'none' }}
+        style={{ overscrollBehavior: 'none', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 60px)' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onKeyDown={(e) => {
           if (e.key === ' ' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) && !e.target.isContentEditable) {
             e.preventDefault();
@@ -322,6 +402,37 @@ export default function AppShell({ children, user }) {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Mobile Bottom Tab Bar */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t flex overflow-x-auto"
+        style={{
+          background: 'var(--bg-secondary)',
+          borderColor: 'var(--lx-border)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          scrollbarWidth: 'none',
+        }}
+      >
+        {BOTTOM_NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const active = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
+          return (
+            <button
+              key={item.path}
+              onClick={() => handleTabPress(item)}
+              className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors flex-shrink-0"
+              style={{
+                minHeight: 56,
+                minWidth: 56,
+                color: active ? 'var(--lx-accent)' : 'var(--text-muted)',
+              }}
+            >
+              <Icon size={22} />
+              <span className="text-[10px] font-medium">{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }
