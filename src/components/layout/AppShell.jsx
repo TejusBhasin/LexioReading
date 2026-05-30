@@ -223,7 +223,7 @@ export default function AppShell({ children, user }) {
       {/* Top Nav */}
       <header className="sticky top-0 z-50 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+          <Link to="/" onClick={() => { setMobileMenuOpen(false); mainRef.current?.scrollTo({ top: 0 }); }} className="flex items-center gap-2 flex-shrink-0">
             <img
               src="https://media.base44.com/images/public/6a123803b5827eb9277efa4d/63f81eba7_7c1bd0943_logo.png"
               alt="Lexio"
