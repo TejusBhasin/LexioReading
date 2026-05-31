@@ -121,7 +121,7 @@ export default function ProfileExport({ user }) {
         ))}
 
         <div className="mt-5 pt-4 text-center text-xs" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--lx-border)' }}>
-          lexio.app · My Reading Story
+          LexioReading.App · My Reading Story
         </div>
       </div>
     </div>
