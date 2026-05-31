@@ -12,6 +12,7 @@ export default function DiscussionForum({ bookId, bookTitle }) {
   const [posting, setPosting] = useState(false);
   const [revealedIds, setRevealedIds] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     loadPosts();
@@ -19,35 +20,30 @@ export default function DiscussionForum({ bookId, bookTitle }) {
   }, [bookId, user]);
 
   async function loadPosts() {
-    try {
-      const p = await base44.entities.Discussion.filter({ book_id: bookId }, '-created_date', 30);
-      setPosts(p);
-    } catch (e) {}
+    setLoadError(false);
+    const p = await base44.entities.Discussion.filter({ book_id: bookId }, '-created_date', 30);
+    setPosts(p);
   }
 
   async function loadProfile() {
-    try {
-      const p = await base44.entities.UserProfile.filter({ user_email: user.email });
-      if (p[0]) setUserProfile(p[0]);
-    } catch (e) {}
+    const p = await base44.entities.UserProfile.filter({ user_email: user.email });
+    if (p[0]) setUserProfile(p[0]);
   }
 
   async function post() {
     if (!content.trim() || !userProfile?.username) return;
     setPosting(true);
-    try {
-      const newPost = await base44.entities.Discussion.create({
-        user_email: user.email,
-        username: userProfile.username,
-        book_id: bookId,
-        book_title: bookTitle,
-        content: content.trim(),
-        has_spoilers: hasSpoilers,
-      });
-      setPosts(prev => [newPost, ...prev]);
-      setContent('');
-      setHasSpoilers(false);
-    } catch (e) {}
+    const newPost = await base44.entities.Discussion.create({
+      user_email: user.email,
+      username: userProfile.username,
+      book_id: bookId,
+      book_title: bookTitle,
+      content: content.trim(),
+      has_spoilers: hasSpoilers,
+    });
+    setPosts(prev => [newPost, ...prev]);
+    setContent('');
+    setHasSpoilers(false);
     setPosting(false);
   }
 
