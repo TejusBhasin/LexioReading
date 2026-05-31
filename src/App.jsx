@@ -29,6 +29,7 @@ import ReadingGoalPage from '@/pages/ReadingGoalPage';
 import ReadingStrengthPage from '@/pages/ReadingStrengthPage';
 import BookQuotesPage from '@/pages/BookQuotesPage';
 import ChallengesPage from '@/pages/ChallengesPage';
+import ImportPage from '@/pages/ImportPage';
 import LandingPage from '@/pages/LandingPage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
@@ -86,6 +87,7 @@ const AuthenticatedApp = () => {
         <Route path="/strength" element={<ReadingStrengthPage />} />
         <Route path="/quotes" element={<BookQuotesPage />} />
         <Route path="/challenges" element={<ChallengesPage />} />
+        <Route path="/import" element={<ImportPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AppShell>
