@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, AlertTriangle, Eye, Send } from 'lucide-react';
+import { MessageSquare, AlertTriangle, Eye, Send, UserCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -84,6 +85,17 @@ export default function DiscussionForum({ bookId, bookTitle }) {
         <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
           <a href="/login" style={{ color: 'var(--lx-accent)' }}>Sign in</a> to join the discussion.
         </p>
+      )}
+
+      {isAuthenticated && !userProfile?.username && (
+        <div className="mb-5 p-4 rounded-lg flex items-center gap-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+          <UserCircle size={18} style={{ color: 'var(--lx-accent)', flexShrink: 0 }} />
+          <div className="flex-1">
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Set a username to join the discussion</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>You need a username before you can post.</p>
+          </div>
+          <Link to="/profile" className="lx-btn-primary text-xs py-1.5">Set Username</Link>
+        </div>
       )}
 
       <div className="space-y-3">
