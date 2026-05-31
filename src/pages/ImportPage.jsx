@@ -1,19 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, CheckCircle, AlertCircle, ArrowLeft, BookOpen } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, ArrowLeft, BookOpen, FileDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 
-// Robust CSV parser that handles quoted fields with commas/newlines
 function parseCSV(text) {
   const rows = [];
   let row = [];
   let field = '';
   let inQuotes = false;
-
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     const next = text[i + 1];
-
     if (inQuotes) {
       if (ch === '"' && next === '"') { field += '"'; i++; }
       else if (ch === '"') { inQuotes = false; }
@@ -40,26 +37,17 @@ function parseGoodreadsCSV(text, userEmail) {
   const rows = parseCSV(text.trim());
   if (rows.length < 2) return [];
   const headers = rows[0].map(h => h.trim());
-
   const idx = (name) => headers.indexOf(name);
   const I = {
-    title: idx('Title'),
-    author: idx('Author'),
-    rating: idx('My Rating'),
-    pages: idx('Number of Pages'),
-    dateRead: idx('Date Read'),
-    dateAdded: idx('Date Added'),
-    shelf: idx('Exclusive Shelf'),
-    shelves: idx('Bookshelves'),
-    review: idx('My Review'),
-    bookId: idx('Book Id'),
+    title: idx('Title'), author: idx('Author'), rating: idx('My Rating'),
+    dateRead: idx('Date Read'), dateAdded: idx('Date Added'),
+    shelf: idx('Exclusive Shelf'), shelves: idx('Bookshelves'),
+    review: idx('My Review'), bookId: idx('Book Id'),
   };
-
   return rows.slice(1).filter(r => r.length > 3 && r[I.title]).map(r => {
     const get = (i) => (i >= 0 && r[i] ? r[i].trim() : '');
     const rating = parseInt(get(I.rating)) || null;
     const shelves = get(I.shelves).split(',').map(s => s.trim()).filter(Boolean);
-
     return {
       user_email: userEmail,
       book_id: get(I.bookId) || `gr-${Math.random().toString(36).slice(2)}`,
@@ -76,6 +64,20 @@ function parseGoodreadsCSV(text, userEmail) {
   });
 }
 
+function downloadCSV(filename, rows) {
+  const escape = (v) => {
+    if (v == null) return '';
+    const s = String(v);
+    return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = rows.map(r => r.map(escape).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function ImportPage() {
   const [user, setUser] = useState(null);
   const [books, setBooks] = useState([]);
@@ -85,9 +87,10 @@ export default function ImportPage() {
   const [errors, setErrors] = useState(0);
   const [done, setDone] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [exporting, setExporting] = useState('');
   const fileRef = useRef();
 
-  React.useEffect(() => {
+  useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
@@ -109,8 +112,6 @@ export default function ImportPage() {
     if (!books.length || !user) return;
     setImporting(true);
     let ok = 0, err = 0;
-
-    // Import in batches of 10
     for (let i = 0; i < books.length; i += 10) {
       const batch = books.slice(i, i + 10);
       await Promise.all(batch.map(async (book) => {
@@ -126,6 +127,47 @@ export default function ImportPage() {
     setDone(true);
   }
 
+  async function exportLibrary() {
+    if (!user) return;
+    setExporting('library');
+    const items = await base44.entities.UserLibrary.filter({ user_email: user.email }, '-created_date', 500);
+    const statusMap = { finished: 'read', reading: 'currently-reading', want_to_read: 'to-read', dropped: 'dropped' };
+    const headers = ['Title', 'Author', 'My Rating', 'Exclusive Shelf', 'Date Added', 'Date Finished', 'Bookshelves', 'My Review'];
+    const rows = items.map(b => [b.book_title, b.book_author, b.rating || '', statusMap[b.status] || b.status, b.date_added || '', b.date_finished || '', (b.tags || []).join(', '), b.notes || '']);
+    downloadCSV('lexio-library.csv', [headers, ...rows]);
+    setExporting('');
+  }
+
+  async function exportLogs() {
+    if (!user) return;
+    setExporting('logs');
+    const items = await base44.entities.ReadingLog.filter({ user_email: user.email }, '-created_date', 500);
+    const headers = ['Book Title', 'Date', 'Pages Read', 'Minutes', 'Mood', 'Notes'];
+    const rows = items.map(l => [l.book_title || '', l.log_date || l.created_date?.split('T')[0] || '', l.pages_read || '', l.minutes || '', l.mood || '', l.notes || '']);
+    downloadCSV('lexio-reading-logs.csv', [headers, ...rows]);
+    setExporting('');
+  }
+
+  async function exportQuotes() {
+    if (!user) return;
+    setExporting('quotes');
+    const items = await base44.entities.BookQuote.filter({ user_email: user.email }, '-created_date', 500);
+    const headers = ['Book Title', 'Author', 'Quote', 'Page Number', 'Chapter', 'Favorite'];
+    const rows = items.map(q => [q.book_title || '', q.book_author || '', q.quote || '', q.page_number || '', q.chapter || '', q.is_favorite ? 'Yes' : 'No']);
+    downloadCSV('lexio-quotes.csv', [headers, ...rows]);
+    setExporting('');
+  }
+
+  async function exportReviews() {
+    if (!user) return;
+    setExporting('reviews');
+    const items = await base44.entities.Review.filter({ user_email: user.email }, '-created_date', 500);
+    const headers = ['Book Title', 'Author', 'Rating', 'Review', 'Date'];
+    const rows = items.map(r => [r.book_title || '', r.book_author || '', r.rating || '', r.content || r.review || '', r.created_date?.split('T')[0] || '']);
+    downloadCSV('lexio-reviews.csv', [headers, ...rows]);
+    setExporting('');
+  }
+
   const statusCount = (s) => books.filter(b => b.status === s).length;
 
   return (
@@ -136,15 +178,43 @@ export default function ImportPage() {
       </Link>
 
       <h1 className="font-display text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
-        Import from Goodreads
+        Import &amp; Export
       </h1>
       <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>
-        Export your Goodreads library and upload the CSV file here. Your shelves, ratings, reviews, and reading dates will all be imported.
+        Import from Goodreads or export all your Lexio data as CSV files.
       </p>
 
-      {/* Instructions */}
+      {/* Export Section */}
+      <div className="rounded-xl p-5 mb-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+        <h2 className="font-bold text-base mb-1" style={{ color: 'var(--text-primary)' }}>Export Your Data</h2>
+        <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Download your Lexio data as CSV files — compatible with Goodreads and other apps.</p>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { key: 'library', label: 'Library', desc: 'Books, status, ratings', fn: exportLibrary },
+            { key: 'logs', label: 'Reading Logs', desc: 'Sessions, pages, moods', fn: exportLogs },
+            { key: 'quotes', label: 'Quotes', desc: 'Saved highlights', fn: exportQuotes },
+            { key: 'reviews', label: 'Reviews', desc: 'All your reviews', fn: exportReviews },
+          ].map(({ key, label, desc, fn }) => (
+            <button key={key} onClick={fn} disabled={exporting === key}
+              className="flex items-start gap-3 p-3 rounded-lg text-left transition-all hover:opacity-80"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+              <FileDown size={18} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--lx-accent)' }} />
+              <div>
+                <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                  {exporting === key ? 'Downloading...' : label}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Import Section */}
+      <h2 className="font-bold text-base mb-4" style={{ color: 'var(--text-primary)' }}>Import from Goodreads</h2>
+
       <div className="rounded-xl p-5 mb-6" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
-        <h2 className="font-bold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>How to export from Goodreads</h2>
+        <h3 className="font-bold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>How to export from Goodreads</h3>
         <ol className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
           <li className="flex gap-2"><span style={{ color: 'var(--lx-accent)' }}>1.</span> Go to <strong style={{ color: 'var(--text-primary)' }}>goodreads.com</strong> and sign in</li>
           <li className="flex gap-2"><span style={{ color: 'var(--lx-accent)' }}>2.</span> Click <strong style={{ color: 'var(--text-primary)' }}>My Books</strong> in the top nav</li>
@@ -154,7 +224,6 @@ export default function ImportPage() {
         </ol>
       </div>
 
-      {/* Drop zone */}
       {!books.length && !done && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -176,75 +245,65 @@ export default function ImportPage() {
         </div>
       )}
 
-      {/* Preview */}
       {books.length > 0 && !done && (
-        <div>
-          <div className="rounded-xl p-5 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
-            <div className="flex items-center gap-3 mb-4">
-              <FileText size={18} style={{ color: 'var(--lx-accent)' }} />
-              <div>
-                <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{fileName}</p>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{books.length} books found</p>
+        <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+          <div className="flex items-center gap-3 mb-4">
+            <FileText size={18} style={{ color: 'var(--lx-accent)' }} />
+            <div>
+              <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{fileName}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{books.length} books found</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-5">
+            {[
+              { label: 'Finished', count: statusCount('finished'), color: '#22c55e' },
+              { label: 'Reading', count: statusCount('reading'), color: 'var(--lx-accent)' },
+              { label: 'Want to Read', count: statusCount('want_to_read'), color: 'var(--text-muted)' },
+            ].map(({ label, count, color }) => (
+              <div key={label} className="text-center p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
+                <p className="text-xl font-bold" style={{ color }}>{count}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
               </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3 mb-5">
-              {[
-                { label: 'Finished', count: statusCount('finished'), color: '#22c55e' },
-                { label: 'Reading', count: statusCount('reading'), color: 'var(--lx-accent)' },
-                { label: 'Want to Read', count: statusCount('want_to_read'), color: 'var(--text-muted)' },
-              ].map(({ label, count, color }) => (
-                <div key={label} className="text-center p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
-                  <p className="text-xl font-bold" style={{ color }}>{count}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
-                </div>
-              ))}
-            </div>
+            ))}
+          </div>
 
-            {/* Sample preview */}
-            <div className="space-y-2 max-h-48 overflow-y-auto mb-4">
-              {books.slice(0, 8).map((b, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm py-1.5 border-b last:border-0"
-                  style={{ borderColor: 'var(--lx-border)' }}>
-                  <BookOpen size={14} style={{ color: 'var(--lx-accent)', flexShrink: 0 }} />
-                  <div className="min-w-0">
-                    <p className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>{b.book_title}</p>
-                    <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{b.book_author}</p>
-                  </div>
-                  {b.rating && <span className="text-xs flex-shrink-0" style={{ color: 'var(--lx-accent)' }}>★ {b.rating}</span>}
+          <div className="space-y-2 max-h-48 overflow-y-auto mb-4">
+            {books.slice(0, 8).map((b, i) => (
+              <div key={i} className="flex items-center gap-3 text-sm py-1.5 border-b last:border-0"
+                style={{ borderColor: 'var(--lx-border)' }}>
+                <BookOpen size={14} style={{ color: 'var(--lx-accent)', flexShrink: 0 }} />
+                <div className="min-w-0">
+                  <p className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>{b.book_title}</p>
+                  <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{b.book_author}</p>
                 </div>
-              ))}
-              {books.length > 8 && (
-                <p className="text-xs text-center pt-1" style={{ color: 'var(--text-muted)' }}>
-                  +{books.length - 8} more books
-                </p>
-              )}
-            </div>
-
-            {importing && (
-              <div className="mb-4">
-                <div className="flex justify-between text-xs mb-1" style={{ color: 'var(--text-muted)' }}>
-                  <span>Importing...</span>
-                  <span>{imported} / {books.length}</span>
-                </div>
-                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--lx-border)' }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${(imported / books.length) * 100}%`, background: 'var(--lx-accent)' }} />
-                </div>
+                {b.rating && <span className="text-xs flex-shrink-0" style={{ color: 'var(--lx-accent)' }}>★ {b.rating}</span>}
               </div>
+            ))}
+            {books.length > 8 && (
+              <p className="text-xs text-center pt-1" style={{ color: 'var(--text-muted)' }}>+{books.length - 8} more books</p>
             )}
+          </div>
 
-            <div className="flex gap-2">
-              <button onClick={() => { setBooks([]); setFileName(''); }} className="lx-btn-ghost flex-1 justify-center">
-                Cancel
-              </button>
-              <button onClick={doImport} disabled={importing} className="lx-btn-primary flex-1 justify-center">
-                {importing ? `Importing... (${imported}/${books.length})` : `Import ${books.length} Books`}
-              </button>
+          {importing && (
+            <div className="mb-4">
+              <div className="flex justify-between text-xs mb-1" style={{ color: 'var(--text-muted)' }}>
+                <span>Importing...</span><span>{imported} / {books.length}</span>
+              </div>
+              <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--lx-border)' }}>
+                <div className="h-full rounded-full transition-all" style={{ width: `${(imported / books.length) * 100}%`, background: 'var(--lx-accent)' }} />
+              </div>
             </div>
+          )}
+
+          <div className="flex gap-2">
+            <button onClick={() => { setBooks([]); setFileName(''); }} className="lx-btn-ghost flex-1 justify-center">Cancel</button>
+            <button onClick={doImport} disabled={importing} className="lx-btn-primary flex-1 justify-center">
+              {importing ? `Importing... (${imported}/${books.length})` : `Import ${books.length} Books`}
+            </button>
           </div>
         </div>
       )}
 
-      {/* Done */}
       {done && (
         <div className="rounded-xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
           <CheckCircle size={40} className="mx-auto mb-4" style={{ color: '#22c55e' }} />
@@ -258,9 +317,7 @@ export default function ImportPage() {
             </p>
           )}
           <div className="flex gap-2 justify-center mt-5">
-            <button onClick={() => { setBooks([]); setFileName(''); setDone(false); }} className="lx-btn-ghost">
-              Import Another File
-            </button>
+            <button onClick={() => { setBooks([]); setFileName(''); setDone(false); }} className="lx-btn-ghost">Import Another File</button>
             <Link to="/library" className="lx-btn-primary">View My Library</Link>
           </div>
         </div>

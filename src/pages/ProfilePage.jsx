@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2 } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import ContactForm from '@/components/profile/ContactForm';
 import ProfileExport from '@/components/profile/ProfileExport';
@@ -18,6 +18,7 @@ const TABS = [
   { id: 'privacy', label: 'Privacy', icon: User },
   { id: 'history', label: 'Chat History', icon: MessageSquare },
   { id: 'theme', label: 'Personalize', icon: Palette },
+  { id: 'data', label: 'Import & Export', icon: Upload },
   { id: 'export', label: 'Export Card', icon: Download },
   { id: 'school', label: 'School', icon: GraduationCap },
   { id: 'admin', label: 'Admin', icon: Shield },
@@ -402,6 +403,42 @@ export default function ProfilePage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {tab === 'data' && (
+        <div className="space-y-6">
+          {/* Import */}
+          <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--lx-accent)' }}>
+                <Upload size={18} style={{ color: 'var(--bg-primary)' }} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Import from Goodreads</h3>
+                <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>Bring your entire Goodreads library — books, ratings, reviews, shelves, and reading dates — into Lexio in one click.</p>
+                <Link to="/import" className="lx-btn-primary text-sm inline-flex">
+                  <Upload size={14} /> Open Import Tool
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Export */}
+          <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+                <Download size={18} style={{ color: 'var(--lx-accent)' }} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Export Your Data</h3>
+                <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>Download your library, reading logs, quotes, and reviews as CSV files. Your data always belongs to you.</p>
+                <Link to="/import" className="lx-btn-ghost text-sm inline-flex">
+                  <Download size={14} /> Open Export Tool
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
