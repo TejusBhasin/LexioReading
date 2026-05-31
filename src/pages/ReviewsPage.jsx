@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Search, Sparkles, BookOpen, TrendingUp } from 'lucide-react';
+import { Star, Search, Sparkles, BookOpen, TrendingUp, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
@@ -105,7 +105,10 @@ export default function ReviewsPage() {
       ) : displayed.length > 0 ? (
         <div className="space-y-4">
           {displayed.map(review => (
-            <ReviewItem key={review.id} review={review} />
+            <ReviewItem key={review.id} review={review} isOwner={review.user_email === user?.email} onDelete={(id) => {
+              setReviews(prev => prev.filter(r => r.id !== id));
+              setMyReviews(prev => prev.filter(r => r.id !== id));
+            }} />
           ))}
         </div>
       ) : (
@@ -125,10 +128,20 @@ export default function ReviewsPage() {
   );
 }
 
-function ReviewItem({ review }) {
+function ReviewItem({ review, isOwner, onDelete }) {
   const stars = Math.round(review.rating || 0);
+  async function handleDelete() {
+    if (!confirm('Delete this review?')) return;
+    await base44.entities.Review.delete(review.id);
+    onDelete?.(review.id);
+  }
   return (
-    <div className="lx-card p-5">
+    <div className="lx-card p-5 relative">
+      {isOwner && (
+        <button onClick={handleDelete} className="absolute top-3 right-3 p-1 rounded hover:opacity-70 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Delete review">
+          <Trash2 size={13} />
+        </button>
+      )}
       <div className="flex items-start gap-4">
         {/* Book cover or icon */}
         <div className="flex-shrink-0">

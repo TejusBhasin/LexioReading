@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown, Zap, Download } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown, Zap } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
@@ -29,8 +29,7 @@ const OTHER_NAV = [
 
 
 const EXTRA_NAV = [
-{ path: '/vault', icon: Lock, label: 'Vault' },
-{ path: '/import', icon: Download, label: 'Import Books' }];
+{ path: '/vault', icon: Lock, label: 'Vault' }];
 
 
 const BOTTOM_NAV_ITEMS = [
