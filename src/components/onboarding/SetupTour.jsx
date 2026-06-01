@@ -28,6 +28,7 @@ function TandC() {
 }
 import { base44 } from '@/api/base44Client';
 import { GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
+import { CURRENT_TERMS_VERSION } from '@/components/onboarding/TermsReAcceptModal';
 
 const STEPS = ['welcome', 'genres', 'content', 'features', 'clubs', 'streak', 'schools', 'done'];
 
@@ -52,10 +53,12 @@ export default function SetupTour({ user, userProfile, onComplete }) {
   async function finish() {
     setSaving(true);
     try {
+      localStorage.setItem('lexio_terms_version', CURRENT_TERMS_VERSION);
       const profileData = {
         user_email: user.email,
         tc_agreed: tcAgreed,
         tc_agreed_date: new Date().toISOString(),
+        tc_version: CURRENT_TERMS_VERSION,
         blacklisted_themes: blacklisted,
         onboarding_complete: true,
       };

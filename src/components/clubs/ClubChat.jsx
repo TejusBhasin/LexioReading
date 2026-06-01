@@ -6,7 +6,15 @@ export default function ClubChat({ club, user }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const [myUsername, setMyUsername] = useState('');
   const bottomRef = useRef(null);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    base44.entities.UserProfile.filter({ user_email: user.email }).then(profiles => {
+      setMyUsername(profiles[0]?.username || user.email.split('@')[0]);
+    }).catch(() => setMyUsername(user.email.split('@')[0]));
+  }, [user?.email]);
 
   useEffect(() => {
     loadMessages();
@@ -41,7 +49,7 @@ export default function ClubChat({ club, user }) {
       club_id: club.id,
       chain_id: 'general',
       user_email: user.email,
-      username: user.full_name || user.email.split('@')[0],
+      username: myUsername || user.email.split('@')[0],
       content,
     });
     setSending(false);

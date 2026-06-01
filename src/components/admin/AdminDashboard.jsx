@@ -5,9 +5,65 @@ import { base44 } from '@/api/base44Client';
 const ADMIN_TABS = [
   { id: 'safety', label: '🛡️ User Safety' },
   { id: 'broadcasts', label: '📢 Broadcasts' },
+  { id: 'notify', label: '📨 Direct Notify' },
   { id: 'patterns', label: '🚫 Blocked Patterns' },
   { id: 'contacts', label: '📬 Contact Requests' },
 ];
+
+// ─── Direct Notify Tab ────────────────────────────────────────────────────────
+function DirectNotifyTab() {
+  const [form, setForm] = useState({ user_email: '', title: '', body: '', link: '' });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function send() {
+    if (!form.user_email.trim() || !form.title.trim()) return;
+    setSending(true);
+    await base44.entities.Notification.create({
+      user_email: form.user_email.trim().toLowerCase(),
+      type: 'general',
+      title: form.title.trim(),
+      body: form.body.trim(),
+      link: form.link.trim() || undefined,
+      is_read: false,
+    });
+    setSent(true);
+    setForm({ user_email: '', title: '', body: '', link: '' });
+    setTimeout(() => setSent(false), 3000);
+    setSending(false);
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Send a notification directly to a specific user's notification bell.</p>
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+        <div>
+          <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Recipient Email *</label>
+          <input className="lx-input text-sm" placeholder="user@example.com"
+            value={form.user_email} onChange={e => setForm(f => ({ ...f, user_email: e.target.value }))} />
+        </div>
+        <div>
+          <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Title *</label>
+          <input className="lx-input text-sm" placeholder="Notification title..."
+            value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+        </div>
+        <div>
+          <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Message (optional)</label>
+          <textarea className="lx-input text-sm resize-none" rows={3} placeholder="Notification body..."
+            value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} />
+        </div>
+        <div>
+          <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Link (optional, e.g. /clubs)</label>
+          <input className="lx-input text-sm" placeholder="/some/page"
+            value={form.link} onChange={e => setForm(f => ({ ...f, link: e.target.value }))} />
+        </div>
+        <button onClick={send} disabled={sending || !form.user_email.trim() || !form.title.trim()} className="lx-btn-primary text-sm">
+          {sent ? <><Check size={13} /> Sent!</> : sending ? 'Sending...' : 'Send Notification'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const BAN_FEATURES = [
   { key: 'banned_from_forums', label: 'Forums' },
@@ -446,7 +502,7 @@ export default function AdminDashboard({ user }) {
 
       {tab === 'safety' && <SafetyTab />}
       {tab === 'broadcasts' && <BroadcastsTab adminEmail={user?.email} />}
-      {tab === 'patterns' && <PatternsTab />}
+      {tab === 'notify' && <DirectNotifyTab />}
       {tab === 'contacts' && <ContactRequestsTab />}
     </div>
   );

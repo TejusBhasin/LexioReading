@@ -2,16 +2,22 @@ import React from 'react';
 import { Users, Shield } from 'lucide-react';
 
 export default function ClubMembers({ club, members, isAdmin }) {
+  // Build display list: prefer ClubMemberTracking records but fall back to member_emails
+  const trackingByEmail = Object.fromEntries((members || []).map(m => [m.user_email, m]));
+  const memberEmails = club.member_emails || [];
+  const displayList = memberEmails.length > 0
+    ? memberEmails.map(email => trackingByEmail[email] || { user_email: email, username: email.split('@')[0] })
+    : members;
   return (
     <div className="space-y-4">
-      {members.length === 0 ? (
+      {displayList.length === 0 ? (
         <div className="lx-card p-8 text-center">
           <Users size={32} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
           <p style={{ color: 'var(--text-muted)' }}>No members yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {members.map(m => (
+          {displayList.map((m, idx) => (
             <div key={m.id} className="lx-card p-4">
               <div className="flex items-start justify-between mb-2">
                 <div>

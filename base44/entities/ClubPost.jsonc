@@ -1,33 +1,38 @@
 {
-  "name": "Discussion",
+  "name": "ClubPost",
   "type": "object",
   "properties": {
+    "club_id": {
+      "type": "string"
+    },
     "user_email": {
       "type": "string"
     },
     "username": {
       "type": "string"
     },
-    "book_id": {
+    "content": {
+      "type": "string"
+    },
+    "image_url": {
       "type": "string"
     },
     "book_title": {
       "type": "string"
     },
-    "content": {
+    "book_id": {
       "type": "string"
     },
-    "parent_id": {
-      "type": "string"
-    },
-    "has_spoilers": {
-      "type": "boolean",
-      "default": false
+    "likes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": [
+    "club_id",
     "user_email",
-    "book_id",
     "content"
   ],
   "rls": {
@@ -51,6 +56,19 @@
       "$or": [
         {
           "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.club_id": {
+            "$in": [
+              {
+                "entity": "ReadingClub",
+                "field": "id",
+                "query": {
+                  "created_by_id": "{{user.id}}"
+                }
+              }
+            ]
+          }
         },
         {
           "user_condition": {

@@ -169,7 +169,11 @@ export default function AppShell({ children, user }) {
         setUserProfile(p[0]);
         // Check if terms version needs re-acceptance (use localStorage as fast cache)
         const localVersion = localStorage.getItem('lexio_terms_version');
-        if (localVersion !== CURRENT_TERMS_VERSION && p[0].tc_version !== CURRENT_TERMS_VERSION) {
+        const profileVersion = p[0].tc_version;
+        // If profile has current version, cache it locally and don't prompt
+        if (profileVersion === CURRENT_TERMS_VERSION) {
+          localStorage.setItem('lexio_terms_version', CURRENT_TERMS_VERSION);
+        } else if (localVersion !== CURRENT_TERMS_VERSION && profileVersion !== CURRENT_TERMS_VERSION) {
           setNeedsTermsAccept(true);
         }
         // Check blocked username patterns

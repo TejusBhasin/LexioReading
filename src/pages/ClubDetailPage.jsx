@@ -8,6 +8,7 @@ import ClubChat from '@/components/clubs/ClubChat';
 import LoggingClubDashboard from '@/components/clubs/LoggingClubDashboard';
 import ClubLeaderboard from '@/components/clubs/ClubLeaderboard';
 import BookClubChains from '@/components/clubs/BookClubChains';
+import DiscussionFeed from '@/components/clubs/DiscussionFeed';
 
 export default function ClubDetailPage() {
   const { id } = useParams();
@@ -172,36 +173,46 @@ export default function ClubDetailPage() {
       </div>
 
       {tab === 'overview' && (
-        <div className="lx-card p-6 space-y-6">
-          {club.current_book_title && (
-            <div>
-              <h3 className="font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Currently Reading</h3>
-              <div className="flex items-center gap-4">
-                <BookOpen size={32} style={{ color: 'var(--lx-accent)' }} />
+        <div className="space-y-6">
+          {club.club_type === 'discussion' && (
+            <DiscussionFeed club={club} user={user} isAdmin={isAdmin} />
+          )}
+          {club.club_type !== 'discussion' && (
+            <div className="lx-card p-6 space-y-6">
+              {club.current_book_title && (
                 <div>
-                  <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{club.current_book_title}</p>
-                  {schedules.length > 0 && (
-                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{schedules[0].chapters?.length || 0} chapters</p>
-                  )}
+                  <h3 className="font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Currently Reading</h3>
+                  <div className="flex items-center gap-4">
+                    <BookOpen size={32} style={{ color: 'var(--lx-accent)' }} />
+                    <div>
+                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{club.current_book_title}</p>
+                      {schedules.length > 0 && (
+                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{schedules[0].chapters?.length || 0} chapters</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
+              )}
+              {club.genres?.length > 0 && (
+                <div>
+                  <h3 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Genres</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {club.genres.map(g => (
+                      <span key={g} className="text-sm px-3 py-1 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>{g}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-3 pt-4">
+                {isMember && !isAdmin && (
+                  <button onClick={leaveClub} className="lx-btn-ghost text-sm">Leave Club</button>
+                )}
               </div>
             </div>
           )}
-          {club.genres?.length > 0 && (
-            <div>
-              <h3 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Genres</h3>
-              <div className="flex flex-wrap gap-2">
-                {club.genres.map(g => (
-                  <span key={g} className="text-sm px-3 py-1 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>{g}</span>
-                ))}
-              </div>
-            </div>
+          {club.club_type === 'discussion' && isMember && !isAdmin && (
+            <button onClick={leaveClub} className="lx-btn-ghost text-sm">Leave Club</button>
           )}
-          <div className="flex gap-3 pt-4">
-            {isMember && !isAdmin && (
-              <button onClick={leaveClub} className="lx-btn-ghost text-sm">Leave Club</button>
-            )}
-          </div>
         </div>
       )}
 
