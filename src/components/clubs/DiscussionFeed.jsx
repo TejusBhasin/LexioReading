@@ -1,6 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Trash2, Send, Image, BookOpen } from 'lucide-react';
+import { Heart, Trash2, Send, BookOpen, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+
+function PostReplies({ post, user, myUsername, isAdmin }) {
+  const [replies, setReplies] = useState([]);
+  const [replyText, setReplyText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    base44.entities.ClubPostReply.filter({ post_id: post.id }, 'created_date', 50)
+      .then(r => { setReplies(r); setLoaded(true); })
+      .catch(() => setLoaded(true));
+  }, [post.id]);
+
+  async function sendReply() {
+    if (!replyText.trim() || sending || !user) return;
+    setSending(true);
+    const r = await base44.entities.ClubPostReply.create({
+      post_id: post.id,
+      club_id: post.club_id,
+      user_email: user.email,
+      username: myUsername || user.email.split('@')[0],
+      content: replyText.trim(),
+    });
+    setReplies(prev => [...prev, r]);
+    setReplyText('');
+    setSending(false);
+  }
+
+  async function deleteReply(reply) {
+    await base44.entities.ClubPostReply.delete(reply.id);
+    setReplies(prev => prev.filter(r => r.id !== reply.id));
+  }
+
+  const canDeleteReply = (reply) => isAdmin || reply.user_email === user?.email;
+
+  if (!loaded) return <div className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>Loading replies...</div>;
+
+  return (
+    <div className="mt-3 border-t pt-3 space-y-3" style={{ borderColor: 'var(--lx-border)' }}>
+      {replies.map(r => (
+        <div key={r.id} className="flex items-start gap-2">
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)', border: '1px solid var(--lx-border)' }}>
+            {(r.username || r.user_email)[0]?.toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>@{r.username || r.user_email.split('@')[0]}</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(r.created_date).toLocaleDateString()}</span>
+            </div>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{r.content}</p>
+          </div>
+          {canDeleteReply(r) && (
+            <button onClick={() => deleteReply(r)} className="p-1 flex-shrink-0 hover:opacity-70 transition-opacity" style={{ color: 'var(--text-muted)' }}>
+              <Trash2 size={11} />
+            </button>
+          )}
+        </div>
+      ))}
+
+      {user && (
+        <div className="flex gap-2 items-center mt-2">
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+            style={{ background: 'var(--lx-accent)', color: 'var(--bg-primary)' }}>
+            {(myUsername || user.email)[0]?.toUpperCase()}
+          </div>
+          <input
+            className="flex-1 text-sm px-3 py-1.5 rounded-lg outline-none"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)', color: 'var(--text-primary)' }}
+            placeholder="Write a reply..."
+            value={replyText}
+            onChange={e => setReplyText(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendReply()}
+          />
+          <button onClick={sendReply} disabled={!replyText.trim() || sending}
+            className="p-1.5 rounded-lg transition-opacity flex-shrink-0"
+            style={{ background: 'var(--lx-accent)', color: 'var(--bg-primary)', opacity: !replyText.trim() || sending ? 0.5 : 1 }}>
+            <Send size={13} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function DiscussionFeed({ club, user, isAdmin }) {
   const [posts, setPosts] = useState([]);
@@ -8,6 +92,7 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
   const [content, setContent] = useState('');
   const [posting, setPosting] = useState(false);
   const [username, setUsername] = useState('');
+  const [openReplies, setOpenReplies] = useState({});
 
   useEffect(() => {
     loadPosts();
@@ -18,8 +103,7 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
     if (!user?.email) return;
     try {
       const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-      if (profiles[0]?.username) setUsername(profiles[0].username);
-      else setUsername(user.email.split('@')[0]);
+      setUsername(profiles[0]?.username || user.email.split('@')[0]);
     } catch (e) {
       setUsername(user?.email?.split('@')[0] || 'reader');
     }
@@ -67,6 +151,10 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
 
   const canDelete = (post) => isAdmin || post.user_email === user?.email;
 
+  function toggleReplies(postId) {
+    setOpenReplies(prev => ({ ...prev, [postId]: !prev[postId] }));
+  }
+
   return (
     <div className="space-y-5">
       {/* Compose */}
@@ -98,7 +186,7 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
       {/* Feed */}
       {loading ? (
         <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="lx-card p-5 h-28 animate-pulse" />)}
+          {[1, 2, 3].map(i => <div key={i} className="lx-card p-5 h-28 animate-pulse" />)}
         </div>
       ) : posts.length === 0 ? (
         <div className="lx-card p-10 text-center">
@@ -108,7 +196,7 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
       ) : (
         posts.map(post => {
           const liked = post.likes?.includes(user?.email);
-          const canDel = canDelete(post);
+          const repliesOpen = openReplies[post.id];
           return (
             <div key={post.id} className="lx-card p-5">
               {/* Header */}
@@ -123,7 +211,7 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(post.created_date).toLocaleDateString()}</p>
                   </div>
                 </div>
-                {canDel && (
+                {canDelete(post) && (
                   <button onClick={() => deletePost(post)} className="p-1 rounded hover:opacity-70 transition-opacity" style={{ color: 'var(--text-muted)' }}>
                     <Trash2 size={13} />
                   </button>
@@ -151,7 +239,19 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
                   <Heart size={15} fill={liked ? '#f43f5e' : 'none'} />
                   <span>{post.likes?.length || 0}</span>
                 </button>
+                <button onClick={() => toggleReplies(post.id)}
+                  className="flex items-center gap-1.5 text-sm transition-all"
+                  style={{ color: repliesOpen ? 'var(--lx-accent)' : 'var(--text-muted)' }}>
+                  <MessageCircle size={15} />
+                  <span>Reply</span>
+                  {repliesOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                </button>
               </div>
+
+              {/* Replies */}
+              {repliesOpen && (
+                <PostReplies post={post} user={user} myUsername={username} isAdmin={isAdmin} />
+              )}
             </div>
           );
         })
