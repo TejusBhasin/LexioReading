@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown, Zap } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
@@ -310,8 +311,8 @@ export default function AppShell({ children, user }) {
               </div> :
 
             <div className="hidden md:flex items-center gap-2">
-                <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-ghost text-sm py-1.5 px-3">Sign In</button>
-                <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-primary text-sm py-1.5 px-3">Get Started</button>
+                <Link to="/login" className="lx-btn-ghost text-sm py-1.5 px-3">Sign In</Link>
+                <Link to="/register" className="lx-btn-primary text-sm py-1.5 px-3">Get Started</Link>
               </div>
             }
           </div>
@@ -336,8 +337,8 @@ export default function AppShell({ children, user }) {
           })}
             {!user &&
           <div className="flex gap-2 pt-2 border-t" style={{ borderColor: 'var(--lx-border)' }}>
-                <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-ghost text-sm flex-1 justify-center">Sign In</button>
-                <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-primary text-sm flex-1 justify-center">Get Started</button>
+                <Link to="/login" className="lx-btn-ghost text-sm flex-1 justify-center">Sign In</Link>
+                <Link to="/register" className="lx-btn-primary text-sm flex-1 justify-center">Get Started</Link>
               </div>
           }
           </nav>

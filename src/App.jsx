@@ -2,11 +2,14 @@ import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import AppShell from '@/components/layout/AppShell';
+
+// Pages
 import DashboardPage from '@/pages/DashboardPage';
 import DiscoverPage from '@/pages/DiscoverPage';
 import LibraryPage from '@/pages/LibraryPage';
@@ -33,8 +36,14 @@ import ImportPage from '@/pages/ImportPage';
 import LandingPage from '@/pages/LandingPage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
+// Auth pages
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, isAuthenticated } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, user, isAuthenticated } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -52,46 +61,51 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      return <LandingPage />;
-    }
+  if (authError?.type === 'user_not_registered') {
+    return <UserNotRegisteredError />;
   }
+
+  // Redirect to login for pages that redirect to /login
+  const loginElement = <Navigate to="/login" replace />;
 
   return (
     <>
-    <PointNotificationContainer />
-    <AppShell user={user}>
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/discover" element={<DiscoverPage />} />
-        <Route path="/library" element={<LibraryPage />} />
-        <Route path="/chat" element={<ChatPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/book/:id" element={<BookDetailPage />} />
-        <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/clubs" element={<ClubsPage />} />
-        <Route path="/club/:id" element={<ClubDetailPage />} />
-        <Route path="/reviews" element={<ReviewsPage />} />
-        <Route path="/reading-log" element={<ReadingLogPage />} />
-        <Route path="/vault" element={<VaultPage />} />
-        <Route path="/wrapped" element={<WrappedPage />} />
-        <Route path="/terms-privacy" element={<TermsPrivacyPage />} />
-        <Route path="/u/:username" element={<UserPublicProfilePage />} />
-        <Route path="/secret" element={<EasterEggPage />} />
-        <Route path="/forums" element={<ForumsPage />} />
-        <Route path="/school-admin" element={<SchoolAdminPage />} />
-        <Route path="/goal" element={<ReadingGoalPage />} />
-        <Route path="/strength" element={<ReadingStrengthPage />} />
-        <Route path="/quotes" element={<BookQuotesPage />} />
-        <Route path="/challenges" element={<ChallengesPage />} />
-        <Route path="/import" element={<ImportPage />} />
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
-    </AppShell>
-    </>  
+      <PointNotificationContainer />
+      <AppShell user={user}>
+        <Routes>
+          {/* ── PUBLIC routes — no login required ── */}
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/discover" element={<DiscoverPage />} />
+          <Route path="/book/:id" element={<BookDetailPage />} />
+          <Route path="/terms-privacy" element={<TermsPrivacyPage />} />
+          <Route path="/u/:username" element={<UserPublicProfilePage />} />
+          <Route path="/forums" element={<ForumsPage />} />
+          <Route path="/clubs" element={<ClubsPage />} />
+          <Route path="/club/:id" element={<ClubDetailPage />} />
+          <Route path="/secret" element={<EasterEggPage />} />
+
+          {/* ── PROTECTED routes — require login ── */}
+          <Route element={<ProtectedRoute unauthenticatedElement={loginElement} />}>
+            <Route path="/library" element={<LibraryPage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/reviews" element={<ReviewsPage />} />
+            <Route path="/reading-log" element={<ReadingLogPage />} />
+            <Route path="/vault" element={<VaultPage />} />
+            <Route path="/wrapped" element={<WrappedPage />} />
+            <Route path="/school-admin" element={<SchoolAdminPage />} />
+            <Route path="/goal" element={<ReadingGoalPage />} />
+            <Route path="/strength" element={<ReadingStrengthPage />} />
+            <Route path="/quotes" element={<BookQuotesPage />} />
+            <Route path="/challenges" element={<ChallengesPage />} />
+            <Route path="/import" element={<ImportPage />} />
+          </Route>
+
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </AppShell>
+    </>
   );
 };
 
@@ -115,7 +129,17 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <AuthenticatedApp />
+          <Routes>
+            {/* ── Auth pages — fullscreen, outside AppShell ── */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            {/* ── Landing page — outside AppShell, public ── */}
+            <Route path="/landing" element={<LandingPage />} />
+            {/* ── Everything else goes through AuthenticatedApp ── */}
+            <Route path="*" element={<AuthenticatedApp />} />
+          </Routes>
         </Router>
         <Toaster />
       </QueryClientProvider>

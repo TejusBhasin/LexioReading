@@ -41,7 +41,7 @@ export default function ResetPassword() {
         title="Invalid reset link"
         subtitle="This password reset link is missing or invalid"
         footer={
-          <Link to="/forgot-password" className="text-primary font-medium hover:underline">
+          <Link to="/forgot-password" style={{ color: '#f5a623', fontWeight: 600 }}>
             Request a new link
           </Link>
         }

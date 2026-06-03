@@ -20,7 +20,8 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/";
+      const params = new URLSearchParams(window.location.search);
+      window.location.href = params.get("next") || "/";
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -29,7 +30,8 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/");
+    const params = new URLSearchParams(window.location.search);
+    base44.auth.loginWithProvider("google", params.get("next") || "/");
   };
 
   return (
@@ -40,7 +42,7 @@ export default function Login() {
       footer={
         <>
           Don't have an account?{" "}
-          <Link to="/register" className="text-primary font-medium hover:underline">
+          <Link to="/register" style={{ color: '#f5a623', fontWeight: 600 }}>
             Create one
           </Link>
         </>
@@ -91,7 +93,7 @@ export default function Login() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+            <Link to="/forgot-password" className="text-xs hover:underline" style={{ color: '#f5a623' }}>
               Forgot password?
             </Link>
           </div>

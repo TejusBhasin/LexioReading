@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
 const FEATURES = [
@@ -12,6 +13,7 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
+  const navigate = useNavigate();
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [contactSent, setContactSent] = useState(false);
   const [sending, setSending] = useState(false);
@@ -59,7 +61,7 @@ export default function LandingPage() {
             ))}
           </nav>
 
-          <button onClick={() => base44.auth.redirectToLogin()} style={{
+          <button onClick={() => navigate('/login')} style={{
             padding: '9px 20px', borderRadius: 8, fontSize: 14, fontWeight: 800, cursor: 'pointer',
             background: '#f5a623', color: '#050505', border: 'none', flexShrink: 0,
           }}>
@@ -81,13 +83,13 @@ export default function LandingPage() {
             AI-powered book discovery, a personal library tracker,<br />and a reading companion that learns your taste.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => base44.auth.redirectToLogin()} style={{
+            <button onClick={() => navigate('/register')} style={{
               padding: '15px 36px', borderRadius: 12, fontSize: 16, fontWeight: 900, cursor: 'pointer',
               background: '#f5a623', color: '#050505', border: 'none', boxShadow: '0 0 40px rgba(245,166,35,0.25)',
             }}>
               Get Started Free →
             </button>
-            <button onClick={() => base44.auth.redirectToLogin()} style={{
+            <button onClick={() => navigate('/login')} style={{
               padding: '15px 28px', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer',
               background: 'transparent', color: '#f0ebe0', border: '1px solid #2a2a2a',
             }}>
@@ -156,7 +158,7 @@ export default function LandingPage() {
           </div>
 
           <div style={{ textAlign: 'center', paddingTop: 48, borderTop: '1px solid #1c1c1c' }}>
-            <button onClick={() => base44.auth.redirectToLogin()} style={{
+            <button onClick={() => navigate('/register')} style={{
               padding: '15px 44px', borderRadius: 12, fontSize: 16, fontWeight: 900, cursor: 'pointer',
               background: '#f5a623', color: '#050505', border: 'none',
             }}>
