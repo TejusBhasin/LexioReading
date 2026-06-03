@@ -153,8 +153,9 @@ Context: ${b.description?.slice(0, 500) || 'No description available'}`,
     setLoadingSimilar(true);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `List 5 books similar to "${book.title}" by ${book.author}. 
-Return as JSON array with title and author for each.`,
+        prompt: `List exactly 5 books that are very similar to "${book.title}" by ${book.author}. 
+These should be books for the same audience and genre. Do NOT include the original book.
+Return a JSON object with a "books" array, each item having "title" and "author" fields.`,
         response_json_schema: {
           type: 'object',
           properties: {
@@ -172,11 +173,23 @@ Return as JSON array with title and author for each.`,
         }
       });
 
-      const aiBooks = result?.books || [];
+      // Handle both wrapped {books:[]} and raw array responses
+      const aiBooks = Array.isArray(result) ? result : (result?.books || []);
+      if (aiBooks.length === 0) { setLoadingSimilar(false); return; }
+
       const fetched = await Promise.all(
-        aiBooks.map(b => searchBooks(`${b.title} ${b.author}`, 1).then(r => r[0]).catch(() => null))
+        aiBooks.slice(0, 5).map(b =>
+          searchBooks(`"${b.title}" ${b.author}`, 3)
+            .then(results => {
+              // Pick the result whose title most closely matches
+              const exact = results.find(r => r.title?.toLowerCase().includes(b.title.toLowerCase()));
+              return exact || results[0] || null;
+            })
+            .catch(() => null)
+        )
       );
-      setSimilar(fetched.filter(Boolean).filter(b => b.cover_image));
+      const valid = fetched.filter(b => b && b.cover_image && b.title !== book.title);
+      setSimilar(valid);
     } catch (e) {}
     setLoadingSimilar(false);
   }
