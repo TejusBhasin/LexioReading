@@ -6,31 +6,33 @@ import { searchBooks, FALLBACK_TRENDING } from '@/lib/googleBooks';
 import BookGrid from '@/components/books/BookGrid';
 import { useAuth } from '@/lib/AuthContext';
 
-const TRENDING_QUERIES = ['bestseller 2024', 'science fiction award winner', 'mystery thriller', 'literary fiction', 'fantasy epic'];
-const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Romance', 'Historical', 'Thriller', 'Non-Fiction'];
+const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Historical', 'Thriller', 'Non-Fiction'];
+
+// Banned words — any query or book title/description containing these is filtered out
+const BANNED_WORDS = ['teen', 'teenager', 'young adult', 'ya fiction', 'middle grade', 'children', 'kids', 'abuse', 'war', 'romance', 'self help', 'self-help', 'adult content', 'explicit'];
 
 const FOR_YOU_QUERIES = [
-  'bestselling literary fiction novel', 'award winning historical fiction',
-  'gripping psychological thriller bestseller', 'epic fantasy series adults',
-  'science fiction bestseller space exploration', 'cozy mystery detective novel',
-  'romantic comedy adult fiction', 'page turning crime thriller',
-  'inspiring memoir bestseller', 'popular biography leadership',
-  'self help productivity bestseller', 'popular science mind blowing',
-  'dystopian fiction adults critically acclaimed', 'magical realism bestseller',
-  'historical novel world war', 'adventure travel memoir',
-  'acclaimed debut novel literary', 'best book club picks fiction',
-  'true crime investigative journalism', 'philosophy ideas popular nonfiction',
-  'contemporary fiction family drama', 'political thriller espionage',
-  'heartwarming drama adult fiction', 'cultural history fascinating',
-  'nature writing environment bestseller', 'economics society popular nonfiction',
-  'short story collection acclaimed', 'narrative nonfiction adventure',
-  'dark academia adult fiction', 'slow burn romance adult fiction',
-  'heist clever witty adult novel', 'time travel adult science fiction',
-  'mythology retelling adult fiction', 'gothic horror atmospheric adult',
-  'comedy satire adult novel', 'international bestseller translated fiction',
-  'thriller domestic suspense adult', 'epic saga multigenerational family',
-  'detective noir mystery adult', 'climate technology future science fiction',
+  'bestselling literary fiction 2022', 'award winning mystery novel 2023',
+  'gripping thriller bestseller 2023', 'epic fantasy series acclaimed',
+  'science fiction bestseller 2022 space', 'cozy mystery detective novel 2023',
+  'page turning crime novel 2022', 'inspiring memoir 2023',
+  'popular biography 2022', 'popular science fascinating 2023',
+  'dystopian fiction critically acclaimed 2022', 'magical realism bestseller 2022',
+  'historical fiction acclaimed 2022', 'adventure travel story 2023',
+  'acclaimed debut novel 2022', 'best book club fiction 2023',
+  'philosophy ideas popular 2022', 'contemporary fiction drama 2023',
+  'spy espionage thriller 2022', 'cultural history fascinating 2023',
+  'nature writing 2023', 'short story collection acclaimed 2022',
+  'heist clever novel 2022', 'time travel science fiction 2023',
+  'mythology retelling fiction 2022', 'gothic fiction 2023',
+  'comedy satire novel 2022', 'translated international bestseller 2023',
+  'detective noir mystery 2022', 'climate future science fiction 2023',
 ];
+
+function isSafeBook(book) {
+  const text = `${book.title} ${book.author} ${(book.categories || []).join(' ')}`.toLowerCase();
+  return !BANNED_WORDS.some(w => text.includes(w));
+}
 
 export default function DiscoverPage() {
   const { user, isAuthenticated } = useAuth();
@@ -44,6 +46,7 @@ export default function DiscoverPage() {
   const [searching, setSearching] = useState(false);
   const [showPopular, setShowPopular] = useState(true);
   const [activeGenre, setActiveGenre] = useState('All');
+  const [trendingEmpty, setTrendingEmpty] = useState(false);
 
   useEffect(() => {
     if (user?.email) {
@@ -62,7 +65,7 @@ export default function DiscoverPage() {
     const allResults = await Promise.all(
       selectedQueries.map(q => searchBooks(q, 10).catch(() => []))
     );
-    const pool = allResults.flat().filter(b => b?.cover_image);
+    const pool = allResults.flat().filter(b => b?.cover_image && isSafeBook(b) && b.published_date >= '2020');
     const unique = Object.values(Object.fromEntries(pool.map(b => [b.google_books_id || b.title, b])));
     const randomSix = [...unique].sort(() => Math.random() - 0.5).slice(0, 6);
     setForYouBooks(randomSix);
@@ -71,12 +74,34 @@ export default function DiscoverPage() {
   async function loadFeatured() {
     setLoading(true);
     try {
-      const query = TRENDING_QUERIES[Math.floor(Math.random() * TRENDING_QUERIES.length)];
-      const books = await searchBooks(query, 20);
-      const filtered = books.filter(b => b.cover_image && b.published_date && b.published_date >= '2020');
-      setFeaturedBooks(filtered.length >= 4 ? filtered : FALLBACK_TRENDING);
+      // Use real click data — top 10 most-clicked books by all users
+      const clicks = await base44.entities.BookClick.list('-created_date', 500);
+      // Count clicks per book_id
+      const counts = {};
+      const meta = {};
+      clicks.forEach(c => {
+        if (!c.book_id) return;
+        counts[c.book_id] = (counts[c.book_id] || 0) + 1;
+        if (!meta[c.book_id]) meta[c.book_id] = c;
+      });
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      if (sorted.length >= 4) {
+        const trendingBooks = sorted.map(([book_id, count]) => {
+          const m = meta[book_id];
+          return { google_books_id: book_id, id: book_id, title: m.book_title, author: m.book_author, cover_image: m.book_cover, clickCount: count };
+        }).filter(b => b.title && b.cover_image);
+        if (trendingBooks.length >= 4) {
+          setFeaturedBooks(trendingBooks);
+          setLoading(false);
+          return;
+        }
+      }
+      // Not enough real data yet — show placeholder message
+      setFeaturedBooks([]);
+      setTrendingEmpty(true);
     } catch (e) {
-      setFeaturedBooks(FALLBACK_TRENDING);
+      setFeaturedBooks([]);
+      setTrendingEmpty(true);
     } finally {
       setLoading(false);
     }
@@ -213,6 +238,13 @@ export default function DiscoverPage() {
               {Array.from({ length: 10 }).map((_, i) => (
                 <div key={i} className="rounded" style={{ aspectRatio: '2/3', background: 'var(--bg-card)', animation: 'pulse 1.5s infinite' }} />
               ))}
+            </div>
+          ) : trendingEmpty || featuredBooks.length === 0 ? (
+            <div className="lx-card p-10 text-center">
+              <TrendingUp size={32} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Trending books will appear here as people explore and click on books. Check back soon!
+              </p>
             </div>
           ) : (
             <BookGrid

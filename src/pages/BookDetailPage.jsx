@@ -74,14 +74,21 @@ export default function BookDetailPage() {
   async function loadBook() {
     setLoading(true);
     try {
-      // Try Google Books
       const b = await getBookById(id);
       if (b && b.title) {
         setBook(b);
         generateAISummary(b);
+        // Track this click for trending (fire-and-forget)
+        if (user?.email) {
+          base44.entities.BookClick.create({
+            book_id: id,
+            book_title: b.title,
+            book_author: b.author,
+            book_cover: b.cover_image || '',
+          }).catch(() => {});
+        }
       }
     } catch (e) {
-      // Try recommendation/library entries as fallback
     } finally {
       setLoading(false);
     }
