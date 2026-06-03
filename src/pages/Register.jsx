@@ -132,7 +132,7 @@ export default function Register() {
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/login" style={{ color: '#f5a623', fontWeight: 600 }}>
+          <Link to="/login" style={{ color: '#f5d623', fontWeight: 600 }}>
             Log in
           </Link>
         </>

@@ -42,7 +42,7 @@ export default function Login() {
       footer={
         <>
           Don't have an account?{" "}
-          <Link to="/register" style={{ color: '#f5a623', fontWeight: 600 }}>
+          <Link to="/register" style={{ color: '#f5d623', fontWeight: 600 }}>
             Create one
           </Link>
         </>
@@ -93,7 +93,7 @@ export default function Login() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link to="/forgot-password" className="text-xs hover:underline" style={{ color: '#f5a623' }}>
+            <Link to="/forgot-password" className="text-xs hover:underline" style={{ color: '#f5d623' }}>
               Forgot password?
             </Link>
           </div>
