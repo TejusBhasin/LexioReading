@@ -357,7 +357,7 @@ Return a JSON object with a "books" array, each item having "title" and "author"
           </h1>
           <p className="text-lg mb-4" style={{ color: 'var(--text-secondary)' }}>by {book.author}</p>
 
-          <div className="flex items-center gap-4 mb-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+          <div className="flex items-center gap-4 mb-4 text-sm flex-wrap" style={{ color: 'var(--text-muted)' }}>
             {book.published_date && <span>{book.published_date.slice(0, 4)}</span>}
             {book.page_count > 0 && <span>{book.page_count} pages</span>}
             {book.page_count > 0 && (
@@ -369,6 +369,21 @@ Return a JSON object with a "books" array, each item having "title" and "author"
               <span className="flex items-center gap-1">
                 <Star size={13} fill="var(--lx-accent)" style={{ color: 'var(--lx-accent)' }} />
                 {book.average_rating.toFixed(1)}
+              </span>
+            )}
+            {ageInfo?.recommended_age && (
+              <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ background: 'rgba(245,166,35,0.15)', color: 'var(--lx-accent)' }}>
+                Ages {ageInfo.recommended_age}
+              </span>
+            )}
+            {ageInfo?.lexile_label && (
+              <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
+                Lexile: {ageInfo.lexile_label}
+              </span>
+            )}
+            {ageInfo?.content_notes && (
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                · {ageInfo.content_notes}
               </span>
             )}
           </div>
