@@ -23,7 +23,7 @@ function VoteButtons({ item, user, onVote, size = 'normal' }) {
   );
 }
 
-function ReplyBox({ user, postId, parentId, parentAuthorEmail, onDone }) {
+function ReplyBox({ user, postId, parentId, parentAuthorEmail, username, onDone }) {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   async function submit() {
@@ -31,14 +31,17 @@ function ReplyBox({ user, postId, parentId, parentAuthorEmail, onDone }) {
     setLoading(true);
     await base44.entities.ForumComment.create({
       post_id: postId, parent_id: parentId || null, content: text.trim(),
-      author_email: user.email, author_username: user.full_name || user.email.split('@')[0],
+      author_email: user.email, author_username: username || user.email.split('@')[0],
       upvotes: 0, downvotes: 0, voted_by: [],
     });
+    // Update post comment count with accurate total
+    const allComments = await base44.entities.ForumComment.filter({ post_id: postId }, 'created_date', 200);
+    await base44.entities.ForumPost.update(postId, { comment_count: allComments.length });
     if (parentAuthorEmail && parentAuthorEmail !== user.email) {
       base44.entities.Notification.create({
         user_email: parentAuthorEmail, type: 'forum_reply',
         title: 'Someone replied to your comment',
-        body: `${user.full_name || user.email.split('@')[0]}: "${text.trim().slice(0, 80)}"`,
+        body: `${username || user.email.split('@')[0]}: "${text.trim().slice(0, 80)}"`,
         link: '/forums', group_key: postId, is_read: false,
       });
     }
@@ -78,7 +81,7 @@ function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth
         </div>
         {replying && (
           <ReplyBox user={user} postId={comment.post_id} parentId={comment.id} parentAuthorEmail={comment.author_email}
-            onDone={() => { setReplying(false); onReply(); }} />
+            username={user.username} onDone={() => { setReplying(false); onReply(); }} />
         )}
       </div>
       {replies.map(r => (
@@ -124,25 +127,29 @@ export default function PostDetailPage({ post, user, userProfile, onBack, onVote
   async function postComment() {
     if (!commentText.trim() || !user) return;
     setPosting(true);
+    const myUsername = userProfile?.username || user.email.split('@')[0];
     await base44.entities.ForumComment.create({
       post_id: post.id, parent_id: null,
       content: commentText.trim(),
       author_email: user.email,
-      author_username: userProfile?.username || user.full_name || user.email.split('@')[0],
+      author_username: myUsername,
       upvotes: 0, downvotes: 0, voted_by: [],
     });
-    await base44.entities.ForumPost.update(post.id, { comment_count: (post.comment_count || 0) + 1 });
+    // Fetch fresh total so concurrent comments all land at the right count
+    const freshComments = await base44.entities.ForumComment.filter({ post_id: post.id }, 'created_date', 200);
+    setComments(freshComments);
+    await base44.entities.ForumPost.update(post.id, { comment_count: freshComments.length });
     if (post.author_email && post.author_email !== user.email) {
       base44.entities.Notification.create({
         user_email: post.author_email, type: 'forum_reply',
         title: 'New comment on your post',
-        body: `${user.full_name || user.email.split('@')[0]}: "${commentText.trim().slice(0, 80)}"`,
+        body: `${myUsername}: "${commentText.trim().slice(0, 80)}"`,
         link: '/forums', group_key: post.id, is_read: false,
       });
     }
     setCommentText('');
     setPosting(false);
-    loadComments();
+    setLoadingComments(false);
   }
 
   const topLevelComments = comments.filter(c => !c.parent_id);
@@ -200,7 +207,7 @@ export default function PostDetailPage({ post, user, userProfile, onBack, onVote
           {/* Comments */}
           <div className="mb-4">
             <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
-              Comments ({topLevelComments.length})
+              Comments ({comments.length})
             </h3>
             {loadingComments ? (
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading comments...</p>
