@@ -61,6 +61,13 @@ export function normalizeBook(item) {
   const author = (info.authors || ['Unknown Author']).join(', ');
   const cover = getCoverImage(info, id);
   
+  // Derive recommended age from maturityRating
+  const maturity = info.maturityRating || 'NOT_MATURE';
+  const ageRating = maturity === 'MATURE' ? '18+' : maturity === 'NOT_MATURE' ? 'All Ages' : null;
+  // Lexile is not directly in Google Books API but we can use page count + categories as proxy label
+  // Google Books sometimes includes it in description or series info — surface what we have
+  const lexileNote = info.seriesInfo?.bookDisplayNumber ? `Series Book ${info.seriesInfo.bookDisplayNumber}` : null;
+
   return {
     google_books_id: id,
     title,
@@ -73,6 +80,9 @@ export function normalizeBook(item) {
     isbn: (info.industryIdentifiers || []).find(i => i.type === 'ISBN_13')?.identifier || '',
     average_rating: info.averageRating || 0,
     ratings_count: info.ratingsCount || 0,
+    age_rating: ageRating,
+    maturity_rating: maturity,
+    lexile_note: lexileNote,
     amazon_search_url: `https://www.amazon.com/s?k=${encodeURIComponent(title + ' ' + author)}`,
   };
 }

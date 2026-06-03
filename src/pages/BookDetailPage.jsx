@@ -44,6 +44,7 @@ export default function BookDetailPage() {
   const [noteSaved, setNoteSaved] = useState(false);
   const [currentPage, setCurrentPage] = useState('');
   const [shareMsg, setShareMsg] = useState('');
+  const [ageInfo, setAgeInfo] = useState(null);
 
   useEffect(() => {
     loadBook();
@@ -107,9 +108,33 @@ export default function BookDetailPage() {
     } catch (e) {}
   }
 
+  async function loadAgeInfo(b) {
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `For the book "${b.title}" by ${b.author}, provide:
+1. recommended_age: the minimum recommended age (e.g. "12+", "14+", "16+", "18+", "All ages")
+2. lexile_level: the approximate Lexile reading level as a number (e.g. 800 for typical 7th grade)
+3. lexile_label: a short label like "GN730L" or "800L" or an approximate range
+4. content_notes: very brief note on any mature content (e.g. "mild violence", "clean", "some adult themes")
+Use your knowledge of this book.`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            recommended_age: { type: 'string' },
+            lexile_level: { type: 'number' },
+            lexile_label: { type: 'string' },
+            content_notes: { type: 'string' },
+          }
+        }
+      });
+      setAgeInfo(result);
+    } catch (e) {}
+  }
+
   async function generateAISummary(b) {
     if (!b) return;
     setLoadingSummary(true);
+    loadAgeInfo(b);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Write a compelling, spoiler-free 3-sentence summary of "${b.title}" by ${b.author}. 
@@ -243,6 +268,14 @@ Return a JSON object with a "books" array, each item having "title" and "author"
       setLibraryEntry(entry);
       setSavedIds(prev => [...prev, id]);
     }
+    // Trigger AI taste analysis (fire-and-forget)
+    base44.functions.invoke('analyzeUserActivity', {
+      user_email: user.email,
+      activity_type: 'rating',
+      book_title: book?.title,
+      book_author: book?.author,
+      rating,
+    }).catch(() => {});
   }
 
   async function saveNotes() {

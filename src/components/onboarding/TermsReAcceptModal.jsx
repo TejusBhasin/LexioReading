@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export const CURRENT_TERMS_VERSION = 'v2-2026-05';
+export const CURRENT_TERMS_VERSION = 'v3-2026-06';
 
 function TermsText() {
   const [open, setOpen] = useState(false);
@@ -23,7 +23,8 @@ function TermsText() {
           <p><strong style={{ color: 'var(--text-primary)' }}>No Warranty</strong><br />Lexio is provided as-is with no warranties of any kind, express or implied, including fitness for a particular purpose or uninterrupted availability.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Modifications</strong><br />Lexio may modify or discontinue the service at any time without liability.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Privacy</strong><br />We collect only the data necessary to run the platform. We do not sell your data. Your data may be reviewed by administrators for safety and abuse prevention.</p>
-          <p style={{ color: 'var(--lx-accent)', fontWeight: 600 }}>By clicking "I Agree", you confirm you have read, understood, and agree to ALL of the above terms.</p>
+          <p><strong style={{ color: '#f87171' }}>Loopholes — STRICTLY PROHIBITED &amp; LEGALLY ACTIONABLE</strong><br />The use of any loophole, exploit, technical workaround, or unintended mechanism is strictly prohibited. Any method that technically complies with these Terms while violating their spirit — as judged solely by Lexio — constitutes a violation. This includes ban evasion, fake engagement, automation, and manipulation of any platform feature. Violations may result in immediate permanent termination and civil legal action for damages. By accepting these Terms, you waive any defense that the conduct was not explicitly named.</p>
+          <p style={{ color: 'var(--lx-accent)', fontWeight: 600 }}>By clicking "I Agree", you confirm you have read, understood, and agree to ALL of the above terms, including the loopholes clause.</p>
         </div>
       )}
     </div>
@@ -90,7 +91,7 @@ export default function TermsReAcceptModal({ user, onAccepted }) {
             style={{ background: agreed ? 'var(--lx-accent)' : 'transparent', border: `2px solid ${agreed ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
             {agreed && <Check size={12} style={{ color: 'var(--bg-primary)' }} />}
           </button>
-          <span>I have read and agree to the Terms &amp; Conditions, including the moderation policy, liability waiver, and no-legal-action clause.</span>
+          <span>I have read and agree to the Terms &amp; Conditions, including the moderation policy, liability waiver, no-legal-action clause, and loopholes prohibition.</span>
         </label>
 
         <button onClick={handleAccept} disabled={!agreed || saving} className="lx-btn-primary w-full justify-center">

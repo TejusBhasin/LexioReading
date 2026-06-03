@@ -81,6 +81,33 @@ export default function TermsPrivacyPage() {
               Lexio is provided as-is without warranties of any kind, express or implied, including warranties of fitness for a particular purpose, merchantability, or uninterrupted availability.
             </p>
 
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Loopholes — Strictly Prohibited</h3>
+            <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+              THE USE OF ANY LOOPHOLE, EXPLOIT, TECHNICAL WORKAROUND, OR UNINTENDED MECHANISM WITHIN LEXIO IS STRICTLY AND EXPRESSLY PROHIBITED.
+            </p>
+            <p>
+              A "loophole" is defined as any method, action, or omission that technically complies with the literal wording of these Terms while violating their intent or spirit, as determined solely by Lexio at its absolute discretion. This includes, but is not limited to:
+            </p>
+            <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
+              <li>Exploiting ambiguities in these Terms to engage in conduct that Lexio would otherwise prohibit</li>
+              <li>Using technical exploits, automation, scripts, bots, or any non-human methods to interact with the platform</li>
+              <li>Creating multiple accounts to circumvent a ban, suspension, or feature restriction</li>
+              <li>Manipulating platform features (ratings, trending, recommendations, points, streaks) in any artificial or inauthentic way</li>
+              <li>Attempting to reverse-engineer, scrape, or extract platform data or AI outputs at scale</li>
+              <li>Any action that Lexio determines, in its sole judgment, to undermine the integrity or fairness of the platform</li>
+            </ul>
+            <p style={{ marginTop: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              CONSEQUENCE: Use of any loophole as defined above — whether or not it is explicitly named in these Terms — may result in immediate permanent account termination and, where Lexio determines the conduct to be sufficiently harmful, may result in civil legal action for damages. By using Lexio, you expressly agree that Lexio has the right to pursue such legal action and that you waive any defense based on the argument that the conduct was not explicitly prohibited in writing.
+            </p>
+            <p style={{ marginTop: '0.5rem' }}>
+              Lexio reserves the right to update its definition of "loophole" at any time. Users are responsible for staying informed of these Terms. Ignorance of this clause is not a valid defense.
+            </p>
+
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Entire Agreement</h3>
+            <p>
+              These Terms constitute the entire agreement between you and Lexio with respect to your use of the platform. No prior agreements, representations, or understandings — written or verbal — supersede these Terms. If any provision is found unenforceable, the remaining provisions remain in full force.
+            </p>
+
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Free Service</h3>
             <p>
               Lexio is free forever for core features. If premium features are introduced in the future, they will be optional and transparent.

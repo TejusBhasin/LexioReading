@@ -5,6 +5,8 @@ import { base44 } from '@/api/base44Client';
 import { searchBooks, FALLBACK_TRENDING } from '@/lib/googleBooks';
 import BookGrid from '@/components/books/BookGrid';
 import { useAuth } from '@/lib/AuthContext';
+import NetflixRow from '@/components/discover/NetflixRow';
+import LoadMoreRecommendations from '@/components/discover/LoadMoreRecommendations';
 
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Historical', 'Thriller', 'Non-Fiction'];
 
@@ -47,12 +49,30 @@ export default function DiscoverPage() {
   const [showPopular, setShowPopular] = useState(true);
   const [activeGenre, setActiveGenre] = useState('All');
   const [trendingEmpty, setTrendingEmpty] = useState(false);
+  const [userPrefs, setUserPrefs] = useState(null);
+  const [netflixSeeds, setNetflixSeeds] = useState([]);
 
   useEffect(() => {
     if (user?.email) {
       loadSaved();
       base44.entities.UserPreferences.filter({ user_email: user.email }).then(p => {
-        if (p[0]) setShowPopular(p[0].show_popular !== false);
+        if (p[0]) {
+          setShowPopular(p[0].show_popular !== false);
+          setUserPrefs(p[0]);
+          // Build Netflix seeds from AI recommendation seeds + finished books
+          const seeds = (p[0].ai_recommendation_seeds || []).slice(0, 3).map(title => ({ title }));
+          setNetflixSeeds(seeds);
+        }
+      }).catch(() => {});
+      // Also check finished books as seeds
+      base44.entities.UserLibrary.filter({ user_email: user.email, status: 'finished' }, '-updated_date', 5).then(lib => {
+        if (lib.length > 0) {
+          setNetflixSeeds(prev => {
+            const existing = new Set(prev.map(s => s.title?.toLowerCase()));
+            const newSeeds = lib.filter(b => !existing.has(b.book_title?.toLowerCase())).slice(0, 3).map(b => ({ title: b.book_title, author: b.book_author }));
+            return [...prev, ...newSeeds].slice(0, 3);
+          });
+        }
       }).catch(() => {});
     }
     loadFeatured();
@@ -212,14 +232,20 @@ export default function DiscoverPage() {
         </section>
       )}
 
+      {/* Netflix-style "Because you liked" rows */}
+      {isAuthenticated && netflixSeeds.length > 0 && netflixSeeds.map((seed, i) => (
+        <NetflixRow key={seed.title + i} seed={seed} onSave={saveBook} savedIds={savedIds} />
+      ))}
+
       {/* For You */}
       {isAuthenticated && (
-        <section className="mb-12">
+        <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <Sparkles size={18} style={{ color: 'var(--lx-accent)' }} />
             <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>For You</h2>
           </div>
           <BookGrid books={forYouBooks} onSave={saveBook} savedIds={savedIds} />
+          <LoadMoreRecommendations userPrefs={userPrefs} onSave={saveBook} savedIds={savedIds} />
         </section>
       )}
 

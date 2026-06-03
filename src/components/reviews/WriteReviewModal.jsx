@@ -27,6 +27,15 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
         approved: true,
       });
       await awardPoints(userEmail, 'review', username);
+      // Trigger AI analysis to update taste profile and reading strength (fire-and-forget)
+      base44.functions.invoke('analyzeUserActivity', {
+        user_email: userEmail,
+        activity_type: 'review',
+        content: content.trim(),
+        book_title: book.title,
+        book_author: book.author,
+        rating,
+      }).catch(() => {});
       onSubmitted();
     } catch (e) {}
     setSubmitting(false);

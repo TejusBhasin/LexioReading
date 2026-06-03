@@ -42,6 +42,13 @@ export default function DiscussionForum({ bookId, bookTitle }) {
       has_spoilers: hasSpoilers,
     });
     setPosts(prev => [newPost, ...prev]);
+    // Trigger AI taste analysis (fire-and-forget)
+    base44.functions.invoke('analyzeUserActivity', {
+      user_email: user.email,
+      activity_type: 'discussion',
+      content: content.trim(),
+      book_title: bookTitle,
+    }).catch(() => {});
     setContent('');
     setHasSpoilers(false);
     setPosting(false);

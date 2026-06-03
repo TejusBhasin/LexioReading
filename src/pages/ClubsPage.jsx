@@ -3,6 +3,7 @@ import { Users, Plus, BookOpen, Lock, Globe, X, Search, Eye, EyeOff, Key, Trophy
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
+import { searchBooks } from '@/lib/googleBooks';
 
 export default function ClubsPage() {
   const { user, isAuthenticated } = useAuth();
@@ -18,12 +19,17 @@ export default function ClubsPage() {
     is_visible: true,
     join_code: '',
     allow_chat: true,
-    tracking_fields: []
+    tracking_fields: [],
+    club_focus: 'book', // 'book' or 'series'
   });
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [bookSearch, setBookSearch] = useState('');
+  const [bookSearchResults, setBookSearchResults] = useState([]);
+  const [bookSearching, setBookSearching] = useState(false);
+  const [selectedBook, setSelectedBook] = useState(null);
 
   useEffect(() => {
     loadClubs();
@@ -42,8 +48,16 @@ export default function ClubsPage() {
     setLoading(false);
   }
 
+  async function searchForBook() {
+    if (!bookSearch.trim()) return;
+    setBookSearching(true);
+    const results = await searchBooks(bookSearch, 6).catch(() => []);
+    setBookSearchResults(results.filter(b => b.cover_image));
+    setBookSearching(false);
+  }
+
   async function createClub() {
-    if (!form.name.trim() || !user) return;
+    if (!form.name.trim() || !user || !selectedBook) return;
     setCreating(true);
     try {
       const code = !form.is_visible ? 'CLUB' + Math.random().toString(36).slice(2, 8).toUpperCase() : '';
@@ -53,11 +67,16 @@ export default function ClubsPage() {
         creator_email: user.email,
         member_count: 1,
         member_emails: [user.email],
+        current_book_id: selectedBook.google_books_id || selectedBook.id,
+        current_book_title: selectedBook.title,
       });
       setMyClubs(prev => [club, ...prev]);
       if (form.is_visible) setClubs(prev => [club, ...prev]);
       setShowCreate(false);
-      setForm({ name: '', description: '', genres: [], club_type: 'discussion', is_visible: true, join_code: '', allow_chat: true, tracking_fields: [] });
+      setForm({ name: '', description: '', genres: [], club_type: 'discussion', is_visible: true, join_code: '', allow_chat: true, tracking_fields: [], club_focus: 'book' });
+      setSelectedBook(null);
+      setBookSearch('');
+      setBookSearchResults([]);
     } catch (e) {}
     setCreating(false);
   }
@@ -193,9 +212,66 @@ export default function ClubsPage() {
               <button onClick={() => setShowCreate(false)}><X size={18} style={{ color: 'var(--text-muted)' }} /></button>
             </div>
             <div className="space-y-3">
+              {/* Club focus: book or series */}
+              <div>
+                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Club Focus *</label>
+                <div className="flex gap-2">
+                  {['book', 'series'].map(f => (
+                    <button key={f} onClick={() => setForm(ff => ({ ...ff, club_focus: f }))}
+                      className="flex-1 py-2 rounded text-sm font-medium capitalize"
+                      style={{ background: form.club_focus === f ? 'var(--lx-accent)' : 'var(--bg-elevated)', color: form.club_focus === f ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${form.club_focus === f ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
+                      {f === 'book' ? '📖 Single Book' : '📚 Book Series'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Book search - required */}
+              <div>
+                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>
+                  {form.club_focus === 'series' ? 'Search for Series (select 1st book) *' : 'Search for Book *'}
+                </label>
+                {selectedBook ? (
+                  <div className="flex items-center gap-3 p-2 rounded" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-accent)' }}>
+                    {selectedBook.cover_image && <img src={selectedBook.cover_image} alt="" className="w-8 h-11 object-cover rounded flex-shrink-0" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{selectedBook.title}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{selectedBook.author}</p>
+                    </div>
+                    <button onClick={() => { setSelectedBook(null); setBookSearchResults([]); }} style={{ color: 'var(--text-muted)' }}><X size={14} /></button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input className="lx-input flex-1 text-sm" placeholder="Search title or author..."
+                        value={bookSearch} onChange={e => setBookSearch(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && searchForBook()} />
+                      <button onClick={searchForBook} disabled={bookSearching} className="lx-btn-primary px-3 text-sm">
+                        {bookSearching ? '...' : <Search size={14} />}
+                      </button>
+                    </div>
+                    {bookSearchResults.length > 0 && (
+                      <div className="max-h-44 overflow-y-auto space-y-1 rounded" style={{ border: '1px solid var(--lx-border)' }}>
+                        {bookSearchResults.map(b => (
+                          <button key={b.google_books_id || b.title} onClick={() => { setSelectedBook(b); setBookSearchResults([]); }}
+                            className="w-full flex items-center gap-2 p-2 text-left hover:opacity-80 transition-opacity"
+                            style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--lx-border)' }}>
+                            {b.cover_image && <img src={b.cover_image} alt="" className="w-7 h-10 object-cover rounded flex-shrink-0" />}
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold truncate" style={{ color: 'var(--text-primary)' }}>{b.title}</p>
+                              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{b.author}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Club Name *</label>
-                <input className="lx-input" placeholder="e.g. Sci-Fi Enthusiasts" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                <input className="lx-input" placeholder="e.g. Scythe Fans" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
               </div>
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Description</label>
@@ -218,7 +294,8 @@ export default function ClubsPage() {
                   {form.is_visible ? <Eye size={12} /> : <EyeOff size={12} />}
                 </button>
               </div>
-              <button onClick={createClub} disabled={creating || !form.name.trim()} className="lx-btn-primary w-full justify-center text-sm">
+              {!selectedBook && <p className="text-xs" style={{ color: '#f87171' }}>⚠ You must select a book or series to create a club.</p>}
+              <button onClick={createClub} disabled={creating || !form.name.trim() || !selectedBook} className="lx-btn-primary w-full justify-center text-sm">
                 {creating ? 'Creating...' : 'Create Club'}
               </button>
             </div>

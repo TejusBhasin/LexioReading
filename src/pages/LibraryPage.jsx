@@ -4,6 +4,7 @@ import { BookOpen, Star, Trash2, Edit3, Check, X } from 'lucide-react';
 import LxSelect from '@/components/ui/LxSelect';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import LibraryShareButton from '@/components/library/LibraryShareButton';
 
 const STATUSES = [
   { key: 'all', label: 'All Books' },
@@ -28,6 +29,7 @@ export default function LibraryPage() {
   const [editingId, setEditingId] = useState(null);
   const [editNote, setEditNote] = useState('');
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -37,8 +39,12 @@ export default function LibraryPage() {
   async function loadLibrary() {
     setLoading(true);
     try {
-      const lib = await base44.entities.UserLibrary.filter({ user_email: user.email }, '-created_date', 100);
+      const [lib, profiles] = await Promise.all([
+        base44.entities.UserLibrary.filter({ user_email: user.email }, '-created_date', 100),
+        base44.entities.UserProfile.filter({ user_email: user.email }),
+      ]);
       setBooks(lib);
+      if (profiles[0]) setUserProfile(profiles[0]);
     } catch (e) {
       setBooks([]);
     } finally {
@@ -102,14 +108,17 @@ export default function LibraryPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 pb-24 md:pb-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
         <h1 className="font-display text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
           My Library
         </h1>
-        <div className="flex gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-          <span><strong style={{ color: 'var(--lx-accent)' }}>{stats.finished}</strong> finished</span>
-          <span><strong style={{ color: 'var(--text-primary)' }}>{stats.reading}</strong> reading</span>
-          <span><strong style={{ color: 'var(--text-secondary)' }}>{stats.want}</strong> queued</span>
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+            <span><strong style={{ color: 'var(--lx-accent)' }}>{stats.finished}</strong> finished</span>
+            <span><strong style={{ color: 'var(--text-primary)' }}>{stats.reading}</strong> reading</span>
+            <span><strong style={{ color: 'var(--text-secondary)' }}>{stats.want}</strong> queued</span>
+          </div>
+          <LibraryShareButton username={userProfile?.username} isPublic={userProfile?.is_public !== false} />
         </div>
       </div>
 
