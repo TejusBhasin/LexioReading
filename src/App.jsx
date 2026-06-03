@@ -65,7 +65,12 @@ const AuthenticatedApp = () => {
     return <UserNotRegisteredError />;
   }
 
-  // Redirect to login for pages that redirect to /login
+  // Bad/expired token — clear and redirect to login
+  if (authError?.type === 'auth_required') {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Redirect to login for pages that require it
   const loginElement = <Navigate to="/login" replace />;
 
   return (

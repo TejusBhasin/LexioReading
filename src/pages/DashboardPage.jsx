@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Compass, MessageSquare, Star, Clock, CheckCircle, Bookmark, ArrowRight, Sparkles, Users, Lock, PenLine, HelpCircle, Quote } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+
 import SetupTour from '@/components/onboarding/SetupTour';
 
 const QUOTES = [
@@ -65,12 +66,12 @@ export default function DashboardPage() {
             AI-powered book discovery, a personal library tracker, and a reading companion that learns your taste.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
-            <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-primary py-3 px-8 text-base">
+            <Link to="/register" className="lx-btn-primary py-3 px-8 text-base">
               Get Started Free <ArrowRight size={16} />
-            </button>
-            <button onClick={() => base44.auth.redirectToLogin()} className="lx-btn-ghost py-3 px-8 text-base">
+            </Link>
+            <Link to="/login" className="lx-btn-ghost py-3 px-8 text-base">
               Sign In
-            </button>
+            </Link>
           </div>
         </div>
 
