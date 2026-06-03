@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Heart, Trash2, Send, BookOpen, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -48,7 +49,11 @@ function PostReplies({ post, user, myUsername, isAdmin }) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>@{r.username || r.user_email.split('@')[0]}</span>
+              {r.username ? (
+                <Link to={`/u/${r.username}`} className="text-xs font-bold hover:underline" style={{ color: 'var(--text-primary)' }}>@{r.username}</Link>
+              ) : (
+                <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{r.user_email?.split('@')[0]}</span>
+              )}
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(r.created_date).toLocaleDateString()}</span>
             </div>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{r.content}</p>
@@ -207,7 +212,11 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
                     {(post.username || post.user_email)[0]?.toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>@{post.username || post.user_email.split('@')[0]}</p>
+                    {post.username ? (
+                      <Link to={`/u/${post.username}`} className="text-sm font-bold hover:underline" style={{ color: 'var(--text-primary)' }}>@{post.username}</Link>
+                    ) : (
+                      <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{post.user_email?.split('@')[0]}</p>
+                    )}
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(post.created_date).toLocaleDateString()}</p>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, AlertTriangle, Eye, Send, UserCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -109,9 +110,13 @@ export default function DiscussionForum({ bookId, bookTitle }) {
                 style={{ background: 'var(--lx-accent)', color: 'var(--bg-primary)' }}>
                 {(p.username || p.user_email)?.[0]?.toUpperCase()}
               </div>
-              <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                {p.username || p.user_email}
-              </span>
+              {p.username ? (
+                <Link to={`/u/${p.username}`} className="text-sm font-medium hover:underline" style={{ color: 'var(--text-primary)' }}>
+                  @{p.username}
+                </Link>
+              ) : (
+                <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{p.user_email?.split('@')[0]}</span>
+              )}
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {new Date(p.created_date).toLocaleDateString()}
               </span>

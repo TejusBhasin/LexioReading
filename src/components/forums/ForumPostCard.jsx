@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowUp, ArrowDown, MessageCircle, Image } from 'lucide-react';
 
 export default function ForumPostCard({ post, user, onVote, onClick }) {
@@ -37,7 +38,7 @@ export default function ForumPostCard({ post, user, onVote, onClick }) {
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-            <span className="font-bold" style={{ color: 'var(--lx-accent)' }}>u/{post.author_username}</span>
+            <Link to={`/u/${post.author_username}`} onClick={e => e.stopPropagation()} className="font-bold hover:underline" style={{ color: 'var(--lx-accent)' }}>u/{post.author_username}</Link>
             <span>·</span>
             <span>{new Date(post.created_date).toLocaleDateString()}</span>
             {post.image_url && <><span>·</span><span className="flex items-center gap-0.5"><Image size={11} /> img</span></>}

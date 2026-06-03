@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Star, AlertTriangle, Eye } from 'lucide-react';
 
 export default function ReviewCard({ review }) {
   const [spoilerRevealed, setSpoilerRevealed] = useState(false);
+  const displayName = review.username || review.user_email?.split('@')[0];
 
   return (
     <div className="lx-card p-4">
@@ -10,11 +12,15 @@ export default function ReviewCard({ review }) {
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
             style={{ background: 'var(--lx-accent)', color: 'var(--bg-primary)' }}>
-            {(review.username || review.user_email)?.[0]?.toUpperCase() || '?'}
+            {displayName?.[0]?.toUpperCase() || '?'}
           </div>
-          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-            {review.username || review.user_email}
-          </span>
+          {review.username ? (
+            <Link to={`/u/${review.username}`} className="text-sm font-medium hover:underline" style={{ color: 'var(--text-primary)' }}>
+              @{review.username}
+            </Link>
+          ) : (
+            <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{displayName}</span>
+          )}
         </div>
         <div className="flex items-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => (

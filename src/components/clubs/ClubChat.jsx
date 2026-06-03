@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { Send } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -68,8 +69,8 @@ export default function ClubChat({ club, user }) {
           const isMe = msg.user_email === user?.email;
           return (
             <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-              {!isMe && (
-                <span className="text-xs mb-1 px-1" style={{ color: 'var(--text-muted)' }}>{msg.username}</span>
+              {!isMe && msg.username && (
+                <Link to={`/u/${msg.username}`} className="text-xs mb-1 px-1 hover:underline" style={{ color: 'var(--text-muted)' }}>@{msg.username}</Link>
               )}
               <div
                 className="max-w-[75%] px-4 py-2.5 rounded-2xl text-sm"

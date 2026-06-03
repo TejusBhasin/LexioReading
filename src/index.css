@@ -12,12 +12,12 @@
   --text-primary: #f5f0e8;
   --text-secondary: #a8a29e;
   --text-muted: #57534e;
-  --accent-primary: #f5a623;
-  --accent-secondary: #e8854a;
-  --accent-tertiary: #c4883a;
+  --accent-primary: #f5d623;
+  --accent-secondary: #e8c84a;
+  --accent-tertiary: #c4b03a;
   --border-color: #2a2a2a;
-  --shadow: 4px 4px 0px #f5a623;
-  --shadow-card: 6px 6px 0px #f5a623;
+  --shadow: 4px 4px 0px #f5d623;
+  --shadow-card: 6px 6px 0px #f5d623;
 
   /* Shadcn compat */
   --background: 0 0% 4%;
@@ -26,7 +26,7 @@
   --card-foreground: 30 10% 95%;
   --popover: 0 0% 8%;
   --popover-foreground: 30 10% 95%;
-  --primary: 38 91% 55%;
+  --primary: 52 91% 55%;
   --primary-foreground: 0 0% 0%;
   --secondary: 0 0% 10%;
   --secondary-foreground: 30 10% 95%;
@@ -38,7 +38,7 @@
   --destructive-foreground: 0 0% 98%;
   --border: 0 0% 16%;
   --input: 0 0% 16%;
-  --ring: 38 91% 55%;
+  --ring: 52 91% 55%;
   --radius: 0.75rem;
 }
 

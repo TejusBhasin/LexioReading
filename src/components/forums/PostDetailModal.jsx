@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { X, ArrowUp, ArrowDown, MessageCircle, Send, CornerDownRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
@@ -30,7 +31,7 @@ function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth
     <div style={{ marginLeft: depth > 0 ? `${Math.min(depth, 3) * 20}px` : '0' }}>
       <div className="py-3" style={{ borderBottom: depth === 0 ? '1px solid var(--lx-border)' : 'none' }}>
         <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-xs font-bold" style={{ color: 'var(--lx-accent)' }}>u/{comment.author_username}</span>
+          <Link to={`/u/${comment.author_username}`} onClick={e => e.stopPropagation()} className="text-xs font-bold hover:underline" style={{ color: 'var(--lx-accent)' }}>u/{comment.author_username}</Link>
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(comment.created_date).toLocaleDateString()}</span>
         </div>
         <p className="text-sm mb-2" style={{ color: 'var(--text-primary)' }}>{comment.content}</p>
@@ -140,7 +141,7 @@ export default function PostDetailModal({ post, user, userProfile, onClose, onVo
           <div className="flex-1 pr-4">
             <h2 className="font-display text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>{post.title}</h2>
             <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-              <span style={{ color: 'var(--lx-accent)' }}>u/{post.author_username}</span>
+              <Link to={`/u/${post.author_username}`} onClick={e => e.stopPropagation()} className="hover:underline" style={{ color: 'var(--lx-accent)' }}>u/{post.author_username}</Link>
               <span>·</span>
               <span>{new Date(post.created_date).toLocaleDateString()}</span>
             </div>
