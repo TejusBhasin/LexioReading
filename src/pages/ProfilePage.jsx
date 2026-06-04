@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload, Copy, Link2 } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import ContactForm from '@/components/profile/ContactForm';
 import ProfileExport from '@/components/profile/ProfileExport';
@@ -49,6 +49,8 @@ const PRESET_COLORS = [
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuth();
   const [tab, setTab] = useState('preferences');
+  const [profileUsername, setProfileUsername] = useState(null);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [prefs, setPrefs] = useState(null);
   const [library, setLibrary] = useState([]);
   const [chatSessions, setChatSessions] = useState([]);
@@ -58,6 +60,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user?.email) {
       loadAll();
+      base44.entities.UserProfile.filter({ user_email: user.email }).then(p => {
+        if (p[0]?.username) setProfileUsername(p[0].username);
+      }).catch(() => {});
     }
   }, [user]);
 
@@ -179,9 +184,24 @@ export default function ProfilePage() {
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{user?.email}</p>
           </div>
         </div>
-        <button onClick={() => logout()} className="lx-btn-ghost text-sm py-1.5">
-          <LogOut size={13} /> Sign Out
-        </button>
+        <div className="flex items-center gap-2">
+          {profileUsername && (
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/u/${profileUsername}`);
+                setLinkCopied(true);
+                setTimeout(() => setLinkCopied(false), 2000);
+              }}
+              className="lx-btn-ghost text-sm py-1.5"
+              title="Copy your public profile link"
+            >
+              {linkCopied ? <><Check size={13} /> Copied!</> : <><Link2 size={13} /> Copy Profile Link</>}
+            </button>
+          )}
+          <button onClick={() => logout()} className="lx-btn-ghost text-sm py-1.5">
+            <LogOut size={13} /> Sign Out
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

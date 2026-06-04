@@ -13,8 +13,9 @@ export default function ClubChat({ club, user }) {
   useEffect(() => {
     if (!user?.email) return;
     base44.entities.UserProfile.filter({ user_email: user.email }).then(profiles => {
-      setMyUsername(profiles[0]?.username || user.email.split('@')[0]);
-    }).catch(() => setMyUsername(user.email.split('@')[0]));
+      // Always use username — never fall back to real name or email
+      setMyUsername(profiles[0]?.username || '');
+    }).catch(() => setMyUsername(''));
   }, [user?.email]);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function ClubChat({ club, user }) {
       club_id: club.id,
       chain_id: 'general',
       user_email: user.email,
-      username: myUsername || user.email.split('@')[0],
+      username: myUsername || null,
       content,
     });
     setSending(false);
