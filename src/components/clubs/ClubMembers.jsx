@@ -21,8 +21,9 @@ export default function ClubMembers({ club, members, isAdmin }) {
             <div key={m.id} className="lx-card p-4">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{m.username || m.user_email}</p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{m.user_email}</p>
+                  <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                    {m.username ? `@${m.username}` : 'Anonymous'}
+                  </p>
                 </div>
                 {m.role === 'admin' && <Shield size={14} style={{ color: 'var(--lx-accent)' }} />}
               </div>

@@ -27,6 +27,14 @@
       "type": "boolean",
       "default": true
     },
+    "show_email": {
+      "type": "boolean",
+      "default": false
+    },
+    "show_real_name": {
+      "type": "boolean",
+      "default": false
+    },
     "tc_agreed": {
       "type": "boolean",
       "default": false

@@ -106,6 +106,12 @@ export default function UserPublicProfilePage() {
             </div>
             <div>
               <h1 className="font-display text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>@{profile.username}</h1>
+              {profile.show_real_name && profile.display_name && (
+                <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{profile.display_name}</p>
+              )}
+              {profile.show_email && (
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{profile.user_email}</p>
+              )}
               {profile.bio && <p className="text-sm mt-1 max-w-md" style={{ color: 'var(--text-secondary)' }}>{profile.bio}</p>}
             </div>
           </div>

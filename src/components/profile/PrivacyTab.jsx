@@ -24,7 +24,7 @@ export default function PrivacyTab({ user }) {
     try {
       const p = await base44.entities.UserProfile.filter({ user_email: user.email });
       if (p[0]) setProfile(p[0]);
-      else setProfile({ user_email: user.email, is_public: true, show_library: true, show_stats: true, show_reviews: true, blacklisted_themes: [], age_filter: 'all' });
+      else setProfile({ user_email: user.email, is_public: true, show_library: true, show_stats: true, show_reviews: true, show_email: false, show_real_name: false, blacklisted_themes: [], age_filter: 'all' });
     } catch (e) {}
   }
 
@@ -91,6 +91,8 @@ export default function PrivacyTab({ user }) {
             { key: 'show_library', label: 'Show Library', desc: 'Show your book library on your profile' },
             { key: 'show_stats', label: 'Show Reading Stats', desc: 'Show your reading statistics' },
             { key: 'show_reviews', label: 'Show Reviews', desc: 'Show your reviews on your profile' },
+            { key: 'show_email', label: 'Show Email Publicly', desc: 'Display your email on your public profile (off by default)' },
+            { key: 'show_real_name', label: 'Show Real Name Publicly', desc: 'Display your real name on your public profile (off by default)' },
           ].map(({ key, label, desc }) => (
             <div key={key} className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
               <div>
