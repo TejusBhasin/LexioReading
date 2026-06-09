@@ -26,6 +26,7 @@ export default function SchoolAdminPage() {
   const [saving, setSaving] = useState(false);
   const [themeForm, setThemeForm] = useState({});
   const [restrictions, setRestrictions] = useState([]);
+  const [requireSetupTour, setRequireSetupTour] = useState(false);
 
   useEffect(() => { if (user?.email) load(); }, [user]);
 
@@ -41,6 +42,7 @@ export default function SchoolAdminPage() {
       setSchool(s);
       setThemeForm({ theme_primary: s.theme_primary, theme_accent: s.theme_accent, theme_secondary: s.theme_secondary });
       setRestrictions(s.restrictions || []);
+      setRequireSetupTour(s.require_setup_tour || false);
 
       const mems = await base44.entities.SchoolMember.filter({ school_id: s.id });
       setMembers(mems);
@@ -59,7 +61,7 @@ export default function SchoolAdminPage() {
   async function saveTheme() {
     if (!school) return;
     setSaving(true);
-    await base44.entities.School.update(school.id, { ...themeForm, restrictions });
+    await base44.entities.School.update(school.id, { ...themeForm, restrictions, require_setup_tour: requireSetupTour });
     setSchool(s => ({ ...s, ...themeForm, restrictions }));
     setSaving(false);
   }
@@ -261,6 +263,25 @@ export default function SchoolAdminPage() {
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Require Setup Tour */}
+          <div>
+            <h3 className="font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Setup Tour</h3>
+            <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Require setup tour for members</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Members who skipped the setup tour will be forced to complete it when they next open the app.</p>
+              </div>
+              <button
+                onClick={() => setRequireSetupTour(v => !v)}
+                className="w-11 h-6 rounded-full transition-all flex-shrink-0 relative ml-4"
+                style={{ background: requireSetupTour ? 'var(--lx-accent)' : 'var(--border-strong)' }}
+              >
+                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+                  style={{ left: requireSetupTour ? '22px' : '2px' }} />
+              </button>
             </div>
           </div>
 

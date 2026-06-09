@@ -36,7 +36,7 @@ const CONTENT_THEMES = [
   'Romance', 'Violence', 'Death/Loss', 'Addiction', 'War', 'Abuse', 'Mental illness'
 ];
 
-export default function SetupTour({ user, userProfile, onComplete }) {
+export default function SetupTour({ user, userProfile, onComplete, forceComplete = false }) {
   const [step, setStep] = useState(0);
   const [genres, setGenres] = useState([]);
   const [blacklisted, setBlacklisted] = useState([]);
@@ -50,6 +50,28 @@ export default function SetupTour({ user, userProfile, onComplete }) {
     setBlacklisted(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
   }
 
+  async function skip() {
+    setSaving(true);
+    try {
+      localStorage.setItem('lexio_terms_version', CURRENT_TERMS_VERSION);
+      const profileData = {
+        user_email: user.email,
+        tc_agreed: tcAgreed,
+        tc_agreed_date: new Date().toISOString(),
+        tc_version: CURRENT_TERMS_VERSION,
+        onboarding_complete: true,
+        onboarding_skipped: true,
+      };
+      if (userProfile?.id) {
+        await base44.entities.UserProfile.update(userProfile.id, profileData);
+      } else {
+        await base44.entities.UserProfile.create(profileData);
+      }
+      onComplete();
+    } catch (e) {}
+    setSaving(false);
+  }
+
   async function finish() {
     setSaving(true);
     try {
@@ -61,6 +83,7 @@ export default function SetupTour({ user, userProfile, onComplete }) {
         tc_version: CURRENT_TERMS_VERSION,
         blacklisted_themes: blacklisted,
         onboarding_complete: true,
+        onboarding_skipped: false,
       };
       if (userProfile?.id) {
         await base44.entities.UserProfile.update(userProfile.id, profileData);
@@ -115,6 +138,20 @@ export default function SetupTour({ user, userProfile, onComplete }) {
             <button onClick={() => setStep(1)} disabled={!tcAgreed} className="lx-btn-primary w-full justify-center">
               Get Started &rarr;
             </button>
+            {!forceComplete && (
+              <div className="mt-3">
+                <button onClick={skip} disabled={!tcAgreed || saving}
+                  className="w-full text-xs py-2 rounded transition-all"
+                  style={{ color: 'var(--text-muted)', background: 'transparent' }}>
+                  Skip for now — I'll set up later
+                </button>
+                {tcAgreed && (
+                  <p className="text-xs mt-1.5 text-center px-2" style={{ color: 'var(--text-muted)' }}>
+                    ⚠️ Skipping means less personalized recommendations and no content filtering. You can always complete it from your Profile.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 

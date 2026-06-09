@@ -37,6 +37,11 @@
       },
       "description": "Features to disable: 'vault', 'forums', 'clubs', 'chat', 'reviews', 'wrapped', 'discover'"
     },
+    "require_setup_tour": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, members who skipped the setup tour will be required to complete it."
+    },
     "member_count": {
       "type": "number",
       "default": 1

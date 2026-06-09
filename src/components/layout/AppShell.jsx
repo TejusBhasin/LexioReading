@@ -45,6 +45,7 @@ export default function AppShell({ children, user }) {
   const location = useLocation();
   const [prefs, setPrefs] = useState(null);
   const [showTour, setShowTour] = useState(false);
+  const [forceTour, setForceTour] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [otherOpen, setOtherOpen] = useState(false);
@@ -138,12 +139,18 @@ export default function AppShell({ children, user }) {
       const activeSchoolMember = schoolMemberRecs.find((m) => !m.kicked);
       if (activeSchoolMember) {
         const schools = await base44.entities.School.filter({ id: activeSchoolMember.school_id, is_active: true });
-        if (schools[0] && schools[0].theme_locked) {
+        if (schools[0]) {
           const s = schools[0];
-          document.documentElement.style.setProperty('--lx-accent', s.theme_primary || '#f5a623');
-          document.documentElement.style.setProperty('--accent-primary', s.theme_primary || '#f5a623');
-          document.documentElement.style.setProperty('--accent-secondary', s.theme_accent || '#e8854a');
-          document.documentElement.style.setProperty('--bg-secondary', s.theme_secondary || '#111111');
+          if (s.theme_locked) {
+            document.documentElement.style.setProperty('--lx-accent', s.theme_primary || '#f5a623');
+            document.documentElement.style.setProperty('--accent-primary', s.theme_primary || '#f5a623');
+            document.documentElement.style.setProperty('--accent-secondary', s.theme_accent || '#e8854a');
+            document.documentElement.style.setProperty('--bg-secondary', s.theme_secondary || '#111111');
+          }
+          // If school requires setup tour and user skipped it, force it
+          if (s.require_setup_tour && p[0]?.onboarding_skipped) {
+            setForceTour(true);
+          }
         }
       }
 
@@ -219,12 +226,12 @@ export default function AppShell({ children, user }) {
       {needsTermsAccept && !isBanned && user &&
       <TermsReAcceptModal user={user} onAccepted={handleTermsAccepted} />
       }
-      {showTour && user &&
+      {(showTour || forceTour) && user &&
       <SetupTour
         user={user}
         userProfile={userProfile}
-        onComplete={() => {setShowTour(false);loadUserProfile();}} />
-
+        forceComplete={forceTour}
+        onComplete={() => {setShowTour(false);setForceTour(false);loadUserProfile();}} />
       }
       {/* Top Nav */}
       <header className="sticky top-0 z-50 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>

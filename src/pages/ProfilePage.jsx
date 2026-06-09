@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload, Copy, Link2 } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
+import SetupTour from '@/components/onboarding/SetupTour';
 import ContactForm from '@/components/profile/ContactForm';
 import ProfileExport from '@/components/profile/ProfileExport';
 import JoinCreateSchool from '@/components/schools/JoinCreateSchool';
@@ -51,6 +52,8 @@ export default function ProfilePage() {
   const [tab, setTab] = useState('preferences');
   const [profileUsername, setProfileUsername] = useState(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+  const [userProfileData, setUserProfileData] = useState(null);
   const [prefs, setPrefs] = useState(null);
   const [library, setLibrary] = useState([]);
   const [chatSessions, setChatSessions] = useState([]);
@@ -61,7 +64,10 @@ export default function ProfilePage() {
     if (user?.email) {
       loadAll();
       base44.entities.UserProfile.filter({ user_email: user.email }).then(p => {
-        if (p[0]?.username) setProfileUsername(p[0].username);
+        if (p[0]) {
+          setProfileUsername(p[0].username || null);
+          setUserProfileData(p[0]);
+        }
       }).catch(() => {});
     }
   }, [user]);
@@ -167,6 +173,18 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col h-full">
+      {showTour && user && (
+        <SetupTour
+          user={user}
+          userProfile={userProfileData}
+          onComplete={() => {
+            setShowTour(false);
+            base44.entities.UserProfile.filter({ user_email: user.email }).then(p => {
+              if (p[0]) { setUserProfileData(p[0]); setProfileUsername(p[0].username || null); }
+            }).catch(() => {});
+          }}
+        />
+      )}
     <div className="flex-1 max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8 w-full">
 
 
@@ -329,9 +347,14 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <button onClick={savePrefs} disabled={saving} className="lx-btn-primary">
-            {saved ? <><Check size={14} /> Saved!</> : saving ? 'Saving...' : 'Save Preferences'}
-          </button>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button onClick={savePrefs} disabled={saving} className="lx-btn-primary">
+              {saved ? <><Check size={14} /> Saved!</> : saving ? 'Saving...' : 'Save Preferences'}
+            </button>
+            <button onClick={() => setShowTour(true)} className="lx-btn-ghost text-sm">
+              🗺️ Retake Setup Tour
+            </button>
+          </div>
         </div>
       )}
 
