@@ -39,7 +39,28 @@
     "create": {
       "created_by_id": "{{user.id}}"
     },
-    "read": null,
+    "read": {
+      "$or": [
+        {
+          "data.club_id": {
+            "$in": [
+              {
+                "entity": "ReadingClub",
+                "field": "id",
+                "query": {
+                  "data.member_emails": "{{user.email}}"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "update": {
       "$or": [
         {
