@@ -91,7 +91,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto h-full flex">
+    <div className="max-w-6xl mx-auto h-full flex min-h-0">
       {/* Sidebar */}
       <aside
         className="hidden md:flex flex-col w-64 flex-shrink-0 border-r"
@@ -141,7 +141,7 @@ export default function ChatPage() {
       </aside>
 
       {/* Chat Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <div className="p-4 border-b flex items-center justify-between md:hidden" style={{ borderColor: 'var(--lx-border)' }}>
           <h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>AI Book Chat</h2>
           <button onClick={newChat} className="lx-btn-primary text-xs py-1.5 px-3">

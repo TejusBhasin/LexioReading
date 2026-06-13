@@ -17,9 +17,10 @@ export default function NetflixRow({ seed, onSave, savedIds }) {
     setLoading(true);
     try {
       // Fetch similar books AND author books in parallel
+      const genre = seed.genre || 'fiction';
       const [similar, byAuthor] = await Promise.all([
-        searchBooks(`"${seed.title}" similar ${seed.genre || 'fiction'} 2020`, 6),
-        seed.author ? searchBooks(`author:"${seed.author}" 2020`, 4) : Promise.resolve([]),
+        searchBooks(`subject:${genre} books similar to "${seed.title}"`, 6),
+        seed.author ? searchBooks(`inauthor:"${seed.author}" -intitle:"${seed.title}"`, 4) : Promise.resolve([]),
       ]);
       // Deduplicate and filter out the seed itself
       const all = [...similar, ...byAuthor].filter(b =>
