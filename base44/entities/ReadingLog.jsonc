@@ -98,10 +98,102 @@
       ]
     },
     "update": {
-      "data.user_email": "{{user.email}}"
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "data.user_email": {
+            "$in": [
+              {
+                "entity": "SchoolMember",
+                "field": "data.user_email",
+                "query": {
+                  "data.school_id": {
+                    "$in": [
+                      {
+                        "entity": "School",
+                        "field": "id",
+                        "query": {
+                          "created_by_id": "{{user.id}}"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "data.user_email": {
+            "$in": [
+              {
+                "entity": "ReadingClub",
+                "field": "data.member_emails",
+                "query": {
+                  "created_by_id": "{{user.id}}",
+                  "data.club_type": "logging"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "delete": {
-      "data.user_email": "{{user.email}}"
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "data.user_email": {
+            "$in": [
+              {
+                "entity": "SchoolMember",
+                "field": "data.user_email",
+                "query": {
+                  "data.school_id": {
+                    "$in": [
+                      {
+                        "entity": "School",
+                        "field": "id",
+                        "query": {
+                          "created_by_id": "{{user.id}}"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "data.user_email": {
+            "$in": [
+              {
+                "entity": "ReadingClub",
+                "field": "data.member_emails",
+                "query": {
+                  "created_by_id": "{{user.id}}",
+                  "data.club_type": "logging"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }

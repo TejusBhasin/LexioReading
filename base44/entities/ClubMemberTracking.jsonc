@@ -97,7 +97,14 @@
                 "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "created_by_id": "{{user.id}}"
+                  "$or": [
+                    {
+                      "created_by_id": "{{user.id}}"
+                    },
+                    {
+                      "data.member_emails": "{{user.email}}"
+                    }
+                  ]
                 }
               }
             ]
@@ -112,6 +119,9 @@
     },
     "update": {
       "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
         {
           "data.club_id": {
             "$in": [

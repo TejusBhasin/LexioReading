@@ -62,7 +62,7 @@
                 "entity": "ReadingClub",
                 "field": "id",
                 "query": {
-                  "created_by_id": "{{user.id}}"
+                  "data.member_emails": "{{user.email}}"
                 }
               }
             ]
