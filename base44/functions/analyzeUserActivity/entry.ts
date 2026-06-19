@@ -10,6 +10,11 @@ Deno.serve(async (req) => {
 
     const { user_email, activity_type, content, book_title, book_author, rating } = await req.json();
 
+    // Validate that the authenticated user can only analyze their own data
+    if (user.email !== user_email) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     // Gather recent activity for AI analysis
     const [reviews, discussions, forumPosts, clubPosts, library] = await Promise.all([
       base44.entities.Review.filter({ user_email }).catch(() => []),

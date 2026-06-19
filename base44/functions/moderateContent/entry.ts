@@ -1,7 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
+    // This function is called by internal automations only.
+    // Validate via a shared secret header to prevent unauthorized access.
+    const authHeader = req.headers.get('x-automation-secret');
+    const expectedSecret = Deno.env.get('AUTOMATION_SECRET');
+    if (!expectedSecret || authHeader !== expectedSecret) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
     const { event, data } = payload;
