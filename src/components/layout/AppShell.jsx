@@ -245,46 +245,48 @@ export default function AppShell({ children, user }) {
             <span className="font-display font-bold text-lg hidden sm:block" style={{ color: 'var(--text-primary)' }}>Lexio</span>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop/Landscape Nav — 4 items + menu */}
           <nav className="hidden md:flex items-center gap-0.5">
-            {NAV_ITEMS.map(({ path, icon: NavIcon, label }) => {
+            {[
+              { path: '/', icon: LayoutDashboard, label: 'Home' },
+              { path: '/discover', icon: Compass, label: 'Discover' },
+              { path: '/chat', icon: MessageSquare, label: 'Chat' },
+            ].map(({ path, icon: NavIcon, label }) => {
               const active = location.pathname === path;
               return (
                 <Link
                   key={path}
                   to={path}
-                  className="flex items-center gap-1.5 px-2 py-1.5 rounded text-xs font-medium transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all"
                   style={{
                     color: active ? 'var(--lx-accent)' : 'var(--text-secondary)',
                     backgroundColor: active ? 'var(--bg-elevated)' : 'transparent'
                   }}>
-                  
                   <NavIcon size={14} />
-                  <span className="hidden lg:inline">{label}</span>
-                </Link>);
-
+                  <span>{label}</span>
+                </Link>
+              );
             })}
-            {/* Other dropdown */}
+            {/* All-pages menu */}
             <div className="relative">
               <button
                 onClick={() => setOtherOpen((o) => !o)}
-                className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-all"
+                className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-all"
                 style={{
-                  color: OTHER_NAV.some((n) => location.pathname === n.path) ? 'var(--lx-accent)' : 'var(--text-secondary)',
-                  backgroundColor: OTHER_NAV.some((n) => location.pathname === n.path) ? 'var(--bg-elevated)' : 'transparent'
+                  color: otherOpen || !['/','discover','/chat'].includes(location.pathname) ? 'var(--lx-accent)' : 'var(--text-secondary)',
+                  backgroundColor: otherOpen ? 'var(--bg-elevated)' : 'transparent'
                 }}>
-                
-                More <ChevronDown size={11} className={otherOpen ? 'rotate-180' : ''} style={{ transition: 'transform 0.15s' }} />
+                <Menu size={15} />
               </button>
               {otherOpen &&
-              <div className="absolute top-full right-0 mt-1 w-44 rounded-lg shadow-lg py-1 z-50"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
-                  {OTHER_NAV.map(({ path, icon: OIcon, label }) =>
-                <Link key={path} to={path}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:opacity-80"
-                style={{ color: location.pathname === path ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
-                      <OIcon size={14} /> {label}
-                    </Link>
+              <div className="absolute top-full right-0 mt-1 w-52 rounded-lg shadow-lg py-1 z-50"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+                {[...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].map(({ path, icon: OIcon, label }) =>
+                  <Link key={path} to={path}
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:opacity-80"
+                    style={{ color: location.pathname === path ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
+                    <OIcon size={14} /> {label}
+                  </Link>
                 )}
                 </div>
               }
