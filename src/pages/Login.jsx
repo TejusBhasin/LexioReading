@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
+import AppleIcon from "@/components/AppleIcon";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -34,6 +35,11 @@ export default function Login() {
     base44.auth.loginWithProvider("google", params.get("next") || "/");
   };
 
+  const handleApple = () => {
+    const params = new URLSearchParams(window.location.search);
+    base44.auth.loginWithProvider("apple", params.get("next") || "/");
+  };
+
   return (
     <AuthLayout
       icon={LogIn}
@@ -50,11 +56,20 @@ export default function Login() {
     >
       <Button
         variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
+        className="w-full h-12 text-sm font-medium mb-3"
         onClick={handleGoogle}
       >
         <GoogleIcon className="w-5 h-5 mr-2" />
         Continue with Google
+      </Button>
+
+      <Button
+        variant="outline"
+        className="w-full h-12 text-sm font-medium mb-6"
+        onClick={handleApple}
+      >
+        <AppleIcon className="w-5 h-5 mr-2" />
+        Continue with Apple
       </Button>
 
       <div className="relative mb-6">
