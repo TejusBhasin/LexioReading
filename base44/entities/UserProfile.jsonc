@@ -42,6 +42,9 @@
     "tc_agreed_date": {
       "type": "string"
     },
+    "tc_version": {
+      "type": "string"
+    },
     "age_verified": {
       "type": "boolean",
       "default": false

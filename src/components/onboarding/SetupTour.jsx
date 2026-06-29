@@ -62,8 +62,9 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
         onboarding_complete: true,
         onboarding_skipped: true,
       };
-      if (userProfile?.id) {
-        await base44.entities.UserProfile.update(userProfile.id, profileData);
+      const existing = await base44.entities.UserProfile.filter({ user_email: user.email });
+      if (existing[0]) {
+        await base44.entities.UserProfile.update(existing[0].id, profileData);
       } else {
         await base44.entities.UserProfile.create(profileData);
       }
@@ -85,8 +86,9 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
         onboarding_complete: true,
         onboarding_skipped: false,
       };
-      if (userProfile?.id) {
-        await base44.entities.UserProfile.update(userProfile.id, profileData);
+      const existing = await base44.entities.UserProfile.filter({ user_email: user.email });
+      if (existing[0]) {
+        await base44.entities.UserProfile.update(existing[0].id, profileData);
       } else {
         await base44.entities.UserProfile.create(profileData);
       }

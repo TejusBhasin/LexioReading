@@ -16,14 +16,18 @@ export default function UsernameSetupModal({ user, onComplete, onClose }) {
     setError('');
     try {
       const existing = await base44.entities.UserProfile.filter({ username: clean });
-      if (existing.length > 0) { setError('Username already taken.'); setSaving(false); return; }
+      // Allow if the only match is this user's own profile
+      const takenByOther = existing.some(p => p.user_email !== user.email);
+      if (takenByOther) { setError('Username already taken.'); setSaving(false); return; }
 
       const myProfile = await base44.entities.UserProfile.filter({ user_email: user.email });
       let profile;
       if (myProfile[0]) {
-        profile = await base44.entities.UserProfile.update(myProfile[0].id, { username: clean, tc_agreed: true, tc_agreed_date: new Date().toISOString() });
+        // If multiple profiles exist, update the one that already has a username (or the first)
+        const withUsername = myProfile.find(p => p.username) || myProfile[0];
+        profile = await base44.entities.UserProfile.update(withUsername.id, { username: clean, tc_agreed: true, tc_agreed_date: new Date().toISOString(), tc_version: 'v3-2026-06' });
       } else {
-        profile = await base44.entities.UserProfile.create({ user_email: user.email, username: clean, tc_agreed: true, tc_agreed_date: new Date().toISOString() });
+        profile = await base44.entities.UserProfile.create({ user_email: user.email, username: clean, tc_agreed: true, tc_agreed_date: new Date().toISOString(), tc_version: 'v3-2026-06' });
       }
       onComplete(profile);
     } catch (e) { setError('Something went wrong.'); }

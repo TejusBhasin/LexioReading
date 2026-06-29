@@ -148,7 +148,7 @@ export default function AppShell({ children, user }) {
             document.documentElement.style.setProperty('--bg-secondary', s.theme_secondary || '#111111');
           }
           // If school requires setup tour and user skipped it, force it
-          if (s.require_setup_tour && p[0]?.onboarding_skipped) {
+          if (s.require_setup_tour && (p.find(x => x.username) || p[0])?.onboarding_skipped) {
             setForceTour(true);
           }
         }
@@ -174,10 +174,12 @@ export default function AppShell({ children, user }) {
       }
 
       if (p[0]) {
-        setUserProfile(p[0]);
+        // If multiple profiles exist, prefer the one with a username (or oldest)
+        const profile = p.find(x => x.username) || p[0];
+        setUserProfile(profile);
         // Check if terms version needs re-acceptance (use localStorage as fast cache)
         const localVersion = localStorage.getItem('lexio_terms_version');
-        const profileVersion = p[0].tc_version;
+        const profileVersion = profile.tc_version;
         // If profile has current version, cache it locally and don't prompt
         if (profileVersion === CURRENT_TERMS_VERSION) {
           localStorage.setItem('lexio_terms_version', CURRENT_TERMS_VERSION);
@@ -187,13 +189,13 @@ export default function AppShell({ children, user }) {
         // Check blocked username patterns
         const usernameBlocked = blockedPatterns.
         filter((bp) => bp.pattern_type === 'username' && bp.is_active).
-        some((bp) => p[0].username?.toLowerCase().includes(bp.pattern.toLowerCase()));
+        some((bp) => profile.username?.toLowerCase().includes(bp.pattern.toLowerCase()));
         if (usernameBlocked) {
           setIsBanned(true);
           setBanReason('This username is not permitted on Lexio.');
           return;
         }
-        if (!p[0].onboarding_complete) setShowTour(true);
+        if (!profile.onboarding_complete) setShowTour(true);
       } else {
         setShowTour(true);
       }
