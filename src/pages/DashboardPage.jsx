@@ -6,23 +6,55 @@ import { useAuth } from '@/lib/AuthContext';
 
 import SetupTour from '@/components/onboarding/SetupTour';
 
-const QUOTES = [
-  { text: 'A reader lives a thousand lives before he dies. The man who never reads lives only one.', author: 'George R.R. Martin' },
-  { text: 'So many books, so little time.', author: 'Frank Zappa' },
-  { text: 'If you only read the books that everyone else is reading, you can only think what everyone else is thinking.', author: 'Haruki Murakami' },
-  { text: 'There is no friend as loyal as a book.', author: 'Ernest Hemingway' },
-  { text: 'Books are a uniquely portable magic.', author: 'Stephen King' },
-  { text: 'I am not afraid of storms, for I am learning how to sail my ship.', author: 'Louisa May Alcott' },
-  { text: 'Not all those who wander are lost.', author: 'J.R.R. Tolkien' },
-  { text: 'The more that you read, the more things you will know.', author: 'Dr. Seuss' },
-];
-function getDailyQuote() { return QUOTES[new Date().getDate() % QUOTES.length]; }
+const FALLBACK_QUOTE = { text: 'A reader lives a thousand lives before he dies. The man who never reads lives only one.', author: 'George R.R. Martin' };
+
+function getTodayKey() {
+  const d = new Date();
+  return `daily_quote_${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+function getCachedQuote() {
+  try {
+    const cached = localStorage.getItem(getTodayKey());
+    if (cached) return JSON.parse(cached);
+  } catch (e) {}
+  return null;
+}
+
+function setCachedQuote(quote) {
+  try { localStorage.setItem(getTodayKey(), JSON.stringify(quote)); } catch (e) {}
+}
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAuth();
   const [showTourPrompt, setShowTourPrompt] = useState(false);
   const [library, setLibrary] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dailyQuote, setDailyQuote] = useState(getCachedQuote() || FALLBACK_QUOTE);
+
+  useEffect(() => {
+    // Fetch a fresh quote from the web each day
+    const cached = getCachedQuote();
+    if (cached) { setDailyQuote(cached); return; }
+    base44.integrations.Core.InvokeLLM({
+      prompt: 'Find a famous and inspiring quote about reading, books, or literature from a real author. Use the web to find one. Return the exact quote text and the author\'s name. Pick something different from common quotes like "So many books, so little time" — find something more unique and thought-provoking.',
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          text: { type: 'string', description: 'The exact quote text' },
+          author: { type: 'string', description: 'The author\'s name' }
+        },
+        required: ['text', 'author']
+      }
+    }).then(quote => {
+      if (quote?.text && quote?.author) {
+        const q = { text: quote.text, author: quote.author };
+        setCachedQuote(q);
+        setDailyQuote(q);
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (user?.email) {
@@ -95,15 +127,13 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 pb-24 md:pb-8">
       {/* Quote of the Day */}
-      {(() => { const q = getDailyQuote(); return (
-        <div className="lx-card p-4 mb-6 flex items-start gap-3">
-          <Quote size={18} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--lx-accent)' }} />
-          <div>
-            <p className="text-sm italic mb-1" style={{ color: 'var(--text-primary)' }}>"{q.text}"</p>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>— {q.author}</p>
-          </div>
+      <div className="lx-card p-4 mb-6 flex items-start gap-3">
+        <Quote size={18} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--lx-accent)' }} />
+        <div>
+          <p className="text-sm italic mb-1" style={{ color: 'var(--text-primary)' }}>"{dailyQuote.text}"</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>— {dailyQuote.author}</p>
         </div>
-      ); })()}
+      </div>
 
       {/* Welcome */}
       {showTourPrompt && user && (
