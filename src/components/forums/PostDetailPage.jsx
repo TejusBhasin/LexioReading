@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowUp, ArrowDown, MessageCircle, Send, CornerDownRight } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown, MessageCircle, Send, CornerDownRight, Flag, Ban } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
+import ReportContentModal from '@/components/safety/ReportContentModal';
+import BlockUserModal from '@/components/safety/BlockUserModal';
 
 function VoteButtons({ item, user, onVote, size = 'normal' }) {
   const myVote = user ? (item.voted_by || []).find(v => v.startsWith(user.email + ':')) : null;
@@ -62,6 +64,8 @@ function ReplyBox({ user, postId, parentId, parentAuthorEmail, username, onDone 
 function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth = 0 }) {
   const replies = allComments.filter(c => c.parent_id === comment.id);
   const [replying, setReplying] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [showBlock, setShowBlock] = useState(false);
   return (
     <div style={{ marginLeft: depth > 0 ? `${Math.min(depth, 3) * 16}px` : '0' }}>
       <div className="py-3" style={{ borderBottom: '1px solid var(--lx-border)' }}>
@@ -78,6 +82,16 @@ function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth
               <CornerDownRight size={12} /> Reply
             </button>
           )}
+          {user && comment.author_email !== user.email && (
+            <>
+              <button onClick={() => setShowReport(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Report">
+                <Flag size={11} /> Report
+              </button>
+              <button onClick={() => setShowBlock(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Block user">
+                <Ban size={11} /> Block
+              </button>
+            </>
+          )}
         </div>
         {replying && (
           <ReplyBox user={user} postId={comment.post_id} parentId={comment.id} parentAuthorEmail={comment.author_email}
@@ -88,6 +102,23 @@ function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth
         <CommentItem key={r.id} comment={r} user={user} allComments={allComments}
           onVoteComment={onVoteComment} onReply={onReply} depth={depth + 1} />
       ))}
+      {showReport && (
+        <ReportContentModal
+          contentType="forum_comment"
+          contentId={comment.id}
+          contentSnapshot={comment.content}
+          reportedUserEmail={comment.author_email}
+          reportedUsername={comment.author_username}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+      {showBlock && (
+        <BlockUserModal
+          blockedEmail={comment.author_email}
+          blockedUsername={comment.author_username}
+          onClose={() => setShowBlock(false)}
+        />
+      )}
     </div>
   );
 }
@@ -97,6 +128,8 @@ export default function PostDetailPage({ post, user, userProfile, onBack, onVote
   const [loadingComments, setLoadingComments] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [showBlock, setShowBlock] = useState(false);
 
   useEffect(() => { loadComments(); }, [post.id]);
 
@@ -201,6 +234,16 @@ export default function PostDetailPage({ post, user, userProfile, onBack, onVote
               <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
                 <MessageCircle size={13} /> {post.comment_count || 0} comments
               </span>
+              {user && post.author_email !== user.email && (
+                <>
+                  <button onClick={() => setShowReport(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Report">
+                    <Flag size={12} /> Report
+                  </button>
+                  <button onClick={() => setShowBlock(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Block user">
+                    <Ban size={12} /> Block
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -247,6 +290,23 @@ export default function PostDetailPage({ post, user, userProfile, onBack, onVote
           </p>
         )}
       </div>
+      {showReport && (
+        <ReportContentModal
+          contentType="forum_post"
+          contentId={post.id}
+          contentSnapshot={`${post.title}\n\n${post.content}`}
+          reportedUserEmail={post.author_email}
+          reportedUsername={post.author_username}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+      {showBlock && (
+        <BlockUserModal
+          blockedEmail={post.author_email}
+          blockedUsername={post.author_username}
+          onClose={() => setShowBlock(false)}
+        />
+      )}
     </div>
   );
 }

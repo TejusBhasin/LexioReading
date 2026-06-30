@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Trash2, Send, BookOpen, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, Trash2, Send, BookOpen, MessageCircle, ChevronDown, ChevronUp, Flag, Ban } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import ReportContentModal from '@/components/safety/ReportContentModal';
+import BlockUserModal from '@/components/safety/BlockUserModal';
 
 function PostReplies({ post, user, myUsername, isAdmin }) {
   const [replies, setReplies] = useState([]);
@@ -42,28 +44,7 @@ function PostReplies({ post, user, myUsername, isAdmin }) {
   return (
     <div className="mt-3 border-t pt-3 space-y-3" style={{ borderColor: 'var(--lx-border)' }}>
       {replies.map(r => (
-        <div key={r.id} className="flex items-start gap-2">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
-            style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)', border: '1px solid var(--lx-border)' }}>
-            {(r.username || r.user_email)[0]?.toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              {r.username ? (
-                <Link to={`/u/${r.username}`} className="text-xs font-bold hover:underline" style={{ color: 'var(--text-primary)' }}>@{r.username}</Link>
-              ) : (
-                <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{r.user_email?.split('@')[0]}</span>
-              )}
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(r.created_date).toLocaleDateString()}</span>
-            </div>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{r.content}</p>
-          </div>
-          {canDeleteReply(r) && (
-            <button onClick={() => deleteReply(r)} className="p-1 flex-shrink-0 hover:opacity-70 transition-opacity" style={{ color: 'var(--text-muted)' }}>
-              <Trash2 size={11} />
-            </button>
-          )}
-        </div>
+        <ReplyItem key={r.id} r={r} user={user} canDelete={canDeleteReply(r)} onDelete={() => deleteReply(r)} />
       ))}
 
       {user && (
@@ -86,6 +67,94 @@ function PostReplies({ post, user, myUsername, isAdmin }) {
             <Send size={13} />
           </button>
         </div>
+      )}
+    </div>
+  );
+}
+
+function ClubPostReportButtons({ post }) {
+  const [showReport, setShowReport] = useState(false);
+  const [showBlock, setShowBlock] = useState(false);
+  return (
+    <>
+      <button onClick={() => setShowReport(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Report">
+        <Flag size={12} /> Report
+      </button>
+      <button onClick={() => setShowBlock(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Block">
+        <Ban size={12} /> Block
+      </button>
+      {showReport && (
+        <ReportContentModal
+          contentType="club_post"
+          contentId={post.id}
+          contentSnapshot={post.content}
+          reportedUserEmail={post.user_email}
+          reportedUsername={post.username}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+      {showBlock && (
+        <BlockUserModal
+          blockedEmail={post.user_email}
+          blockedUsername={post.username}
+          onClose={() => setShowBlock(false)}
+        />
+      )}
+    </>
+  );
+}
+
+function ReplyItem({ r, user, canDelete, onDelete }) {
+  const [showReport, setShowReport] = useState(false);
+  const [showBlock, setShowBlock] = useState(false);
+  return (
+    <div className="flex items-start gap-2">
+      <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+        style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)', border: '1px solid var(--lx-border)' }}>
+        {(r.username || r.user_email)[0]?.toUpperCase()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          {r.username ? (
+            <Link to={`/u/${r.username}`} className="text-xs font-bold hover:underline" style={{ color: 'var(--text-primary)' }}>@{r.username}</Link>
+          ) : (
+            <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{r.user_email?.split('@')[0]}</span>
+          )}
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(r.created_date).toLocaleDateString()}</span>
+          {user && r.user_email !== user.email && (
+            <>
+              <button onClick={() => setShowReport(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Report">
+                <Flag size={9} /> Report
+              </button>
+              <button onClick={() => setShowBlock(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Block">
+                <Ban size={9} /> Block
+              </button>
+            </>
+          )}
+        </div>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{r.content}</p>
+      </div>
+      {canDelete && (
+        <button onClick={onDelete} className="p-1 flex-shrink-0 hover:opacity-70 transition-opacity" style={{ color: 'var(--text-muted)' }}>
+          <Trash2 size={11} />
+        </button>
+      )}
+      {showReport && (
+        <ReportContentModal
+          contentType="club_post"
+          contentId={r.id}
+          contentSnapshot={r.content}
+          reportedUserEmail={r.user_email}
+          reportedUsername={r.username}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+      {showBlock && (
+        <BlockUserModal
+          blockedEmail={r.user_email}
+          blockedUsername={r.username}
+          onClose={() => setShowBlock(false)}
+        />
       )}
     </div>
   );
@@ -255,6 +324,9 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
                   <span>Reply</span>
                   {repliesOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                 </button>
+                {user && post.user_email !== user.email && (
+                  <ClubPostReportButtons post={post} />
+                )}
               </div>
 
               {/* Replies */}
