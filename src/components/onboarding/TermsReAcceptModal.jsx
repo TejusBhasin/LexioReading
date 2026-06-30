@@ -50,8 +50,9 @@ export default function TermsReAcceptModal({ user, onAccepted }) {
         user_agent: navigator.userAgent,
       });
       const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-      if (profiles[0]) {
-        await base44.entities.UserProfile.update(profiles[0].id, {
+      const profile = profiles.find(p => p.username) || profiles[0];
+      if (profile) {
+        await base44.entities.UserProfile.update(profile.id, {
           tc_agreed: true,
           tc_agreed_date: now,
           tc_version: CURRENT_TERMS_VERSION,

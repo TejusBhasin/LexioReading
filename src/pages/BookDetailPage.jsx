@@ -55,7 +55,7 @@ export default function BookDetailPage() {
   async function loadUserProfile() {
     try {
       const p = await base44.entities.UserProfile.filter({ user_email: user.email });
-      if (p[0]) setUserProfile(p[0]);
+      if (p[0]) setUserProfile(p.find(x => x.username) || p[0]);
     } catch (e) {}
   }
 
