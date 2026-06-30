@@ -172,7 +172,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full select-none" style={{ touchAction: 'manipulation' }}>
       {showTour && user && (
         <SetupTour
           user={user}
@@ -189,33 +189,20 @@ export default function ProfilePage() {
 
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-lg flex items-center justify-center font-display text-xl font-bold"
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center font-display text-xl font-bold flex-shrink-0"
             style={{ background: 'var(--lx-accent)', color: 'var(--bg-primary)' }}>
             {user?.full_name?.[0] || user?.email?.[0] || '?'}
           </div>
-          <div>
-            <h1 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+          <div className="min-w-0">
+            <h1 className="font-display text-xl font-bold truncate" style={{ color: 'var(--text-primary)' }}>
               {user?.full_name || 'Reader'}
             </h1>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{user?.email}</p>
+            <p className="text-sm truncate" style={{ color: 'var(--text-muted)' }}>{user?.email}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {profileUsername && (
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(`${window.location.origin}/u/${profileUsername}`);
-                setLinkCopied(true);
-                setTimeout(() => setLinkCopied(false), 2000);
-              }}
-              className="lx-btn-ghost text-sm py-1.5"
-              title="Copy your public profile link"
-            >
-              {linkCopied ? <><Check size={13} /> Copied!</> : <><Link2 size={13} /> Copy Profile Link</>}
-            </button>
-          )}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button onClick={() => logout()} className="lx-btn-ghost text-sm py-1.5">
             <LogOut size={13} /> Sign Out
           </button>
@@ -407,7 +394,35 @@ export default function ProfilePage() {
 
       {/* PRIVACY */}
       {tab === 'privacy' && (
-        <PrivacyTab user={user} />
+        <div className="space-y-6">
+          {profileUsername && (
+            <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--lx-accent)' }}>
+                  <Link2 size={18} style={{ color: 'var(--bg-primary)' }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Share Profile Link</h3>
+                  <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>Copy your public profile link to share with friends.</p>
+                  <p className="text-xs font-mono mb-3 truncate p-2 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
+                    {window.location.origin}/u/{profileUsername}
+                  </p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/u/${profileUsername}`);
+                      setLinkCopied(true);
+                      setTimeout(() => setLinkCopied(false), 2000);
+                    }}
+                    className="lx-btn-primary text-sm"
+                  >
+                    {linkCopied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Copy Profile Link</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          <PrivacyTab user={user} />
+        </div>
       )}
 
       {/* CHAT HISTORY */}
