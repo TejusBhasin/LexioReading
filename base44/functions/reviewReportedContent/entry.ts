@@ -1,5 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+const ENTITY_MAP = {
+  forum_post: 'ForumPost',
+  forum_comment: 'ForumComment',
+  review: 'Review',
+  club_post: 'ClubPost',
+  discussion: 'Discussion',
+  chat_message: 'ChatMessage',
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -8,11 +17,77 @@ Deno.serve(async (req) => {
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const { report_id, mode } = await req.json();
-    // mode: "ai" or "manual"
-    
+    // mode: "ai", "manual", or "undo"
+
     const reports = await base44.asServiceRole.entities.ReportedContent.filter({ id: report_id });
     const report = reports[0];
     if (!report) return Response.json({ error: 'Report not found' }, { status: 404 });
+
+    // ─── UNDO MODE: reverse a previously actioned report ───
+    if (mode === 'undo') {
+      if (report.status !== 'actioned') {
+        return Response.json({ error: 'Only actioned reports can be undone' }, { status: 400 });
+      }
+
+      // Reverse the safety action (warning / ban)
+      if (report.action_taken === 'warned' || report.action_taken === 'banned') {
+        const safetyRecs = await base44.asServiceRole.entities.UserSafeness.filter({ user_email: report.reported_user_email });
+        const safety = safetyRecs[0];
+        if (safety) {
+          const reasonToRemove = report.ai_reason || '';
+          const newWarningReasons = (safety.warning_reasons || []).filter(r => r !== reasonToRemove);
+          const newWarningCount = Math.max(0, (safety.warning_count || 0) - 1);
+          const updateData = {
+            warning_count: newWarningCount,
+            warning_reasons: newWarningReasons,
+          };
+          if (report.action_taken === 'banned') {
+            updateData.is_banned = false;
+            updateData.ban_reason = '';
+            updateData.ban_expires = '';
+          }
+          await base44.asServiceRole.entities.UserSafeness.update(safety.id, updateData);
+        }
+      }
+
+      // Restore the deleted content from stored original
+      const entityName = ENTITY_MAP[report.content_type];
+      if (entityName && report.original_content) {
+        try {
+          const original = JSON.parse(report.original_content);
+          delete original.id;
+          delete original.created_date;
+          delete original.updated_date;
+          delete original.created_by_id;
+          await base44.asServiceRole.entities[entityName].create(original);
+        } catch (e) {
+          // Content restore failed — continue with the undo anyway
+        }
+      }
+
+      // Mark report as undone
+      await base44.asServiceRole.entities.ReportedContent.update(report.id, {
+        status: 'dismissed',
+        ai_verdict: 'dismissed',
+        ai_reason: 'Action undone by admin ' + new Date().toISOString(),
+        action_taken: 'none',
+        reviewed_by: user.email,
+        reviewed_at: new Date().toISOString(),
+      });
+
+      // Notify the user
+      await base44.asServiceRole.entities.Notification.create({
+        user_email: report.reported_user_email,
+        type: 'general',
+        title: 'Moderation Action Reversed',
+        body: 'A moderation action against your account has been reversed by an administrator. Any removed content has been restored.',
+        is_read: false,
+      });
+
+      return Response.json({ ok: true, undone: true });
+    }
+
+    // ─── AI / MANUAL MODE (original review flow) ───
     if (report.status !== 'pending' && report.status !== 'reviewing') {
       return Response.json({ error: 'Report already actioned' }, { status: 400 });
     }
@@ -23,7 +98,6 @@ Deno.serve(async (req) => {
     let isViolation = false;
 
     if (mode === 'ai') {
-      // AI checks if this is a real violation or a fake report
       const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: `You are a content moderator for a reading app (age 13+). A user reported this content with reason: "${report.reason}".
 
@@ -50,13 +124,14 @@ Respond with valid JSON only: {"is_violation": true/false, "reason": "one senten
       aiReason = result?.reason || '';
       verdict = isViolation ? 'upheld' : 'dismissed';
     } else {
-      // Manual mode — admin manually reviews; default to upheld if admin says so
+      // Manual mode — admin manually reviews; default to upheld
       isViolation = true;
       verdict = 'upheld';
       aiReason = 'Manually reviewed by admin';
     }
 
     let actionTaken = 'none';
+    let originalContentJson = '';
 
     if (isViolation) {
       // Warning system: warn once, warn twice, ban forever on 3rd
@@ -85,7 +160,6 @@ Respond with valid JSON only: {"is_violation": true/false, "reason": "one senten
         });
         actionTaken = 'banned';
 
-        // Notify the user
         await base44.asServiceRole.entities.Notification.create({
           user_email: report.reported_user_email,
           type: 'general',
@@ -102,7 +176,6 @@ Respond with valid JSON only: {"is_violation": true/false, "reason": "one senten
         });
         actionTaken = 'warned';
 
-        // Notify the user
         await base44.asServiceRole.entities.Notification.create({
           user_email: report.reported_user_email,
           type: 'general',
@@ -112,24 +185,24 @@ Respond with valid JSON only: {"is_violation": true/false, "reason": "one senten
         });
       }
 
-      // Remove the offending content
-      const entityMap = {
-        forum_post: 'ForumPost',
-        forum_comment: 'ForumComment',
-        review: 'Review',
-        club_post: 'ClubPost',
-        discussion: 'Discussion',
-        chat_message: 'ChatMessage',
-      };
-      const entityName = entityMap[report.content_type];
+      // Store the original content before deleting, so it can be restored on undo
+      const entityName = ENTITY_MAP[report.content_type];
       if (entityName) {
+        try {
+          const items = await base44.asServiceRole.entities[entityName].filter({ id: report.content_id });
+          if (items[0]) {
+            originalContentJson = JSON.stringify(items[0]);
+          }
+        } catch (e) {
+          // Content may already be deleted
+        }
+        // Delete the offending content
         try {
           await base44.asServiceRole.entities[entityName].delete(report.content_id);
         } catch (e) {
           // Content may already be deleted
         }
       }
-      if (actionTaken === 'banned') actionTaken = 'banned';
     } else {
       actionTaken = 'none';
     }
@@ -142,13 +215,13 @@ Respond with valid JSON only: {"is_violation": true/false, "reason": "one senten
       action_taken: actionTaken,
       reviewed_by: user.email,
       reviewed_at: new Date().toISOString(),
+      original_content: originalContentJson,
     });
 
     return Response.json({
       ok: true,
       verdict,
       action_taken: actionTaken,
-      warning_count: isViolation ? undefined : undefined,
       reason: aiReason,
     });
   } catch (error) {

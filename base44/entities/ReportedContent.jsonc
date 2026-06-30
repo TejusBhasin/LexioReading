@@ -27,6 +27,10 @@
       "type": "string",
       "description": "The reported content text, saved at time of report so it exists even if deleted"
     },
+    "original_content": {
+      "type": "string",
+      "description": "JSON of the full content entity, stored before deletion so it can be restored on undo"
+    },
     "reason": {
       "type": "string",
       "description": "Reason selected by the reporter (harassment, spam, hate, explicit, other)"

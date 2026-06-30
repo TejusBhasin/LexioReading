@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flag, Bot, Check, X, Loader2, AlertTriangle, Ban, Trash2 } from 'lucide-react';
+import { Flag, Bot, Check, X, Loader2, AlertTriangle, Ban, Trash2, Undo2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const CONTENT_TYPE_LABELS = {
@@ -52,6 +52,18 @@ export default function FlaggedContentTab({ user: adminUser }) {
       });
       loadReports();
     } catch (e) {}
+    setProcessing(null);
+  }
+
+  async function undoAction(reportId) {
+    if (!confirm('Undo this action? This will reverse any warning/ban and attempt to restore the removed content.')) return;
+    setProcessing(reportId);
+    try {
+      await base44.functions.invoke('reviewReportedContent', { report_id: reportId, mode: 'undo' });
+      loadReports();
+    } catch (e) {
+      alert('Error: ' + (e.message || 'Failed to undo action'));
+    }
     setProcessing(null);
   }
 
@@ -183,6 +195,23 @@ export default function FlaggedContentTab({ user: adminUser }) {
                     className="lx-btn-ghost text-xs flex items-center gap-1.5">
                     <X size={13} /> Dismiss
                   </button>
+                </div>
+              )}
+
+              {/* Undo button for actioned reports */}
+              {r.status === 'actioned' && ['warned', 'banned', 'content_removed'].includes(r.action_taken) && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button onClick={() => undoAction(r.id)} disabled={processing === r.id}
+                    className="lx-btn-ghost text-xs flex items-center gap-1.5"
+                    style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' }}>
+                    {processing === r.id ? <Loader2 size={12} className="animate-spin" /> : <Undo2 size={13} />}
+                    Undo {r.action_taken === 'banned' ? 'Ban & Restore' : r.action_taken === 'warned' ? 'Warning & Restore' : 'Content'}
+                  </button>
+                  {!r.original_content && (
+                    <span className="text-xs flex items-center" style={{ color: 'var(--text-muted)' }}>
+                      (content snapshot unavailable — warning/ban will be reversed but content cannot be restored)
+                    </span>
+                  )}
                 </div>
               )}
             </div>
