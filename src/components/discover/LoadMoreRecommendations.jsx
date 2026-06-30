@@ -21,20 +21,26 @@ export default function LoadMoreRecommendations({ userPrefs, onSave, savedIds })
       const seeds = userPrefs?.ai_recommendation_seeds || [];
       const genres = userPrefs?.ai_favorite_genres || [];
       const themes = userPrefs?.ai_preferred_themes || [];
+      const year = 2022 + (page % 4);
 
-      // Build queries from user taste
+      // Build queries from user taste — use formats that work well with Google Books
       const queries = [];
-      seeds.forEach(s => queries.push(`"${s}" similar 2022`));
-      genres.forEach(g => queries.push(`${g} bestseller 202${2 + (page % 3)}`));
-      themes.forEach(t => queries.push(`${t} fiction novel 2022`));
+      seeds.forEach(s => queries.push(`intitle:${s}`));
+      genres.forEach(g => queries.push(`subject:${g} bestseller ${year}`));
+      themes.forEach(t => queries.push(`${t} novel ${year}`));
 
-      // Fallback queries if nothing personalized
-      if (queries.length === 0) {
-        queries.push('bestseller fiction 2023', 'mystery thriller novel 2022', 'science fiction 2023');
-      }
+      // Always include fallback queries so there's variety even with prefs
+      queries.push('bestselling fiction ' + year, 'award winning novel ' + year, 'acclaimed mystery thriller ' + year, 'popular science fiction ' + year);
 
-      const shuffled = queries.sort(() => Math.random() - 0.5).slice(0, 4);
-      const results = await Promise.all(shuffled.map(q => searchBooks(q, 8).catch(() => [])));
+      // Pick 4 random queries, ensuring at least 2 are fallbacks
+      const personal = queries.filter((_, i) => i < queries.length - 4);
+      const fallbacks = queries.slice(-4);
+      const picked = [
+        ...personal.sort(() => Math.random() - 0.5).slice(0, 2),
+        ...fallbacks.sort(() => Math.random() - 0.5).slice(0, 2),
+      ];
+
+      const results = await Promise.all(picked.map(q => searchBooks(q, 10).catch(() => [])));
       const pool = results.flat().filter(b => b.cover_image && isSafe(b) && b.published_date >= '2020');
       const unique = Object.values(Object.fromEntries(pool.map(b => [b.google_books_id || b.title, b])));
       const fresh = unique.filter(b => !savedIds?.includes(b.google_books_id));
