@@ -1,4 +1,5 @@
-import { base44 } from '@/api/base44Client';
+const GOOGLE_BOOKS_API_KEY = 'AIzaSyBGeB1gHpeknPyEYtxD3xbJRiSOxjZ9EWE';
+const BASE_URL = 'https://www.googleapis.com/books/v1';
 
 const cache = new Map();
 
@@ -6,8 +7,9 @@ export async function searchBooks(query, maxResults = 12) {
   const cacheKey = `search:${query}:${maxResults}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
-  const res = await base44.functions.invoke('googleBooks', { action: 'search', query, maxResults });
-  const books = (res.data?.items || []).map(normalizeBook).filter(Boolean);
+  const res = await fetch(`${BASE_URL}/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&key=${GOOGLE_BOOKS_API_KEY}`);
+  const data = await res.json();
+  const books = (data.items || []).map(normalizeBook).filter(Boolean);
   cache.set(cacheKey, books);
   return books;
 }
@@ -16,8 +18,9 @@ export async function getBookById(id) {
   const cacheKey = `book:${id}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
-  const res = await base44.functions.invoke('googleBooks', { action: 'get', bookId: id });
-  const book = normalizeBook(res.data?.item);
+  const res = await fetch(`${BASE_URL}/volumes/${id}?key=${GOOGLE_BOOKS_API_KEY}`);
+  const data = await res.json();
+  const book = normalizeBook(data);
   cache.set(cacheKey, book);
   return book;
 }
