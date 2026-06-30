@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { X, ArrowUp, ArrowDown, MessageCircle, Send, CornerDownRight } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, MessageCircle, Send, CornerDownRight, Flag, Ban } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
+import ReportContentModal from '@/components/safety/ReportContentModal';
+import BlockUserModal from '@/components/safety/BlockUserModal';
 
 function VoteButtons({ item, user, onVote, size = 'normal' }) {
   const myVote = user ? (item.voted_by || []).find(v => v.startsWith(user.email + ':')) : null;
@@ -27,6 +29,8 @@ function VoteButtons({ item, user, onVote, size = 'normal' }) {
 function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth = 0 }) {
   const replies = allComments.filter(c => c.parent_id === comment.id);
   const [replying, setReplying] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [showBlock, setShowBlock] = useState(false);
   return (
     <div style={{ marginLeft: depth > 0 ? `${Math.min(depth, 3) * 20}px` : '0' }}>
       <div className="py-3" style={{ borderBottom: depth === 0 ? '1px solid var(--lx-border)' : 'none' }}>
@@ -43,7 +47,34 @@ function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth
               <CornerDownRight size={12} /> Reply
             </button>
           )}
+          {user && comment.author_email !== user.email && (
+            <>
+              <button onClick={() => setShowReport(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }}>
+                <Flag size={10} /> Report
+              </button>
+              <button onClick={() => setShowBlock(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }}>
+                <Ban size={10} /> Block
+              </button>
+            </>
+          )}
         </div>
+        {showReport && (
+          <ReportContentModal
+            contentType="forum_comment"
+            contentId={comment.id}
+            contentSnapshot={comment.content}
+            reportedUserEmail={comment.author_email}
+            reportedUsername={comment.author_username}
+            onClose={() => setShowReport(false)}
+          />
+        )}
+        {showBlock && (
+          <BlockUserModal
+            blockedEmail={comment.author_email}
+            blockedUsername={comment.author_username}
+            onClose={() => setShowBlock(false)}
+          />
+        )}
         {replying && (
           <ReplyBox user={user} postId={comment.post_id} parentId={comment.id}
             onDone={() => { setReplying(false); onReply(); }} />
@@ -87,6 +118,8 @@ export default function PostDetailModal({ post, user, userProfile, onClose, onVo
   const [loadingComments, setLoadingComments] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
+  const [showPostReport, setShowPostReport] = useState(false);
+  const [showPostBlock, setShowPostBlock] = useState(false);
 
   useEffect(() => { loadComments(); }, [post.id]);
 
@@ -170,6 +203,16 @@ export default function PostDetailModal({ post, user, userProfile, onClose, onVo
             <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
               <MessageCircle size={13} /> {post.comment_count || 0} comments
             </span>
+            {user && post.author_email !== user.email && (
+              <>
+                <button onClick={() => setShowPostReport(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }}>
+                  <Flag size={11} /> Report
+                </button>
+                <button onClick={() => setShowPostBlock(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }}>
+                  <Ban size={11} /> Block
+                </button>
+              </>
+            )}
           </div>
 
           {/* Comments */}
@@ -204,6 +247,23 @@ export default function PostDetailModal({ post, user, userProfile, onClose, onVo
           </div>
         )}
       </div>
+      {showPostReport && (
+        <ReportContentModal
+          contentType="forum_post"
+          contentId={post.id}
+          contentSnapshot={`${post.title}\n\n${post.content}`}
+          reportedUserEmail={post.author_email}
+          reportedUsername={post.author_username}
+          onClose={() => setShowPostReport(false)}
+        />
+      )}
+      {showPostBlock && (
+        <BlockUserModal
+          blockedEmail={post.author_email}
+          blockedUsername={post.author_username}
+          onClose={() => setShowPostBlock(false)}
+        />
+      )}
     </div>
   );
 }

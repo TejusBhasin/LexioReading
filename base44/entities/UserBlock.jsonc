@@ -1,0 +1,45 @@
+{
+  "name": "UserBlock",
+  "type": "object",
+  "properties": {
+    "blocker_email": {
+      "type": "string"
+    },
+    "blocked_email": {
+      "type": "string"
+    },
+    "blocked_username": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "blocker_email",
+    "blocked_email"
+  ],
+  "rls": {
+    "create": {
+      "data.blocker_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.blocker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "data.blocker_email": "{{user.email}}"
+    },
+    "delete": {
+      "data.blocker_email": "{{user.email}}"
+    }
+  }
+}

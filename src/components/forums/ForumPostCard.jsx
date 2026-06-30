@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUp, ArrowDown, MessageCircle, Image } from 'lucide-react';
+import { ArrowUp, ArrowDown, MessageCircle, Image, Flag, Ban } from 'lucide-react';
+import ReportContentModal from '@/components/safety/ReportContentModal';
+import BlockUserModal from '@/components/safety/BlockUserModal';
 
 export default function ForumPostCard({ post, user, onVote, onClick }) {
+  const [showReport, setShowReport] = useState(false);
+  const [showBlock, setShowBlock] = useState(false);
   const myVote = user ? (post.voted_by || []).find(v => v.startsWith(user.email + ':')) : null;
   const voted = myVote ? myVote.split(':')[1] : null;
   const score = (post.upvotes || 0) - (post.downvotes || 0);
@@ -61,6 +65,16 @@ export default function ForumPostCard({ post, user, onVote, onClick }) {
             <span className="flex items-center gap-1">
               <MessageCircle size={13} /> {post.comment_count || 0} comments
             </span>
+            {user && post.author_email !== user.email && (
+              <>
+                <button onClick={e => { e.stopPropagation(); setShowReport(true); }} className="flex items-center gap-0.5 hover:opacity-80" title="Report">
+                  <Flag size={11} /> Report
+                </button>
+                <button onClick={e => { e.stopPropagation(); setShowBlock(true); }} className="flex items-center gap-0.5 hover:opacity-80" title="Block user">
+                  <Ban size={11} /> Block
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -71,6 +85,23 @@ export default function ForumPostCard({ post, user, onVote, onClick }) {
           </div>
         )}
       </div>
+      {showReport && (
+        <ReportContentModal
+          contentType="forum_post"
+          contentId={post.id}
+          contentSnapshot={`${post.title}\n\n${post.content}`}
+          reportedUserEmail={post.author_email}
+          reportedUsername={post.author_username}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+      {showBlock && (
+        <BlockUserModal
+          blockedEmail={post.author_email}
+          blockedUsername={post.author_username}
+          onClose={() => setShowBlock(false)}
+        />
+      )}
     </div>
   );
 }

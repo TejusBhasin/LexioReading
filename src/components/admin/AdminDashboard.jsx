@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Megaphone, Ban, Search, Plus, Trash2, Check, X, AlertTriangle, Mail } from 'lucide-react';
+import { Shield, Megaphone, Ban, Search, Plus, Trash2, Check, X, AlertTriangle, Mail, Flag } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import FlaggedContentTab from '@/components/admin/FlaggedContentTab';
 
 const ADMIN_TABS = [
+  { id: 'flagged', label: '🚩 Flagged Content' },
   { id: 'safety', label: '🛡️ User Safety' },
   { id: 'broadcasts', label: '📢 Broadcasts' },
   { id: 'notify', label: '📨 Direct Notify' },
@@ -481,7 +483,7 @@ function ContactRequestsTab() {
 
 // ─── Main AdminDashboard ───────────────────────────────────────────────────────
 export default function AdminDashboard({ user }) {
-  const [tab, setTab] = useState('safety');
+  const [tab, setTab] = useState('flagged');
 
   return (
     <div className="space-y-5">
@@ -500,6 +502,7 @@ export default function AdminDashboard({ user }) {
         ))}
       </div>
 
+      {tab === 'flagged' && <FlaggedContentTab user={user} />}
       {tab === 'safety' && <SafetyTab />}
       {tab === 'broadcasts' && <BroadcastsTab adminEmail={user?.email} />}
       {tab === 'notify' && <DirectNotifyTab />}

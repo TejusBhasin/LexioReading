@@ -553,7 +553,7 @@ Return a JSON object with a "books" array, each item having "title" and "author"
         </div>
         {reviews.length > 0 ? (
           <div className="space-y-3">
-            {reviews.map(r => <ReviewCard key={r.id} review={r} />)}
+            {reviews.map(r => <ReviewCard key={r.id} review={r} user={user} />)}
           </div>
         ) : (
           <div className="lx-card p-6 text-center">

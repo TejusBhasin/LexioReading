@@ -1,0 +1,112 @@
+{
+  "name": "ReportedContent",
+  "type": "object",
+  "properties": {
+    "reporter_email": {
+      "type": "string"
+    },
+    "reported_user_email": {
+      "type": "string"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "forum_post",
+        "forum_comment",
+        "review",
+        "club_post",
+        "discussion",
+        "chat_message",
+        "other"
+      ]
+    },
+    "content_id": {
+      "type": "string"
+    },
+    "content_snapshot": {
+      "type": "string",
+      "description": "The reported content text, saved at time of report so it exists even if deleted"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason selected by the reporter (harassment, spam, hate, explicit, other)"
+    },
+    "details": {
+      "type": "string",
+      "description": "Optional free-text explanation from the reporter"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "reviewing",
+        "actioned",
+        "dismissed"
+      ],
+      "default": "pending"
+    },
+    "ai_verdict": {
+      "type": "string",
+      "enum": [
+        "upheld",
+        "dismissed",
+        ""
+      ],
+      "default": ""
+    },
+    "ai_reason": {
+      "type": "string"
+    },
+    "action_taken": {
+      "type": "string",
+      "enum": [
+        "none",
+        "warned",
+        "banned",
+        "content_removed",
+        ""
+      ],
+      "default": ""
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "reporter_email",
+    "reported_user_email",
+    "content_type",
+    "content_id",
+    "reason"
+  ],
+  "rls": {
+    "create": {
+      "data.reporter_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.reporter_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

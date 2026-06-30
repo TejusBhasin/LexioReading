@@ -39,6 +39,21 @@
     "ban_reason": {
       "type": "string"
     },
+    "warning_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of upheld content violations. 1 = first warning, 2 = second warning, 3 = permanent ban."
+    },
+    "warning_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of reasons for each warning"
+    },
+    "last_warning_date": {
+      "type": "string"
+    },
     "notes": {
       "type": "string"
     }

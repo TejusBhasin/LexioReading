@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, AlertTriangle, Eye } from 'lucide-react';
+import { Star, AlertTriangle, Eye, Flag, Ban } from 'lucide-react';
+import ReportContentModal from '@/components/safety/ReportContentModal';
+import BlockUserModal from '@/components/safety/BlockUserModal';
 
-export default function ReviewCard({ review }) {
+export default function ReviewCard({ review, user }) {
   const [spoilerRevealed, setSpoilerRevealed] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [showBlock, setShowBlock] = useState(false);
   const displayName = review.username || review.user_email?.split('@')[0];
 
   return (
@@ -60,9 +64,38 @@ export default function ReviewCard({ review }) {
         </div>
       )}
 
-      <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-        {new Date(review.created_date).toLocaleDateString()}
-      </p>
+      <div className="flex items-center justify-between mt-2">
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          {new Date(review.created_date).toLocaleDateString()}
+        </p>
+        {user && review.user_email !== user.email && (
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowReport(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Report">
+              <Flag size={10} /> Report
+            </button>
+            <button onClick={() => setShowBlock(true)} className="flex items-center gap-0.5 text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }} title="Block user">
+              <Ban size={10} /> Block
+            </button>
+          </div>
+        )}
+      </div>
+      {showReport && (
+        <ReportContentModal
+          contentType="review"
+          contentId={review.id}
+          contentSnapshot={review.content}
+          reportedUserEmail={review.user_email}
+          reportedUsername={review.username}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+      {showBlock && (
+        <BlockUserModal
+          blockedEmail={review.user_email}
+          blockedUsername={review.username}
+          onClose={() => setShowBlock(false)}
+        />
+      )}
     </div>
   );
 }

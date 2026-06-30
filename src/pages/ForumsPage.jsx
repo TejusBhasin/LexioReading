@@ -27,15 +27,26 @@ export default function ForumsPage() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [popularTags, setPopularTags] = useState([]);
+  const [blockedEmails, setBlockedEmails] = useState([]);
 
   useEffect(() => {
     loadPosts();
-    if (user?.email) loadUserProfile();
+    if (user?.email) {
+      loadUserProfile();
+      loadBlockedUsers();
+    }
   }, [user]);
 
   async function loadUserProfile() {
     const p = await base44.entities.UserProfile.filter({ user_email: user.email });
     if (p[0]) setUserProfile(p[0]);
+  }
+
+  async function loadBlockedUsers() {
+    try {
+      const blocks = await base44.entities.UserBlock.filter({ blocker_email: user.email });
+      setBlockedEmails(blocks.map(b => b.blocked_email));
+    } catch (e) {}
   }
 
   async function loadPosts() {
@@ -82,6 +93,9 @@ export default function ForumsPage() {
 
   function getSortedFiltered() {
     let result = posts;
+
+    // Hide blocked users' content
+    if (blockedEmails.length > 0) result = result.filter(p => !blockedEmails.includes(p.author_email));
 
     // Tag filter
     if (activeTag) result = result.filter(p => (p.tags || []).includes(activeTag));

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Search, Sparkles, BookOpen, TrendingUp, Trash2 } from 'lucide-react';
+import { Star, Search, Sparkles, BookOpen, TrendingUp, Trash2, Flag, Ban } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
+import ReportContentModal from '@/components/safety/ReportContentModal';
+import BlockUserModal from '@/components/safety/BlockUserModal';
 
 export default function ReviewsPage() {
   const { user } = useAuth();
@@ -11,10 +13,19 @@ export default function ReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('recent');
+  const [blockedEmails, setBlockedEmails] = useState([]);
 
   useEffect(() => {
     loadReviews();
+    if (user?.email) loadBlockedUsers();
   }, [user]);
+
+  async function loadBlockedUsers() {
+    try {
+      const blocks = await base44.entities.UserBlock.filter({ blocker_email: user.email });
+      setBlockedEmails(blocks.map(b => b.blocked_email));
+    } catch (e) {}
+  }
 
   async function loadReviews() {
     setLoading(true);
@@ -28,11 +39,13 @@ export default function ReviewsPage() {
     setLoading(false);
   }
 
-  const filtered = reviews.filter(r =>
-    r.book_title?.toLowerCase().includes(search.toLowerCase()) ||
-    r.username?.toLowerCase().includes(search.toLowerCase()) ||
-    r.content?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = reviews
+    .filter(r => !blockedEmails.includes(r.user_email))
+    .filter(r =>
+      r.book_title?.toLowerCase().includes(search.toLowerCase()) ||
+      r.username?.toLowerCase().includes(search.toLowerCase()) ||
+      r.content?.toLowerCase().includes(search.toLowerCase())
+    );
 
   const topRated = [...filtered].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 20);
   const recent = filtered.slice(0, 30);
@@ -105,7 +118,7 @@ export default function ReviewsPage() {
       ) : displayed.length > 0 ? (
         <div className="space-y-4">
           {displayed.map(review => (
-            <ReviewItem key={review.id} review={review} isOwner={review.user_email === user?.email} onDelete={(id) => {
+            <ReviewItem key={review.id} review={review} user={user} isOwner={review.user_email === user?.email} onDelete={(id) => {
               setReviews(prev => prev.filter(r => r.id !== id));
               setMyReviews(prev => prev.filter(r => r.id !== id));
             }} />
@@ -128,8 +141,10 @@ export default function ReviewsPage() {
   );
 }
 
-function ReviewItem({ review, isOwner, onDelete }) {
+function ReviewItem({ review, user, isOwner, onDelete }) {
   const stars = Math.round(review.rating || 0);
+  const [showReport, setShowReport] = useState(false);
+  const [showBlock, setShowBlock] = useState(false);
   async function handleDelete() {
     if (!confirm('Delete this review?')) return;
     await base44.entities.Review.delete(review.id);
@@ -137,11 +152,23 @@ function ReviewItem({ review, isOwner, onDelete }) {
   }
   return (
     <div className="lx-card p-5 relative">
-      {isOwner && (
-        <button onClick={handleDelete} className="absolute top-3 right-3 p-1 rounded hover:opacity-70 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Delete review">
-          <Trash2 size={13} />
-        </button>
-      )}
+      <div className="absolute top-3 right-3 flex items-center gap-2">
+        {user && !isOwner && (
+          <>
+            <button onClick={() => setShowReport(true)} className="p-1 rounded hover:opacity-70 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Report">
+              <Flag size={13} />
+            </button>
+            <button onClick={() => setShowBlock(true)} className="p-1 rounded hover:opacity-70 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Block user">
+              <Ban size={13} />
+            </button>
+          </>
+        )}
+        {isOwner && (
+          <button onClick={handleDelete} className="p-1 rounded hover:opacity-70 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Delete review">
+            <Trash2 size={13} />
+          </button>
+        )}
+      </div>
       <div className="flex items-start gap-4">
         {/* Book cover or icon */}
         <div className="flex-shrink-0">
@@ -194,6 +221,23 @@ function ReviewItem({ review, isOwner, onDelete }) {
           )}
         </div>
       </div>
+      {showReport && (
+        <ReportContentModal
+          contentType="review"
+          contentId={review.id}
+          contentSnapshot={review.content}
+          reportedUserEmail={review.user_email}
+          reportedUsername={review.username}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+      {showBlock && (
+        <BlockUserModal
+          blockedEmail={review.user_email}
+          blockedUsername={review.username}
+          onClose={() => setShowBlock(false)}
+        />
+      )}
     </div>
   );
 }
