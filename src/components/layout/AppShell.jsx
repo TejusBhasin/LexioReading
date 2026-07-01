@@ -9,6 +9,8 @@ import { applyTheme } from '@/lib/theme';
 import SetupTour from '@/components/onboarding/SetupTour.jsx';
 import TermsReAcceptModal, { CURRENT_TERMS_VERSION } from '@/components/onboarding/TermsReAcceptModal.jsx';
 import BanScreen from '@/components/safety/BanScreen.jsx';
+import AppLockScreen from '@/components/safety/AppLockScreen.jsx';
+import LibrarianChat from '@/components/librarian/LibrarianChat.jsx';
 
 const NAV_ITEMS = [
 { path: '/', icon: LayoutDashboard, label: 'Home' },
@@ -53,6 +55,9 @@ export default function AppShell({ children, user }) {
   const [isBanned, setIsBanned] = useState(false);
   const [banReason, setBanReason] = useState('');
   const [needsTermsAccept, setNeedsTermsAccept] = useState(false);
+  const [appLocked, setAppLocked] = useState(false);
+  const [librarianMode, setLibrarianMode] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const menuRef = useRef(null);
 
   // Pull-to-refresh state
@@ -200,11 +205,46 @@ export default function AppShell({ children, user }) {
         setShowTour(true);
       }
     } catch (e) {}
+    setProfileLoaded(true);
   }
 
   function handleTermsAccepted() {
     setNeedsTermsAccept(false);
   }
+
+  // App Lock + Librarian Mode — initial check after profile loads
+  useEffect(() => {
+    if (profileLoaded && userProfile?.app_lock_enabled && userProfile?.app_lock_pin) {
+      setAppLocked(true);
+    }
+    const lm = localStorage.getItem('lexio_librarian_mode') === 'true';
+    setLibrarianMode(lm);
+  }, [profileLoaded, userProfile]);
+
+  // App Lock — re-lock when app returns to foreground (iOS resume)
+  useEffect(() => {
+    async function checkAppLock() {
+      if (!user?.email || librarianMode) return;
+      try {
+        const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        if (profiles[0]?.app_lock_enabled && profiles[0]?.app_lock_pin) {
+          setAppLocked(true);
+        }
+      } catch (e) {}
+    }
+    function handleVisibility() {
+      if (document.visibilityState === 'visible') checkAppLock();
+    }
+    function handlePageShow(e) {
+      if (e.persisted) checkAppLock();
+    }
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pageshow', handlePageShow);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, [user, librarianMode]);
 
   // Prevent spacebar from scrolling anywhere outside inputs
   useEffect(() => {
@@ -221,6 +261,25 @@ export default function AppShell({ children, user }) {
       document.removeEventListener('keydown', prevent, { capture: true });
     };
   }, []);
+
+  // App Lock — full screen, takes priority over everything
+  if (appLocked && userProfile?.app_lock_pin) {
+    return <AppLockScreen pin={userProfile.app_lock_pin} onUnlock={() => setAppLocked(false)} />;
+  }
+
+  // Librarian Mode — kiosk chat, no personal data shown
+  if (librarianMode && userProfile?.librarian_pin) {
+    return <LibrarianChat pin={userProfile.librarian_pin} onExit={() => setLibrarianMode(false)} />;
+  }
+
+  // Brief loading while profile loads (prevents flash before app lock kicks in)
+  if (user && !profileLoaded) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--lx-accent)', borderTopColor: 'transparent' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-hidden lx-bg flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh' }}>

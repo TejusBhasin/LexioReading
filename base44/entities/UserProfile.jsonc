@@ -71,6 +71,19 @@
     "onboarding_skipped": {
       "type": "boolean",
       "default": false
+    },
+    "librarian_pin": {
+      "type": "string",
+      "description": "PIN required to exit Librarian Mode kiosk"
+    },
+    "app_lock_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the app lock screen is enabled"
+    },
+    "app_lock_pin": {
+      "type": "string",
+      "description": "PIN required to unlock the app"
     }
   },
   "required": [

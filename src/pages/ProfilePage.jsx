@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload, Copy, Link2 } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload, Copy, Link2, Library, Lock } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import SetupTour from '@/components/onboarding/SetupTour';
 import ContactForm from '@/components/profile/ContactForm';
@@ -8,6 +8,8 @@ import ProfileExport from '@/components/profile/ProfileExport';
 import JoinCreateSchool from '@/components/schools/JoinCreateSchool';
 import PrivacyTab from '@/components/profile/PrivacyTab';
 import DeleteAccountSection from '@/components/profile/DeleteAccountSection';
+import LibrarianSettings from '@/components/profile/LibrarianSettings';
+import AppLockSettings from '@/components/profile/AppLockSettings';
 
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -22,6 +24,8 @@ const TABS = [
   { id: 'data', label: 'Import & Export', icon: Upload },
   { id: 'export', label: 'Export Card', icon: Download },
   { id: 'school', label: 'School', icon: GraduationCap },
+  { id: 'librarian', label: 'Librarian', icon: Library },
+  { id: 'security', label: 'Security', icon: Lock },
   { id: 'admin', label: 'Admin', icon: Shield },
 ];
 
@@ -71,6 +75,16 @@ export default function ProfilePage() {
       }).catch(() => {});
     }
   }, [user]);
+
+  function reloadProfile() {
+    if (!user?.email) return;
+    base44.entities.UserProfile.filter({ user_email: user.email }).then(p => {
+      if (p[0]) {
+        setProfileUsername(p[0].username || null);
+        setUserProfileData(p[0]);
+      }
+    }).catch(() => {});
+  }
 
   async function loadAll() {
     try {
@@ -625,6 +639,16 @@ export default function ProfilePage() {
             {saved ? <><Check size={14} /> Saved!</> : saving ? 'Saving...' : 'Save Theme'}
           </button>
         </div>
+      )}
+
+      {/* Librarian Mode */}
+      {tab === 'librarian' && user && (
+        <LibrarianSettings user={user} userProfile={userProfileData} onUpdate={reloadProfile} />
+      )}
+
+      {/* Security / App Lock */}
+      {tab === 'security' && user && (
+        <AppLockSettings user={user} userProfile={userProfileData} onUpdate={reloadProfile} />
       )}
 
       {/* Delete Account */}
