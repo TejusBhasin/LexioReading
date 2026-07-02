@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ChevronDown, Send, Check, BookOpen, Shield, ArrowLeft } from 'lucide-react';
+import { Mail, ChevronDown, Send, Check, Shield } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const FAQS = [
