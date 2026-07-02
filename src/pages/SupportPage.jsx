@@ -63,7 +63,7 @@ export default function SupportPage() {
 
 
 
-
+          
           
           <span className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
             Lexio Support
