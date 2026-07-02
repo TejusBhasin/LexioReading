@@ -1,9 +1,19 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 export default function TermsPrivacyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Auto-scroll to the relevant section based on the URL path
+  React.useEffect(() => {
+    if (location.pathname === '/privacy') {
+      const el = document.getElementById('privacy-policy');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [location.pathname]);
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 pb-24 md:pb-8">
       <Link to="/profile" className="lx-btn-ghost text-sm mb-8 py-1.5 px-3 flex items-center gap-1 w-fit">
@@ -12,7 +22,7 @@ export default function TermsPrivacyPage() {
 
       <div className="space-y-12">
         {/* Terms and Conditions */}
-        <section>
+        <section id="terms-of-service">
           <h1 className="font-display text-3xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
             Terms and Conditions
           </h1>
@@ -116,7 +126,7 @@ export default function TermsPrivacyPage() {
         </section>
 
         {/* Privacy Policy */}
-        <section>
+        <section id="privacy-policy">
           <h1 className="font-display text-3xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
             Privacy Policy
           </h1>
