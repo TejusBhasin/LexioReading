@@ -59,11 +59,11 @@ export default function SupportPage() {
       <div className="max-w-3xl mx-auto px-4 py-8 pb-24 md:pb-12">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <img
-            src="https://media.base44.com/images/public/user_6a12376d0f4ca5762da03b88/1678f5c8f_Lexio.png"
-            alt="Lexio"
-            className="h-7 w-auto hidden"
-            style={{ filter: 'brightness(0) invert(1)' }} />
+          
+
+
+
+
           
           <span className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
             Lexio Support
