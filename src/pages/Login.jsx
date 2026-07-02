@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,23 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+
+  // Detect OAuth error redirect back (e.g. ?error=... or ?auth_error=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get("error") || params.get("auth_error");
+    if (oauthError) {
+      const provider = params.get("provider") || "social";
+      setError(`${provider === "apple" ? "Apple" : provider === "google" ? "Google" : "Social"} sign-in failed: ${oauthError}. Please try again or use email/password.`);
+      // Clean the URL
+      params.delete("error");
+      params.delete("auth_error");
+      params.delete("provider");
+      const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,13 +48,29 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    const params = new URLSearchParams(window.location.search);
-    base44.auth.loginWithProvider("google", params.get("next") || "/");
+    setOauthLoading("google");
+    setError("");
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const nextUrl = params.get("next") || "/";
+      base44.auth.loginWithProvider("google", window.location.origin + nextUrl);
+    } catch (err) {
+      setError("Google sign-in failed to start. Please try again.");
+      setOauthLoading(false);
+    }
   };
 
   const handleApple = () => {
-    const params = new URLSearchParams(window.location.search);
-    base44.auth.loginWithProvider("apple", params.get("next") || "/");
+    setOauthLoading("apple");
+    setError("");
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const nextUrl = params.get("next") || "/";
+      base44.auth.loginWithProvider("apple", window.location.origin + nextUrl);
+    } catch (err) {
+      setError("Apple sign-in failed to start. Please try again or use email/password.");
+      setOauthLoading(false);
+    }
   };
 
   return (
@@ -58,8 +91,13 @@ export default function Login() {
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-3"
         onClick={handleGoogle}
+        disabled={!!oauthLoading}
       >
-        <GoogleIcon className="w-5 h-5 mr-2" />
+        {oauthLoading === "google" ? (
+          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+        ) : (
+          <GoogleIcon className="w-5 h-5 mr-2" />
+        )}
         Continue with Google
       </Button>
 
@@ -67,8 +105,13 @@ export default function Login() {
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"
         onClick={handleApple}
+        disabled={!!oauthLoading}
       >
-        <AppleIcon className="w-5 h-5 mr-2" />
+        {oauthLoading === "apple" ? (
+          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+        ) : (
+          <AppleIcon className="w-5 h-5 mr-2" />
+        )}
         Continue with Apple
       </Button>
 
@@ -126,7 +169,7 @@ export default function Login() {
             />
           </div>
         </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !!oauthLoading}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
