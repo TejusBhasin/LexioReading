@@ -84,15 +84,15 @@ export default function SocialAuthButtons({ redirectTo = "/" }) {
       <Button
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"
-        onClick={() => handleProvider("facebook")}
+        onClick={() => handleProvider("microsoft")}
         disabled={!!oauthLoading}
       >
-        {oauthLoading === "facebook" ? (
+        {oauthLoading === "microsoft" ? (
           <Loader2 className="w-5 h-5 mr-2 animate-spin" />
         ) : (
-          <FacebookIcon className="w-5 h-5 mr-2" />
+          <MicrosoftIcon className="w-5 h-5 mr-2" />
         )}
-        Continue with Facebook
+        Continue with Microsoft
       </Button>
 
       {error && (
