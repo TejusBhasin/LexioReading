@@ -24,6 +24,7 @@ import ReadingLogPage from '@/pages/ReadingLogPage';
 import VaultPage from '@/pages/VaultPage';
 import WrappedPage from '@/pages/WrappedPage';
 import TermsPrivacyPage from '@/pages/TermsPrivacyPage';
+import SupportPage from '@/pages/SupportPage';
 import UserPublicProfilePage from '@/pages/UserPublicProfilePage';
 import EasterEggPage from '@/pages/EasterEggPage';
 import ForumsPage from '@/pages/ForumsPage';
@@ -85,6 +86,7 @@ const AuthenticatedApp = () => {
           <Route path="/terms-privacy" element={<TermsPrivacyPage />} />
           <Route path="/terms" element={<TermsPrivacyPage />} />
           <Route path="/privacy" element={<TermsPrivacyPage />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/u/:username" element={<UserPublicProfilePage />} />
           <Route path="/forums" element={<ForumsPage />} />
           <Route path="/clubs" element={<ClubsPage />} />
