@@ -162,5 +162,9 @@
 }
 .lx-btn-ghost:hover { border-color: var(--lx-accent); color: var(--text-primary); }
 
+/* Safe-area-aware bottom padding for content above fixed mobile nav */
+.safe-bottom { padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 768px) { .safe-bottom { padding-bottom: 0; } }
+
 /* Page enter animation */
 .page-enter { animation: fadeIn 0.25s ease-out; }

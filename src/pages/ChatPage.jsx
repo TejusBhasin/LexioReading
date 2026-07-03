@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, MessageSquare, Sparkles, Trash2 } from 'lucide-react';
+import { Plus, Sparkles, Menu, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ChatInterface from '@/components/chat/ChatInterface';
+import ChatSessionList from '@/components/chat/ChatSessionList';
 function uuidv4() {
   return 'chat-' + Math.random().toString(36).slice(2) + '-' + Date.now();
 }
@@ -13,6 +14,7 @@ export default function ChatPage() {
   const [sessions, setSessions] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showSessions, setShowSessions] = useState(false);
 
   useEffect(() => {
     if (user?.email) {
@@ -97,53 +99,25 @@ export default function ChatPage() {
         className="hidden md:flex flex-col w-64 flex-shrink-0 border-r"
         style={{ borderColor: 'var(--lx-border)', background: 'var(--bg-secondary)' }}
       >
-        <div className="p-4 border-b" style={{ borderColor: 'var(--lx-border)' }}>
-          <button onClick={newChat} className="lx-btn-primary w-full justify-center text-sm">
-            <Plus size={14} /> New Chat
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {sessions.length === 0 && !loading && (
-            <p className="p-4 text-sm text-center" style={{ color: 'var(--text-muted)' }}>No chats yet</p>
-          )}
-          {sessions.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setActiveSession(s.id)}
-              className="group w-full text-left px-4 py-3 border-b transition-all"
-              style={{
-                borderColor: 'var(--lx-border)',
-                background: activeSession === s.id ? 'var(--bg-elevated)' : 'transparent',
-                borderLeft: activeSession === s.id ? `2px solid var(--lx-accent)` : '2px solid transparent',
-              }}
-            >
-              <div className="flex items-center gap-2 pr-1">
-                <MessageSquare size={13} style={{ color: 'var(--text-muted)' }} className="flex-shrink-0" />
-                <span className="text-sm font-medium truncate flex-1" style={{ color: 'var(--text-primary)' }}>
-                  {s.title || 'Chat'}
-                </span>
-                <button
-                  onClick={(e) => deleteSession(s.id, e)}
-                  className="flex-shrink-0 p-1 rounded transition-opacity opacity-40 hover:opacity-100"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-              {s.lastMessage && (
-                <p className="text-xs mt-0.5 truncate pl-5" style={{ color: 'var(--text-muted)' }}>
-                  {s.lastMessage.slice(0, 50)}
-                </p>
-              )}
-            </button>
-          ))}
-        </div>
+        <ChatSessionList
+          sessions={sessions}
+          activeSession={activeSession}
+          onSelect={setActiveSession}
+          onDelete={deleteSession}
+          onNew={newChat}
+          loading={loading}
+        />
       </aside>
 
       {/* Chat Main */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <div className="p-4 border-b flex items-center justify-between md:hidden" style={{ borderColor: 'var(--lx-border)' }}>
-          <h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>AI Book Chat</h2>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowSessions(true)} className="flex items-center justify-center rounded" style={{ color: 'var(--text-secondary)', minWidth: 36, minHeight: 36 }}>
+              <Menu size={20} />
+            </button>
+            <h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>AI Book Chat</h2>
+          </div>
           <button onClick={newChat} className="lx-btn-primary text-xs py-1.5 px-3">
             <Plus size={13} /> New
           </button>
@@ -175,6 +149,32 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+
+      {/* Mobile Sessions Drawer */}
+      {showSessions && (
+        <div className="md:hidden fixed inset-0 z-50 flex" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowSessions(false)}>
+          <div
+            className="w-72 max-w-[80vw] h-full flex flex-col border-r"
+            style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingTop: 'env(safe-area-inset-top, 0px)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--lx-border)' }}>
+              <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Your Chats</span>
+              <button onClick={() => setShowSessions(false)} style={{ color: 'var(--text-muted)' }}>
+                <X size={18} />
+              </button>
+            </div>
+            <ChatSessionList
+              sessions={sessions}
+              activeSession={activeSession}
+              onSelect={(id) => { setActiveSession(id); setShowSessions(false); }}
+              onDelete={deleteSession}
+              onNew={() => { newChat(); setShowSessions(false); }}
+              loading={loading}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
