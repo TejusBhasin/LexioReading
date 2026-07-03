@@ -94,11 +94,10 @@ export default function ClubsPage() {
         alert('Already a member');
         return;
       }
-      const updated = await base44.entities.ReadingClub.update(club.id, {
-        member_emails: [...(club.member_emails || []), user.email],
-        member_count: (club.member_count || 0) + 1,
-      });
-      setMyClubs(prev => [...prev, updated]);
+      const res = await base44.functions.invoke('joinClub', { club_id: club.id });
+      if (res.data?.error) throw new Error(res.data.error);
+      const updated = res.data?.club || club;
+      setMyClubs(prev => [...prev.filter(c => c.id !== updated.id), updated]);
       setJoinCode('');
       setShowJoinModal(false);
     } catch (e) { alert('Error joining club'); }
@@ -112,12 +111,11 @@ export default function ClubsPage() {
       return;
     }
     try {
-      const updated = await base44.entities.ReadingClub.update(club.id, {
-        member_emails: [...(club.member_emails || []), user.email],
-        member_count: (club.member_count || 0) + 1,
-      });
+      const res = await base44.functions.invoke('joinClub', { club_id: club.id });
+      if (res.data?.error) throw new Error(res.data.error);
+      const updated = res.data?.club || club;
       setClubs(prev => prev.map(c => c.id === club.id ? updated : c));
-      setMyClubs(prev => [...prev, updated]);
+      setMyClubs(prev => [...prev.filter(c => c.id !== updated.id), updated]);
     } catch (e) {}
   }
 
