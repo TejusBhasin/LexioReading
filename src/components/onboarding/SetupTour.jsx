@@ -29,8 +29,10 @@ function TandC() {
 import { base44 } from '@/api/base44Client';
 import { GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
 import { CURRENT_TERMS_VERSION } from '@/components/onboarding/TermsReAcceptModal';
+import DownloadAppStep from '@/components/onboarding/DownloadAppStep';
+import { getDownloadStepStatus, SKIP_EVENT_MAP } from '@/lib/platformDetect';
 
-const STEPS = ['welcome', 'genres', 'content', 'features', 'clubs', 'streak', 'schools', 'done'];
+const STEPS = ['welcome', 'genres', 'content', 'features', 'clubs', 'streak', 'schools', 'download_app', 'done'];
 
 const CONTENT_THEMES = [
   'Romance', 'Violence', 'Death/Loss', 'Addiction', 'War', 'Abuse', 'Mental illness'
@@ -48,6 +50,18 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
   }
   function toggleTheme(t) {
     setBlacklisted(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  }
+
+  function handleSchoolsNext() {
+    const status = getDownloadStepStatus();
+    if (status.shouldShow) {
+      setStep(STEPS.indexOf('download_app'));
+    } else {
+      if (status.reason && SKIP_EVENT_MAP[status.reason]) {
+        try { base44.analytics.track({ eventName: SKIP_EVENT_MAP[status.reason] }); } catch (e) {}
+      }
+      setStep(STEPS.indexOf('done'));
+    }
   }
 
   async function skip() {
@@ -334,9 +348,16 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
             </div>
             <div className="flex gap-2">
               <button onClick={() => setStep(STEPS.indexOf('streak'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
-              <button onClick={() => setStep(STEPS.indexOf('done'))} className="lx-btn-primary flex-1 justify-center">Almost done!</button>
+              <button onClick={handleSchoolsNext} className="lx-btn-primary flex-1 justify-center">Almost done!</button>
             </div>
           </div>
+        )}
+
+        {currentStep === 'download_app' && (
+          <DownloadAppStep
+            onContinue={() => setStep(STEPS.indexOf('done'))}
+            onBack={() => setStep(STEPS.indexOf('schools'))}
+          />
         )}
 
         {currentStep === 'done' && (

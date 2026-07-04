@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload, Copy, Link2, Library, Lock } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload, Copy, Link2, Library, Lock, Smartphone } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import SetupTour from '@/components/onboarding/SetupTour';
 import ContactForm from '@/components/profile/ContactForm';
@@ -10,10 +10,13 @@ import PrivacyTab from '@/components/profile/PrivacyTab';
 import DeleteAccountSection from '@/components/profile/DeleteAccountSection';
 import LibrarianSettings from '@/components/profile/LibrarianSettings';
 import AppLockSettings from '@/components/profile/AppLockSettings';
+import AppStoreBadge from '@/components/onboarding/AppStoreBadge';
 
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { applyTheme, GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
+import { detectPlatform } from '@/lib/platformDetect';
+import { APP_CONFIG } from '@/lib/appConfig';
 
 const TABS = [
   { id: 'preferences', label: 'Preferences', icon: Settings },
@@ -222,6 +225,23 @@ export default function ProfilePage() {
           </button>
         </div>
       </div>
+
+      {/* Download App Store — web & PWA only, hidden in native app */}
+      {!detectPlatform().isNativeApp && (
+        <div className="mb-6 rounded-xl p-4 flex items-center gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--lx-accent)' }}>
+            <Smartphone size={18} style={{ color: 'var(--bg-primary)' }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Get the iPhone App</h3>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Faster performance, native notifications, and more.</p>
+          </div>
+          <AppStoreBadge onClick={() => {
+            try { base44.analytics.track({ eventName: 'profile_appstore_clicked' }); } catch (e) {}
+            window.open(APP_CONFIG.appStoreUrl, '_blank', 'noopener,noreferrer');
+          }} />
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-8 overflow-x-auto pb-1 scrollbar-hide">
