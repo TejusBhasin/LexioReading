@@ -203,14 +203,12 @@ export default function VaultPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <Unlock size={22} style={{ color: 'var(--lx-accent)' }} /> My Vault
-          </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Library cards secured with PIN</p>
-        </div>
-        <div className="flex gap-2">
+      <div className="mb-8">
+        <h1 className="font-display text-2xl md:text-3xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <Unlock size={22} style={{ color: 'var(--lx-accent)' }} /> My Vault
+        </h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Library cards secured with PIN</p>
+        <div className="flex flex-wrap gap-2 mt-4">
           <button onClick={() => setSetupMode(true)} className="lx-btn-ghost text-xs py-1.5">
             <KeyRound size={13} /> Change PIN
           </button>
@@ -249,8 +247,8 @@ export default function VaultPage() {
       )}
 
       {showAdd && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)' }}>
-          <div className="w-full max-w-md rounded-xl p-6 max-h-[90vh] overflow-y-auto" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.75)' }}>
+          <div className="w-full max-w-md rounded-xl p-5 max-h-[90vh] overflow-y-auto overflow-x-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Add Card</h2>
               <button onClick={() => setShowAdd(false)}><X size={18} style={{ color: 'var(--text-muted)' }} /></button>
