@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
 import SetupTour from '@/components/onboarding/SetupTour';
+import AppFooter from '@/components/layout/AppFooter';
 
 const FALLBACK_QUOTE = { text: 'A reader lives a thousand lives before he dies. The man who never reads lives only one.', author: 'George R.R. Martin' };
 
@@ -119,6 +120,10 @@ export default function DashboardPage() {
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{desc}</p>
             </Link>
           ))}
+        </div>
+
+        <div className="mt-16 -mx-4">
+          <AppFooter />
         </div>
       </div>
     );
@@ -273,6 +278,10 @@ export default function DashboardPage() {
           <Link to="/discover" className="lx-btn-primary text-sm">Discover Books</Link>
         </div>
       )}
+
+      <div className="mt-8 -mx-4">
+        <AppFooter />
+      </div>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import DeleteAccountSection from '@/components/profile/DeleteAccountSection';
 import LibrarianSettings from '@/components/profile/LibrarianSettings';
 import AppLockSettings from '@/components/profile/AppLockSettings';
 import AppStoreBadge from '@/components/onboarding/AppStoreBadge';
+import AppFooter from '@/components/layout/AppFooter';
 
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -681,13 +682,9 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Footer with TC Link */}
-      <div className="mt-8 pt-6 border-t" style={{ borderColor: 'var(--lx-border)' }}>
-        <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
-          <Link to="/terms-privacy" style={{ color: 'var(--lx-accent)' }} className="underline hover:opacity-80">
-            Terms and Conditions / Privacy Policy
-          </Link>
-        </p>
+      {/* Footer with App Store + Links */}
+      <div className="mt-12 -mx-4">
+        <AppFooter />
       </div>
     </div>
     <div className="flex-shrink-0 text-center py-1.5 text-xs" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--lx-border)', background: 'var(--bg-secondary)' }}>

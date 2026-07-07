@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import AppFooter from '@/components/layout/AppFooter';
 
 const FEATURES = [
   { title: 'Reading Library', desc: 'Every book you\'ve read, are reading, or plan to read — organized beautifully. Add ratings, notes, tags, and track your current page.', emoji: '📚', color: '#1a3a2a', accent: '#4ade80' },
@@ -233,14 +234,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ borderTop: '1px solid #1c1c1c', padding: '24px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 6 }}>
-          <img src="https://media.base44.com/images/public/6a123803b5827eb9277efa4d/63f81eba7_7c1bd0943_logo.png"
-            alt="Lexio" style={{ height: 22, width: 22, borderRadius: 5, objectFit: 'contain' }} />
-          <span style={{ fontWeight: 900, color: '#f5a623' }}>Lexio</span>
-        </div>
-        <p style={{ fontSize: 12, color: '#444' }}>Free forever · Support@LexioReading.App</p>
-      </footer>
+      <AppFooter dark />
     </div>
   );
 }
