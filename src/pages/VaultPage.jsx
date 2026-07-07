@@ -3,7 +3,6 @@ import { Lock, Unlock, Plus, Trash2, Eye, EyeOff, ShieldCheck, X, CreditCard, Ke
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
-const PIN_KEY = 'lexio_vault_pin';
 const PIN_EXPIRY_KEY = 'lexio_vault_pin_expiry';
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -26,15 +25,34 @@ export default function VaultPage() {
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoverySent, setRecoverySent] = useState(false);
+  const [pinRecord, setPinRecord] = useState(null);
+  const [checkingPin, setCheckingPin] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem(PIN_KEY);
-    setHasPin(!!stored);
+    if (user?.email) {
+      checkPinStatus();
+    } else {
+      setCheckingPin(false);
+    }
     const expiry = localStorage.getItem(PIN_EXPIRY_KEY);
     if (expiry && Date.now() < parseInt(expiry)) {
       setUnlocked(true);
     }
-  }, []);
+  }, [user]);
+
+  async function checkPinStatus() {
+    setCheckingPin(true);
+    try {
+      const records = await base44.entities.VaultPin.filter({ user_email: user.email });
+      if (records[0] && records[0].has_pin) {
+        setPinRecord(records[0]);
+        setHasPin(true);
+      } else {
+        setHasPin(false);
+      }
+    } catch (e) {}
+    setCheckingPin(false);
+  }
 
   useEffect(() => {
     if (unlocked && user?.email) loadEntries();
@@ -53,25 +71,38 @@ export default function VaultPage() {
   }
 
   function verifyPin() {
-    const stored = localStorage.getItem(PIN_KEY);
-    if (stored === pinInput) {
+    if (pinRecord && pinRecord.pin === pinInput) {
       setUnlocked(true);
       setPinError('');
+      localStorage.setItem(PIN_EXPIRY_KEY, (Date.now() + LOCK_TIMEOUT_MS).toString());
     } else {
       setPinError('Incorrect PIN. Try again.');
       setPinInput('');
     }
   }
 
-  function saveNewPin() {
+  async function saveNewPin() {
     if (setupPin.length < 4) { setPinError('PIN must be at least 4 characters.'); return; }
     if (setupPin !== setupConfirm) { setPinError('PINs do not match.'); return; }
-    localStorage.setItem(PIN_KEY, setupPin);
-    setHasPin(true);
-    setSetupMode(false);
-    setSetupPin(''); setSetupConfirm('');
-    setPinError('');
-    setUnlocked(true);
+    setSaving(true);
+    try {
+      if (pinRecord) {
+        const updated = await base44.entities.VaultPin.update(pinRecord.id, { pin: setupPin, has_pin: true });
+        setPinRecord(updated);
+      } else {
+        const created = await base44.entities.VaultPin.create({ user_email: user.email, pin: setupPin, has_pin: true });
+        setPinRecord(created);
+      }
+      setHasPin(true);
+      setSetupMode(false);
+      setSetupPin(''); setSetupConfirm('');
+      setPinError('');
+      setUnlocked(true);
+      localStorage.setItem(PIN_EXPIRY_KEY, (Date.now() + LOCK_TIMEOUT_MS).toString());
+    } catch (e) {
+      setPinError('Failed to save PIN. Try again.');
+    }
+    setSaving(false);
   }
 
   function lock() {
@@ -82,9 +113,10 @@ export default function VaultPage() {
 
   async function sendRecovery() {
     if (!recoveryEmail.trim()) return;
-    const stored = localStorage.getItem(PIN_KEY);
-    if (!stored) return;
     try {
+      const records = await base44.entities.VaultPin.filter({ user_email: user.email });
+      const stored = records[0]?.pin;
+      if (!stored) return;
       await base44.integrations.Core.SendEmail({
         to: recoveryEmail,
         subject: 'Lexio Vault PIN Recovery',
@@ -134,16 +166,29 @@ export default function VaultPage() {
     );
   }
 
+  if (checkingPin) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-16 text-center">
+        <Loader2 size={32} className="mx-auto mb-4 animate-spin" style={{ color: 'var(--lx-accent)' }} />
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading vault...</p>
+      </div>
+    );
+  }
+
   if (!hasPin || setupMode) {
     return (
       <div className="max-w-md mx-auto px-4 py-16">
         <div className="lx-card p-8 text-center">
           <ShieldCheck size={40} className="mx-auto mb-4" style={{ color: 'var(--lx-accent)' }} />
-          <h2 className="font-display text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Set Up Your Vault PIN</h2>
-          <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>Create a PIN to secure your library cards and sensitive info.</p>
+          <h2 className="font-display text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+            {setupMode && hasPin ? 'Change Your Vault PIN' : 'Set Up Your Vault PIN'}
+          </h2>
+          <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+            {setupMode && hasPin ? 'Enter a new PIN to secure your vault.' : 'Create a PIN to secure your library cards and sensitive info.'}
+          </p>
           <div className="space-y-3 text-left">
             <div>
-              <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Create PIN (min 4 chars)</label>
+              <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>{setupMode && hasPin ? 'New PIN' : 'Create PIN'} (min 4 chars)</label>
               <input type="password" className="lx-input" placeholder="Enter PIN" value={setupPin} onChange={e => setSetupPin(e.target.value)} />
             </div>
             <div>
@@ -151,7 +196,14 @@ export default function VaultPage() {
               <input type="password" className="lx-input" placeholder="Confirm PIN" value={setupConfirm} onChange={e => setSetupConfirm(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveNewPin()} />
             </div>
             {pinError && <p className="text-xs text-red-400">{pinError}</p>}
-            <button onClick={saveNewPin} className="lx-btn-primary w-full justify-center">Create PIN</button>
+            <button onClick={saveNewPin} disabled={saving} className="lx-btn-primary w-full justify-center">
+              {saving ? 'Saving...' : setupMode && hasPin ? 'Update PIN' : 'Create PIN'}
+            </button>
+            {setupMode && hasPin && (
+              <button onClick={() => { setSetupMode(false); setSetupPin(''); setSetupConfirm(''); setPinError(''); }} className="lx-btn-ghost w-full justify-center text-sm">
+                Cancel
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -176,7 +228,7 @@ export default function VaultPage() {
               autoFocus
             />
             {pinError && <p className="text-xs text-red-400">{pinError}</p>}
-            <button onClick={verifyPin} className="lx-btn-primary w-full justify-center">
+            <button onClick={verifyPin} disabled={!pinRecord} className="lx-btn-primary w-full justify-center">
               <Unlock size={14} /> Unlock
             </button>
             <button onClick={() => setShowRecovery(r => !r)} className="text-xs" style={{ color: 'var(--text-muted)' }}>

@@ -1,0 +1,36 @@
+{
+  "name": "VaultPin",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "The email the user signed up with \u2014 used to identify their pin record"
+    },
+    "pin": {
+      "type": "string"
+    },
+    "has_pin": {
+      "type": "boolean",
+      "default": true,
+      "description": "YES/NO flag indicating whether the user has set a pin"
+    }
+  },
+  "required": [
+    "user_email",
+    "pin"
+  ],
+  "rls": {
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "data.user_email": "{{user.email}}"
+    },
+    "delete": {
+      "data.user_email": "{{user.email}}"
+    }
+  }
+}
