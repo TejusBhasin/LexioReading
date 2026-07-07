@@ -52,6 +52,7 @@ export default function ChallengesPage() {
   });
   const [generating, setGenerating] = useState(false);
   const [library, setLibrary] = useState({ total: 0, finished: 0, reviews: 0, genres: [] });
+  const [rawLibrary, setRawLibrary] = useState([]);
 
   useEffect(() => {
     if (user?.email) loadStats();
@@ -63,7 +64,60 @@ export default function ChallengesPage() {
       base44.entities.Review.filter({ user_email: user.email }),
     ]);
     const genres = [...new Set(lib.flatMap(b => b.tags || []))].slice(0, 6);
+    setRawLibrary(lib);
     setLibrary({ total: lib.length, finished: lib.filter(b => b.status === 'finished').length, reviews: revs.length, genres });
+    autoFillSquares(lib, squares);
+  }
+
+  function autoFillSquares(lib, currentSquares) {
+    const allTags = lib.flatMap(b => b.tags || []).map(t => t.toLowerCase());
+    const allTitles = lib.map(b => (b.book_title || ''));
+    const finishedBooks = lib.filter(b => b.status === 'finished');
+
+    const hasGenre = (genre) => allTags.some(t => t.includes(genre));
+
+    const autoChecked = [];
+    currentSquares.forEach((sq, i) => {
+      if (i === 12) return;
+      const text = sq.toLowerCase();
+
+      // Genre-based checks
+      if ((text.includes('non-fiction') || text.includes('nonfiction')) && hasGenre('non-fiction')) autoChecked.push(i);
+      if (text.includes('fantasy') && hasGenre('fantasy')) autoChecked.push(i);
+      if (text.includes('sci-fi') && (hasGenre('science fiction') || hasGenre('sci-fi'))) autoChecked.push(i);
+      if ((text.includes('mystery') || text.includes('thriller')) && (hasGenre('mystery') || hasGenre('thriller'))) autoChecked.push(i);
+      if ((text.includes('biography') || text.includes('memoir')) && (hasGenre('biography') || hasGenre('memoir'))) autoChecked.push(i);
+      if (text.includes('historical') && hasGenre('historical')) autoChecked.push(i);
+      if ((text.includes('graphic novel') || text.includes('manga')) && (hasGenre('graphic') || hasGenre('manga'))) autoChecked.push(i);
+      if (text.includes('romance') && hasGenre('romance')) autoChecked.push(i);
+      if (text.includes('horror') && hasGenre('horror')) autoChecked.push(i);
+      if (text.includes('poetry') && hasGenre('poetry')) autoChecked.push(i);
+
+      // Title-based checks
+      if (text.includes('one-word title') && allTitles.some(t => t.trim().split(/\s+/).length === 1)) autoChecked.push(i);
+      if (text.includes('color in the title')) {
+        const colors = ['red', 'blue', 'green', 'yellow', 'black', 'white', 'purple', 'orange', 'pink', 'gold', 'silver', 'brown', 'gray', 'grey', 'crimson', 'scarlet'];
+        if (allTitles.some(t => colors.some(c => t.toLowerCase().includes(c)))) autoChecked.push(i);
+      }
+
+      // Page count checks
+      if (text.includes('over 500 pages') && finishedBooks.some(b => (b.page_count || b.pages || 0) >= 500)) autoChecked.push(i);
+      if (text.includes('over 400 pages') && finishedBooks.some(b => (b.page_count || b.pages || 0) >= 400)) autoChecked.push(i);
+
+      // Sequel detection
+      if (text.includes('sequel') && lib.some(b => /\b2\b|ii\b|book two|part two|#2/i.test(b.book_title || ''))) autoChecked.push(i);
+
+      // Re-read check (has read a book more than once - check if any book appears twice or has re-read tag)
+      if (text.includes('re-read') || text.includes('reread')) {
+        if (lib.some(b => (b.tags || []).some(t => t.toLowerCase().includes('re-read') || t.toLowerCase().includes('reread')))) autoChecked.push(i);
+      }
+    });
+
+    setChecked(prev => {
+      const merged = [...new Set([...prev, ...autoChecked])];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      return merged;
+    });
   }
 
   async function generateAISquares() {
@@ -84,6 +138,7 @@ Return ONLY a JSON array of 25 short strings (max 8 words each), no numbering. E
     setSquares(newSquares);
     localStorage.setItem(SQUARES_KEY, JSON.stringify(newSquares));
     setGenerating(false);
+    if (rawLibrary.length > 0) autoFillSquares(rawLibrary, newSquares);
   }
 
   function toggle(i) {
@@ -137,9 +192,9 @@ Return ONLY a JSON array of 25 short strings (max 8 words each), no numbering. E
       )}
 
       {/* Bingo Grid */}
-      <div className="grid grid-cols-5 gap-1.5 mb-10">
+      <div className="grid grid-cols-5 gap-1 mb-10 overflow-hidden">
         {['B','I','N','G','O'].map(l => (
-          <div key={l} className="h-8 flex items-center justify-center font-display font-bold text-lg"
+          <div key={l} className="h-7 flex items-center justify-center font-display font-bold text-base"
             style={{ color: 'var(--lx-accent)' }}>{l}</div>
         ))}
         {squares.map((sq, i) => {
@@ -147,13 +202,14 @@ Return ONLY a JSON array of 25 short strings (max 8 words each), no numbering. E
           const done = isFree || checked.includes(i);
           return (
             <button key={i} onClick={() => toggle(i)}
-              className="aspect-square p-1.5 rounded-lg text-center transition-all flex items-center justify-center text-xs leading-tight"
+              className="min-h-[72px] p-1 rounded-lg text-center transition-all flex items-center justify-center text-[9px] sm:text-[11px] leading-tight break-words whitespace-pre-line overflow-hidden"
               style={{
                 background: done ? 'var(--lx-accent)' : 'var(--bg-card)',
                 color: done ? 'var(--bg-primary)' : 'var(--text-secondary)',
                 border: `1px solid ${done ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
                 fontWeight: done ? 700 : 400,
-                minHeight: '70px',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word',
               }}>
               {sq}
             </button>
