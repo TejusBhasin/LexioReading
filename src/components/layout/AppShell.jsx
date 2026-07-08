@@ -34,6 +34,20 @@ const OTHER_NAV = [
 const EXTRA_NAV = [
 { path: '/vault', icon: Lock, label: 'Vault' }];
 
+// Items available to add as icon-only buttons in the top bar (excludes bottom bar items)
+const TOP_BAR_ICON_OPTIONS = [
+{ path: '/library', icon: BookOpen, label: 'Library' },
+{ path: '/reading-log', icon: Clock, label: 'Log' },
+{ path: '/reviews', icon: Star, label: 'Reviews' },
+{ path: '/clubs', icon: Users, label: 'Clubs' },
+{ path: '/forums', icon: Newspaper, label: 'Forums' },
+{ path: '/profile', icon: User, label: 'Profile' },
+{ path: '/goal', icon: Target, label: 'Goal' },
+{ path: '/quotes', icon: Quote, label: 'Quotes' },
+{ path: '/challenges', icon: Trophy, label: 'Challenges' },
+{ path: '/strength', icon: Zap, label: 'Strength' },
+{ path: '/vault', icon: Lock, label: 'Vault' }];
+
 
 const BOTTOM_NAV_ITEMS = [
 { path: '/', icon: LayoutDashboard, label: 'Home' },
@@ -303,68 +317,85 @@ export default function AppShell({ children, user }) {
         forceComplete={forceTour}
         onComplete={() => {setShowTour(false);setForceTour(false);loadUserProfile();}} />
       }
-      {/* Top Nav — hidden when user enables hide_top_bar */}
-      <header className="sticky top-0 z-50 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingTop: 'env(safe-area-inset-top, 0px)', display: prefs?.hide_top_bar ? 'none' : 'flex' }}>
+      {/* Top Nav — logo far left, extra icons center, notification far right; invisible spacer when hidden */}
+      <header className="sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', background: prefs?.hide_top_bar ? 'transparent' : 'var(--bg-secondary)', borderBottom: prefs?.hide_top_bar ? 'none' : '1px solid var(--lx-border)' }}>
+        {prefs?.hide_top_bar ? (
+          <div className="h-14" />
+        ) : (
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          {/* Logo — far left */}
           <Link to="/" onClick={() => {setMobileMenuOpen(false);mainRef.current?.scrollTo({ top: 0 });}} className="flex items-center gap-2 flex-shrink-0">
             <img
               src="https://media.base44.com/images/public/6a123803b5827eb9277efa4d/63f81eba7_7c1bd0943_logo.png"
               alt="Lexio"
               className="h-9 w-9 rounded-lg object-contain" />
-            
             <span className="font-display font-bold text-lg hidden sm:block" style={{ color: 'var(--text-primary)' }}>Lexio</span>
           </Link>
 
-          {/* Desktop/Landscape Nav — 4 items + menu */}
-          <nav className="hidden md:flex items-center gap-0.5">
-            {[
-              { path: '/', icon: LayoutDashboard, label: 'Home' },
-              { path: '/discover', icon: Compass, label: 'Discover' },
-              { path: '/chat', icon: MessageSquare, label: 'Chat' },
-            ].map(({ path, icon: NavIcon, label }) => {
+          {/* Center: user-selected extra icons (icon-only, all sizes) + desktop nav */}
+          <div className="flex items-center gap-0.5">
+            {TOP_BAR_ICON_OPTIONS.filter(opt => prefs?.top_bar_icons?.includes(opt.path)).map(({ path, icon: NavIcon, label }) => {
               const active = location.pathname === path;
               return (
-                <Link
-                  key={path}
-                  to={path}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all"
-                  style={{
-                    color: active ? 'var(--lx-accent)' : 'var(--text-secondary)',
-                    backgroundColor: active ? 'var(--bg-elevated)' : 'transparent'
-                  }}>
-                  <NavIcon size={14} />
-                  <span>{label}</span>
+                <Link key={path} to={path} title={label}
+                  className="flex items-center justify-center rounded transition-colors"
+                  style={{ color: active ? 'var(--lx-accent)' : 'var(--text-secondary)', minWidth: 36, minHeight: 36, background: active ? 'var(--bg-elevated)' : 'transparent' }}>
+                  <NavIcon size={16} />
                 </Link>
               );
             })}
-            {/* All-pages menu */}
-            <div className="relative">
-              <button
-                onClick={() => setOtherOpen((o) => !o)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-all"
-                style={{
-                  color: otherOpen || !['/','discover','/chat'].includes(location.pathname) ? 'var(--lx-accent)' : 'var(--text-secondary)',
-                  backgroundColor: otherOpen ? 'var(--bg-elevated)' : 'transparent'
-                }}>
-                <Menu size={15} />
-              </button>
-              {otherOpen &&
-              <div className="absolute top-full right-0 mt-1 w-52 rounded-lg shadow-lg py-1 z-50"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
-                {[...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].map(({ path, icon: OIcon, label }) =>
-                  <Link key={path} to={path}
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:opacity-80"
-                    style={{ color: location.pathname === path ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
-                    <OIcon size={14} /> {label}
-                  </Link>
-                )}
-                </div>
-              }
-            </div>
-          </nav>
 
+            {/* Desktop/Landscape Nav — items with labels + all-pages menu */}
+            <nav className="hidden md:flex items-center gap-0.5 ml-1">
+              {[
+                { path: '/', icon: LayoutDashboard, label: 'Home' },
+                { path: '/discover', icon: Compass, label: 'Discover' },
+                { path: '/chat', icon: MessageSquare, label: 'Chat' },
+              ].map(({ path, icon: NavIcon, label }) => {
+                const active = location.pathname === path;
+                return (
+                  <Link
+                    key={path}
+                    to={path}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all"
+                    style={{
+                      color: active ? 'var(--lx-accent)' : 'var(--text-secondary)',
+                      backgroundColor: active ? 'var(--bg-elevated)' : 'transparent'
+                    }}>
+                    <NavIcon size={14} />
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
+              {/* All-pages menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setOtherOpen((o) => !o)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-all"
+                  style={{
+                    color: otherOpen || !['/','discover','/chat'].includes(location.pathname) ? 'var(--lx-accent)' : 'var(--text-secondary)',
+                    backgroundColor: otherOpen ? 'var(--bg-elevated)' : 'transparent'
+                  }}>
+                  <Menu size={15} />
+                </button>
+                {otherOpen &&
+                <div className="absolute top-full right-0 mt-1 w-52 rounded-lg shadow-lg py-1 z-50"
+                  style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+                  {[...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].map(({ path, icon: OIcon, label }) =>
+                    <Link key={path} to={path}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:opacity-80"
+                      style={{ color: location.pathname === path ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
+                      <OIcon size={14} /> {label}
+                    </Link>
+                  )}
+                  </div>
+                }
+              </div>
+            </nav>
+          </div>
+
+          {/* Right: notification bell far right */}
           <div className="flex items-center gap-2">
-            {user && <NotificationBell user={user} />}
             {/* Mobile hamburger — shown only if user enabled it in Personalize */}
             {prefs?.show_top_hamburger === true &&
             <button
@@ -372,7 +403,6 @@ export default function AppShell({ children, user }) {
               style={{ color: 'var(--text-secondary)', minWidth: 44, minHeight: 44 }}
               onClick={() => setMobileMenuOpen((o) => !o)}
               aria-label="Menu">
-              
                 {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             }
@@ -384,7 +414,6 @@ export default function AppShell({ children, user }) {
               className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-all"
               style={{ color: 'var(--text-muted)' }}>
                     <EIcon size={14} />
-                    
                   </Link>
               )}
               </div> :
@@ -394,8 +423,10 @@ export default function AppShell({ children, user }) {
                 <Link to="/register" className="lx-btn-primary text-sm py-1.5 px-3">Get Started</Link>
               </div>
             }
+            {user && <NotificationBell user={user} />}
           </div>
         </div>
+        )}
       </header>
 
       {/* Mobile Slide-down Menu */}
@@ -441,7 +472,7 @@ export default function AppShell({ children, user }) {
       <main
         ref={mainRef}
         className="flex-1 min-h-0 overflow-y-auto safe-bottom"
-        style={{ overscrollBehavior: 'none' }}
+        style={{ overscrollBehavior: 'none', ...(prefs?.hide_top_bar ? { paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' } : {}) }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -497,11 +528,14 @@ export default function AppShell({ children, user }) {
           <div className="flex items-center justify-between px-5 h-14 border-b flex-shrink-0"
         style={{ borderColor: 'var(--lx-border)' }}>
             <span className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Navigation</span>
-            <button onClick={() => setMoreOpen(false)}
-          className="flex items-center justify-center rounded"
-          style={{ minWidth: 44, minHeight: 44, color: 'var(--text-secondary)' }}>
-              <X size={22} />
-            </button>
+            <div className="flex items-center gap-1">
+              {prefs?.hide_top_bar && user && <NotificationBell user={user} />}
+              <button onClick={() => setMoreOpen(false)}
+            className="flex items-center justify-center rounded"
+            style={{ minWidth: 44, minHeight: 44, color: 'var(--text-secondary)' }}>
+                <X size={22} />
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <div className="grid grid-cols-3 gap-3">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload, Copy, Link2, Library, Lock, Smartphone } from 'lucide-react';
+import { User, BookOpen, MessageSquare, Palette, Settings, LogOut, Check, Download, GraduationCap, Shield, Trash2, Upload, Copy, Link2, Library, Lock, Smartphone, Clock, Star, Users, Newspaper, Target, Quote, Trophy, Zap } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import SetupTour from '@/components/onboarding/SetupTour';
 import ContactForm from '@/components/profile/ContactForm';
@@ -53,6 +53,20 @@ const PRESET_COLORS = [
   { name: 'Rose', primary: '#f43f5e', accent: '#fb7185', secondary: '#2a1a1a' },
   { name: 'Emerald', primary: '#10b981', accent: '#34d399', secondary: '#0a1a14' },
   { name: 'Orange', primary: '#f97316', accent: '#fb923c', secondary: '#1a1000' },
+];
+
+const TOP_BAR_ICON_OPTIONS = [
+  { path: '/library', icon: BookOpen, label: 'Library' },
+  { path: '/reading-log', icon: Clock, label: 'Log' },
+  { path: '/reviews', icon: Star, label: 'Reviews' },
+  { path: '/clubs', icon: Users, label: 'Clubs' },
+  { path: '/forums', icon: Newspaper, label: 'Forums' },
+  { path: '/profile', icon: User, label: 'Profile' },
+  { path: '/goal', icon: Target, label: 'Goal' },
+  { path: '/quotes', icon: Quote, label: 'Quotes' },
+  { path: '/challenges', icon: Trophy, label: 'Challenges' },
+  { path: '/strength', icon: Zap, label: 'Strength' },
+  { path: '/vault', icon: Lock, label: 'Vault' },
 ];
 
 export default function ProfilePage() {
@@ -666,6 +680,34 @@ export default function ProfilePage() {
                   <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
                     style={{ left: prefs.show_top_hamburger ? '22px' : '2px' }} />
                 </button>
+              </div>
+              {/* Top bar extra icons selector */}
+              <div className="p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+                <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Top bar icons</p>
+                <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Add quick-access icons to the top bar (items not in your bottom bar). Icon-only, no text.</p>
+                <div className="flex flex-wrap gap-2">
+                  {TOP_BAR_ICON_OPTIONS.map(({ path, icon: Icon, label }) => {
+                    const selected = prefs.top_bar_icons?.includes(path);
+                    return (
+                      <button key={path} onClick={() => setPrefs(p => ({
+                        ...p,
+                        top_bar_icons: p.top_bar_icons?.includes(path)
+                          ? p.top_bar_icons.filter(x => x !== path)
+                          : [...(p.top_bar_icons || []), path]
+                      }))}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-all"
+                        style={{
+                          background: selected ? 'var(--lx-accent)' : 'var(--bg-card)',
+                          color: selected ? 'var(--bg-primary)' : 'var(--text-secondary)',
+                          border: `1px solid ${selected ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+                        }}>
+                        {selected && <Check size={11} />}
+                        <Icon size={13} />
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

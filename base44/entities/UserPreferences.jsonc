@@ -99,6 +99,13 @@
     "hide_top_bar": {
       "type": "boolean",
       "default": false
+    },
+    "top_bar_icons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Paths of nav items (not in bottom bar) to show as icon-only buttons in the top bar"
     }
   },
   "required": [
