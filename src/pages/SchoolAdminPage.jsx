@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -27,6 +27,9 @@ export default function SchoolAdminPage() {
   const [themeForm, setThemeForm] = useState({});
   const [restrictions, setRestrictions] = useState([]);
   const [requireSetupTour, setRequireSetupTour] = useState(false);
+  const [ageRestriction, setAgeRestriction] = useState('all');
+  const [applyingAge, setApplyingAge] = useState(false);
+  const [ageApplied, setAgeApplied] = useState(false);
 
   useEffect(() => { if (user?.email) load(); }, [user]);
 
@@ -43,6 +46,7 @@ export default function SchoolAdminPage() {
       setThemeForm({ theme_primary: s.theme_primary, theme_accent: s.theme_accent, theme_secondary: s.theme_secondary });
       setRestrictions(s.restrictions || []);
       setRequireSetupTour(s.require_setup_tour || false);
+      setAgeRestriction(s.age_restriction || 'all');
 
       const mems = await base44.entities.SchoolMember.filter({ school_id: s.id });
       setMembers(mems);
@@ -61,8 +65,8 @@ export default function SchoolAdminPage() {
   async function saveTheme() {
     if (!school) return;
     setSaving(true);
-    await base44.entities.School.update(school.id, { ...themeForm, restrictions, require_setup_tour: requireSetupTour });
-    setSchool(s => ({ ...s, ...themeForm, restrictions }));
+    await base44.entities.School.update(school.id, { ...themeForm, restrictions, require_setup_tour: requireSetupTour, age_restriction: ageRestriction });
+    setSchool(s => ({ ...s, ...themeForm, restrictions, age_restriction: ageRestriction }));
     setSaving(false);
   }
 
@@ -75,6 +79,26 @@ export default function SchoolAdminPage() {
   async function reinstateMemeber(member) {
     await base44.entities.SchoolMember.update(member.id, { kicked: false });
     setMembers(prev => prev.map(m => m.id === member.id ? { ...m, kicked: false } : m));
+  }
+
+  async function applyAgeRestriction() {
+    if (!school || !members.length) return;
+    if (!confirm(`Apply "${ageRestriction}" age filter to all ${members.filter(m => !m.kicked).length} active members? This will override their individual age settings.`)) return;
+    setApplyingAge(true);
+    try {
+      const active = members.filter(m => !m.kicked);
+      await Promise.all(active.map(async m => {
+        const profiles = await base44.entities.UserProfile.filter({ user_email: m.user_email });
+        if (profiles[0]) {
+          await base44.entities.UserProfile.update(profiles[0].id, { age_filter: ageRestriction });
+        } else {
+          await base44.entities.UserProfile.create({ user_email: m.user_email, age_filter: ageRestriction });
+        }
+      }));
+      setAgeApplied(true);
+      setTimeout(() => setAgeApplied(false), 3000);
+    } catch (e) {}
+    setApplyingAge(false);
   }
 
   async function deleteSchool() {
@@ -264,6 +288,36 @@ export default function SchoolAdminPage() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Age Restriction */}
+          <div>
+            <h3 className="font-bold mb-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <ShieldAlert size={16} style={{ color: 'var(--lx-accent)' }} /> Age Restriction
+            </h3>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Mass-apply an age filter to all school members. They will only see books appropriate for the selected level.</p>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {[
+                { value: 'all', label: 'All Ages', desc: 'No restriction' },
+                { value: 'teen', label: 'Teen', desc: 'Teen-appropriate only' },
+                { value: 'adult', label: 'Adult', desc: 'Adult content visible' },
+              ].map(opt => {
+                const on = ageRestriction === opt.value;
+                return (
+                  <button key={opt.value} onClick={() => setAgeRestriction(opt.value)}
+                    className="p-3 rounded-lg text-center transition-all"
+                    style={{ background: on ? 'var(--lx-accent)' : 'var(--bg-elevated)', border: `1px solid ${on ? 'var(--lx-accent)' : 'var(--lx-border)'}`, color: on ? 'var(--bg-primary)' : 'var(--text-secondary)' }}>
+                    <p className="text-sm font-bold">{opt.label}</p>
+                    <p className="text-xs mt-0.5" style={{ opacity: 0.8 }}>{opt.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <button onClick={applyAgeRestriction} disabled={applyingAge || ageRestriction === 'all'}
+              className="lx-btn-ghost text-sm w-full justify-center"
+              style={ageRestriction === 'all' ? { opacity: 0.5 } : {}}>
+              {applyingAge ? 'Applying to all members...' : ageApplied ? '✓ Applied to all members!' : `Apply "${ageRestriction}" to all members now`}
+            </button>
           </div>
 
           {/* Require Setup Tour */}

@@ -91,6 +91,14 @@
     "show_popular": {
       "type": "boolean",
       "default": true
+    },
+    "show_top_hamburger": {
+      "type": "boolean",
+      "default": false
+    },
+    "hide_top_bar": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

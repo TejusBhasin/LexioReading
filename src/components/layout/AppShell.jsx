@@ -156,6 +156,15 @@ export default function AppShell({ children, user }) {
           if (s.require_setup_tour && (p.find(x => x.username) || p[0])?.onboarding_skipped) {
             setForceTour(true);
           }
+          // Enforce school age restriction — override member's age_filter
+          if (s.age_restriction && s.age_restriction !== 'all') {
+            const profile = p.find(x => x.username) || p[0];
+            if (profile && profile.age_filter !== s.age_restriction) {
+              try {
+                await base44.entities.UserProfile.update(profile.id, { age_filter: s.age_restriction });
+              } catch (e) {}
+            }
+          }
         }
       }
 
@@ -294,8 +303,8 @@ export default function AppShell({ children, user }) {
         forceComplete={forceTour}
         onComplete={() => {setShowTour(false);setForceTour(false);loadUserProfile();}} />
       }
-      {/* Top Nav */}
-      <header className="sticky top-0 z-50 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      {/* Top Nav — hidden when user enables hide_top_bar */}
+      <header className="sticky top-0 z-50 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingTop: 'env(safe-area-inset-top, 0px)', display: prefs?.hide_top_bar ? 'none' : 'flex' }}>
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" onClick={() => {setMobileMenuOpen(false);mainRef.current?.scrollTo({ top: 0 });}} className="flex items-center gap-2 flex-shrink-0">
             <img
@@ -456,8 +465,8 @@ export default function AppShell({ children, user }) {
         </AnimatePresence>
       </main>
 
-      {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t flex"
+      {/* Mobile Bottom Tab Bar — shown on all sizes when top bar is hidden */}
+      <nav className={`fixed bottom-0 left-0 right-0 z-40 border-t flex ${prefs?.hide_top_bar ? '' : 'md:hidden'}`}
       style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {[
         { path: '/', icon: LayoutDashboard },

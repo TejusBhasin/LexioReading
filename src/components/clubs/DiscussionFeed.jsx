@@ -24,7 +24,7 @@ function PostReplies({ post, user, myUsername, isAdmin }) {
       post_id: post.id,
       club_id: post.club_id,
       user_email: user.email,
-      username: myUsername || user.email.split('@')[0],
+      username: myUsername || 'Reader',
       content: replyText.trim(),
     });
     setReplies(prev => [...prev, r]);
@@ -51,7 +51,7 @@ function PostReplies({ post, user, myUsername, isAdmin }) {
         <div className="flex gap-2 items-center mt-2">
           <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
             style={{ background: 'var(--lx-accent)', color: 'var(--bg-primary)' }}>
-            {(myUsername || user.email)[0]?.toUpperCase()}
+            {(myUsername || 'R')[0]?.toUpperCase()}
           </div>
           <input
             className="flex-1 text-sm px-3 py-1.5 rounded-lg outline-none"
@@ -111,14 +111,14 @@ function ReplyItem({ r, user, canDelete, onDelete }) {
     <div className="flex items-start gap-2">
       <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
         style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)', border: '1px solid var(--lx-border)' }}>
-        {(r.username || r.user_email)[0]?.toUpperCase()}
+        {(r.username || 'R')[0]?.toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           {r.username ? (
             <Link to={`/u/${r.username}`} className="text-xs font-bold hover:underline" style={{ color: 'var(--text-primary)' }}>@{r.username}</Link>
           ) : (
-            <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{r.user_email?.split('@')[0]}</span>
+            <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Reader</span>
           )}
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(r.created_date).toLocaleDateString()}</span>
           {user && r.user_email !== user.email && (
@@ -177,9 +177,9 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
     if (!user?.email) return;
     try {
       const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-      setUsername(profiles[0]?.username || user.email.split('@')[0]);
+      setUsername(profiles[0]?.username || 'Reader');
     } catch (e) {
-      setUsername(user?.email?.split('@')[0] || 'reader');
+      setUsername('Reader');
     }
   }
 
@@ -198,7 +198,7 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
     const post = await base44.entities.ClubPost.create({
       club_id: club.id,
       user_email: user.email,
-      username: username || user.email.split('@')[0],
+      username: username || 'Reader',
       content: content.trim(),
       likes: [],
     });
@@ -278,13 +278,13 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0"
                     style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)', border: '1px solid var(--lx-border)' }}>
-                    {(post.username || post.user_email)[0]?.toUpperCase()}
+                    {(post.username || 'R')[0]?.toUpperCase()}
                   </div>
                   <div>
                     {post.username ? (
                       <Link to={`/u/${post.username}`} className="text-sm font-bold hover:underline" style={{ color: 'var(--text-primary)' }}>@{post.username}</Link>
                     ) : (
-                      <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{post.user_email?.split('@')[0]}</p>
+                      <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Reader</p>
                     )}
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(post.created_date).toLocaleDateString()}</p>
                   </div>

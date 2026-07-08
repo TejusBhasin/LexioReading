@@ -53,6 +53,16 @@
     "allow_dual_mode": {
       "type": "boolean",
       "default": false
+    },
+    "age_restriction": {
+      "type": "string",
+      "enum": [
+        "all",
+        "teen",
+        "adult"
+      ],
+      "default": "all",
+      "description": "Mass age restriction for all school members. 'all' = no restriction, 'teen' = teen-appropriate only, 'adult' = adult content visible"
     }
   },
   "required": [

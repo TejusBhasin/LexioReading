@@ -635,10 +635,24 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Mobile options */}
+          {/* Interface options */}
           <div>
-            <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Mobile Navigation</h3>
+            <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Interface</h3>
             <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Hide top bar</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Remove the top navigation bar for a cleaner, full-screen experience. Bottom tab bar remains for navigation.</p>
+                </div>
+                <button
+                  onClick={() => setPrefs(p => ({ ...p, hide_top_bar: !p.hide_top_bar }))}
+                  className="w-11 h-6 rounded-full transition-all flex-shrink-0 relative ml-4"
+                  style={{ background: prefs.hide_top_bar ? 'var(--lx-accent)' : 'var(--border-strong)' }}
+                >
+                  <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+                    style={{ left: prefs.hide_top_bar ? '22px' : '2px' }} />
+                </button>
+              </div>
               <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
                 <div>
                   <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Show top menu button</p>
@@ -646,7 +660,7 @@ export default function ProfilePage() {
                 </div>
                 <button
                   onClick={() => setPrefs(p => ({ ...p, show_top_hamburger: !p.show_top_hamburger }))}
-                  className="w-11 h-6 rounded-full transition-all flex-shrink-0 relative"
+                  className="w-11 h-6 rounded-full transition-all flex-shrink-0 relative ml-4"
                   style={{ background: prefs.show_top_hamburger ? 'var(--lx-accent)' : 'var(--border-strong)' }}
                 >
                   <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
