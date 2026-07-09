@@ -319,9 +319,7 @@ export default function AppShell({ children, user }) {
       }
       {/* Top Nav — logo far left, extra icons center, notification far right; invisible spacer when hidden */}
       <header className="sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', background: prefs?.hide_top_bar ? 'transparent' : 'var(--bg-secondary)', borderBottom: prefs?.hide_top_bar ? 'none' : '1px solid var(--lx-border)' }}>
-        {prefs?.hide_top_bar ? (
-          <div className="h-14" />
-        ) : (
+        {prefs?.hide_top_bar ? null : (
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           {/* Logo — far left */}
           <Link to="/" onClick={() => {setMobileMenuOpen(false);mainRef.current?.scrollTo({ top: 0 });}} className="flex items-center gap-2 flex-shrink-0">

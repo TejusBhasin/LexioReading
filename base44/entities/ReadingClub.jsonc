@@ -14,6 +14,10 @@
     "cover_image": {
       "type": "string"
     },
+    "banner_image": {
+      "type": "string",
+      "description": "Large banner image for club homepage"
+    },
     "current_book_id": {
       "type": "string"
     },
@@ -63,6 +67,14 @@
       "items": {
         "type": "string"
       }
+    },
+    "reading_goal": {
+      "type": "number",
+      "description": "Monthly reading goal (books per month)"
+    },
+    "pinned_announcement": {
+      "type": "string",
+      "description": "Pinned announcement shown at top of club page"
     }
   },
   "required": [

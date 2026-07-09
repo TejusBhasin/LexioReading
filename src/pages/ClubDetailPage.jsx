@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Settings, Users, Trophy, BookOpen, MessageSquare, X, Trash2, Eye, EyeOff, Key } from 'lucide-react';
+import { ArrowLeft, Settings, Users, Trophy, BookOpen, MessageSquare, X, Trash2, Key, Pin, Target } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import ClubHero from '@/components/clubs/ClubHero';
 import ClubMembers from '@/components/clubs/ClubMembers';
 import ClubChat from '@/components/clubs/ClubChat';
 import LoggingClubDashboard from '@/components/clubs/LoggingClubDashboard';
@@ -19,6 +20,7 @@ export default function ClubDetailPage() {
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const [postCount, setPostCount] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsForm, setSettingsForm] = useState({});
   const [saving, setSaving] = useState(false);
@@ -31,23 +33,33 @@ export default function ClubDetailPage() {
     try {
       const clubs = await base44.entities.ReadingClub.filter({ id });
       if (clubs.length > 0) {
-        setClub(clubs[0]);
+        const c = clubs[0];
+        setClub(c);
         setSettingsForm({
-          name: clubs[0].name,
-          description: clubs[0].description || '',
-          current_book_title: clubs[0].current_book_title || '',
-          is_visible: clubs[0].is_visible !== false,
-          allow_chat: clubs[0].allow_chat !== false,
+          name: c.name, description: c.description || '', current_book_title: c.current_book_title || '',
+          is_visible: c.is_visible !== false, allow_chat: c.allow_chat !== false,
+          banner_image: c.banner_image || '', reading_goal: c.reading_goal || '', pinned_announcement: c.pinned_announcement || '',
         });
-        const [m, s] = await Promise.all([
+        const [m, s, posts] = await Promise.all([
           base44.entities.ClubMemberTracking.filter({ club_id: id }),
           base44.entities.BookClubSchedule.filter({ club_id: id }),
+          base44.entities.ClubPost.filter({ club_id: id }, '-created_date', 200),
         ]);
         setMembers(m);
         setSchedules(s);
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        setPostCount(posts.filter(p => new Date(p.created_date) > weekAgo).length);
       }
     } catch (e) {}
     setLoading(false);
+  }
+
+  async function joinClub() {
+    if (!user || !club) return;
+    try {
+      const res = await base44.functions.invoke('joinClub', { club_id: club.id });
+      if (res.data?.club) setClub(res.data.club);
+    } catch (e) {}
   }
 
   async function leaveClub() {
@@ -69,10 +81,8 @@ export default function ClubDetailPage() {
       const memberEmails = (club.member_emails || []).filter(e => e !== user?.email);
       if (memberEmails.length > 0) {
         base44.entities.Notification.bulkCreate(memberEmails.map(email => ({
-          user_email: email, type: 'club_new_book',
-          title: `${club.name} started a new book`,
-          body: settingsForm.current_book_title,
-          link: `/club/${club.id}`, group_key: club.id, is_read: false,
+          user_email: email, type: 'club_new_book', title: `${club.name} started a new book`,
+          body: settingsForm.current_book_title, link: `/club/${club.id}`, group_key: club.id, is_read: false,
         })));
       }
     }
@@ -81,18 +91,15 @@ export default function ClubDetailPage() {
   }
 
   async function deleteClub() {
-    if (!confirm('Are you sure you want to delete this club? This cannot be undone.')) return;
+    if (!confirm('Delete this club? This cannot be undone.')) return;
     setDeleting(true);
-    try {
-      await base44.entities.ReadingClub.delete(club.id);
-      navigate('/clubs');
-    } catch (e) {}
+    try { await base44.entities.ReadingClub.delete(club.id); navigate('/clubs'); } catch (e) {}
     setDeleting(false);
   }
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12 flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--lx-accent)', borderTopColor: 'transparent' }} />
       </div>
     );
@@ -109,129 +116,118 @@ export default function ClubDetailPage() {
 
   const isAdmin = club.creator_email === user?.email;
   const isMember = club.member_emails?.includes(user?.email);
+  const notifKey = `lexio_club_notif_${club.id}`;
+  const notifEnabled = localStorage.getItem(notifKey) === 'true';
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: BookOpen },
+    ...(club.club_type === 'discussion' || club.club_type === 'collaborative' ? [{ id: 'discussions', label: 'Discussions', icon: MessageSquare }] : []),
+    { id: 'members', label: 'Members', icon: Users },
+    ...(club.allow_chat !== false ? [{ id: 'chat', label: 'Chat', icon: MessageSquare }] : []),
+    ...(club.club_type !== 'discussion' && club.club_type !== 'logging' ? [{ id: 'leaderboard', label: 'Leaderboard', icon: Trophy }] : []),
+    ...(club.club_type === 'collaborative' ? [{ id: 'chains', label: 'Chains', icon: MessageSquare }] : []),
+    ...(club.club_type === 'logging' && isAdmin ? [{ id: 'dashboard', label: 'Dashboard', icon: BookOpen }] : []),
+  ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 pb-24 md:pb-8">
-      <button onClick={() => navigate(-1)} className="lx-btn-ghost text-sm mb-6 py-1.5 px-3">
-        <ArrowLeft size={14} /> Back
-      </button>
-
-      {/* Header */}
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="font-display text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{club.name}</h1>
-            <span className="text-2xl">
-              {club.club_type === 'administrative' ? '👥' : club.club_type === 'collaborative' ? '📚' : club.club_type === 'logging' ? '📊' : '💬'}
-            </span>
-            {!club.is_visible && <Key size={14} style={{ color: 'var(--lx-accent)' }} />}
-          </div>
-          {club.description && <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{club.description}</p>}
-          {club.join_code && isAdmin && (
-            <p className="text-xs mt-1 font-mono" style={{ color: 'var(--lx-accent)' }}>Join code: {club.join_code}</p>
-          )}
-        </div>
-        {isAdmin && (
-          <button onClick={() => setShowSettings(true)} className="lx-btn-ghost text-sm">
-            <Settings size={14} /> Settings
-          </button>
-        )}
+    <div className="max-w-5xl mx-auto pb-24 md:pb-8">
+      <div className="hidden md:flex px-4 pt-4">
+        <button onClick={() => navigate(-1)} className="lx-btn-ghost text-sm mb-4 py-1.5 px-3"><ArrowLeft size={14} /> Back</button>
       </div>
 
-      {/* Stats Bar */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        <div className="lx-card p-4">
-          <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Members</p>
-          <p className="font-display text-2xl font-bold" style={{ color: 'var(--lx-accent)' }}>{club.member_count || 1}</p>
+      <ClubHero club={club} user={user} isAdmin={isAdmin} isMember={isMember}
+        onJoin={joinClub} onLeave={leaveClub}
+        onToggleNotif={() => { localStorage.setItem(notifKey, notifEnabled ? 'false' : 'true'); setClub(prev => prev ? { ...prev } : prev); }}
+        notifEnabled={notifEnabled} onOpenSettings={() => setShowSettings(true)} />
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3 mb-4 px-4 md:px-0">
+        <div className="lx-card p-3 md:p-4 text-center">
+          <Users size={15} className="mx-auto mb-1" style={{ color: 'var(--lx-accent)' }} />
+          <p className="font-display text-lg md:text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{club.member_count || 1}</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Members</p>
         </div>
-        <div className="lx-card p-4">
-          <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Type</p>
-          <p className="text-sm font-bold capitalize" style={{ color: 'var(--text-primary)' }}>{club.club_type}</p>
+        <div className="lx-card p-3 md:p-4 text-center">
+          <MessageSquare size={15} className="mx-auto mb-1" style={{ color: 'var(--lx-accent)' }} />
+          <p className="font-display text-lg md:text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{postCount}</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Posts this week</p>
         </div>
-        <div className="lx-card p-4">
-          <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Current Book</p>
-          <p className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{club.current_book_title || 'None'}</p>
+        <div className="lx-card p-3 md:p-4 text-center">
+          <BookOpen size={15} className="mx-auto mb-1" style={{ color: 'var(--lx-accent)' }} />
+          <p className="font-display text-xs md:text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{club.current_book_title || 'None'}</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Current Read</p>
         </div>
       </div>
+
+      {club.reading_goal && (
+        <div className="px-4 md:px-0 mb-4 flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <Target size={14} style={{ color: 'var(--lx-accent)' }} />
+          <span>Reading goal: <strong style={{ color: 'var(--text-primary)' }}>{club.reading_goal} books/month</strong></span>
+        </div>
+      )}
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-        {[
-          { id: 'overview', label: 'Overview', icon: BookOpen },
-          { id: 'members', label: 'Members', icon: Users },
-          ...(club.allow_chat !== false ? [{ id: 'chat', label: 'Chat', icon: MessageSquare }] : []),
-          ...(club.club_type !== 'discussion' && club.club_type !== 'logging' ? [{ id: 'leaderboard', label: 'Leaderboard', icon: Trophy }] : []),
-          ...(club.club_type === 'collaborative' ? [{ id: 'chains', label: 'Discussion Chains', icon: MessageSquare }] : []),
-          ...(club.club_type === 'logging' && isAdmin ? [{ id: 'dashboard', label: 'Log Dashboard', icon: BookOpen }] : []),
-        ].map(t => (
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1 px-4 md:px-0 sticky top-0 z-10" style={{ background: 'var(--bg-primary)' }}>
+        {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium whitespace-nowrap transition-all"
+            className="flex items-center gap-1.5 px-3 md:px-4 py-2 rounded text-sm font-medium whitespace-nowrap transition-all"
             style={{ background: tab === t.id ? 'var(--lx-accent)' : 'var(--bg-card)', color: tab === t.id ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${tab === t.id ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
             <t.icon size={13} /> {t.label}
           </button>
         ))}
       </div>
 
-      {tab === 'overview' && (
-        <div className="space-y-6">
-          {club.club_type === 'discussion' && (
-            <DiscussionFeed club={club} user={user} isAdmin={isAdmin} />
-          )}
-          {club.club_type !== 'discussion' && (
-            <div className="lx-card p-6 space-y-6">
+      <div className="px-4 md:px-0">
+        {tab === 'overview' && (
+          <div className="space-y-4">
+            <div className="lx-card p-5 space-y-4">
               {club.current_book_title && (
                 <div>
-                  <h3 className="font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Currently Reading</h3>
-                  <div className="flex items-center gap-4">
-                    <BookOpen size={32} style={{ color: 'var(--lx-accent)' }} />
+                  <h3 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Currently Reading</h3>
+                  <Link to={`/book/${club.current_book_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <BookOpen size={28} style={{ color: 'var(--lx-accent)' }} />
                     <div>
                       <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{club.current_book_title}</p>
-                      {schedules.length > 0 && (
-                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{schedules[0].chapters?.length || 0} chapters</p>
-                      )}
+                      {schedules.length > 0 && <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{schedules[0].chapters?.length || 0} chapters scheduled</p>}
                     </div>
-                  </div>
+                  </Link>
                 </div>
               )}
               {club.genres?.length > 0 && (
                 <div>
-                  <h3 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Genres</h3>
+                  <h3 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Tags</h3>
                   <div className="flex flex-wrap gap-2">
-                    {club.genres.map(g => (
-                      <span key={g} className="text-sm px-3 py-1 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>{g}</span>
-                    ))}
+                    {club.genres.map(g => <span key={g} className="text-sm px-3 py-1 rounded-full" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>{g}</span>)}
                   </div>
                 </div>
               )}
-              <div className="flex gap-3 pt-4">
-                {isMember && !isAdmin && (
-                  <button onClick={leaveClub} className="lx-btn-ghost text-sm">Leave Club</button>
-                )}
-              </div>
+              {club.description && (
+                <div>
+                  <h3 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>About</h3>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{club.description}</p>
+                </div>
+              )}
             </div>
-          )}
-          {club.club_type === 'discussion' && isMember && !isAdmin && (
-            <button onClick={leaveClub} className="lx-btn-ghost text-sm">Leave Club</button>
-          )}
-        </div>
-      )}
-
-      {tab === 'chat' && <ClubChat club={club} user={user} />}
-      {tab === 'members' && <ClubMembers club={club} members={members} isAdmin={isAdmin} />}
-      {tab === 'dashboard' && club.club_type === 'logging' && <LoggingClubDashboard club={club} members={members} isAdmin={isAdmin} />}
-      {tab === 'overview' && club.club_type === 'logging' && !isAdmin && <LoggingClubDashboard club={club} members={members} isAdmin={false} />}
-      {tab === 'leaderboard' && <ClubLeaderboard club={club} members={members} />}
-      {tab === 'chains' && <BookClubChains club={club} schedule={schedules[0]} user={user} />}
+            {club.club_type === 'discussion' && <DiscussionFeed club={club} user={user} isAdmin={isAdmin} />}
+          </div>
+        )}
+        {tab === 'discussions' && <DiscussionFeed club={club} user={user} isAdmin={isAdmin} />}
+        {tab === 'chat' && <ClubChat club={club} user={user} />}
+        {tab === 'members' && <ClubMembers club={club} members={members} isAdmin={isAdmin} />}
+        {tab === 'dashboard' && club.club_type === 'logging' && <LoggingClubDashboard club={club} members={members} isAdmin={isAdmin} />}
+        {tab === 'overview' && club.club_type === 'logging' && !isAdmin && <LoggingClubDashboard club={club} members={members} isAdmin={false} />}
+        {tab === 'leaderboard' && <ClubLeaderboard club={club} members={members} />}
+        {tab === 'chains' && <BookClubChains club={club} schedule={schedules[0]} user={user} />}
+      </div>
 
       {/* Settings Modal */}
       {showSettings && isAdmin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
-          <div className="w-full max-w-md rounded-xl p-6 max-h-[90vh] overflow-y-auto" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-md rounded-xl p-6 my-8 max-h-[90vh] overflow-y-auto" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-display text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Club Settings</h2>
               <button onClick={() => setShowSettings(false)}><X size={18} style={{ color: 'var(--text-muted)' }} /></button>
             </div>
-
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Club Name</label>
@@ -239,57 +235,45 @@ export default function ClubDetailPage() {
               </div>
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Description</label>
-                <textarea className="lx-input text-sm resize-none" rows={3} value={settingsForm.description || ''} onChange={e => setSettingsForm(f => ({ ...f, description: e.target.value }))} />
+                <textarea className="lx-input text-sm resize-none" rows={2} value={settingsForm.description || ''} onChange={e => setSettingsForm(f => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Banner Image URL</label>
+                <input className="lx-input text-sm" placeholder="https://..." value={settingsForm.banner_image || ''} onChange={e => setSettingsForm(f => ({ ...f, banner_image: e.target.value }))} />
               </div>
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Current Book Title</label>
                 <input className="lx-input text-sm" placeholder="e.g. Dune" value={settingsForm.current_book_title || ''} onChange={e => setSettingsForm(f => ({ ...f, current_book_title: e.target.value }))} />
               </div>
-
+              <div>
+                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Reading Goal (books/month)</label>
+                <input type="number" className="lx-input text-sm" placeholder="e.g. 4" value={settingsForm.reading_goal || ''} onChange={e => setSettingsForm(f => ({ ...f, reading_goal: e.target.value ? Number(e.target.value) : '' }))} />
+              </div>
+              <div>
+                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Pinned Announcement</label>
+                <textarea className="lx-input text-sm resize-none" rows={2} placeholder="Pin an important message..." value={settingsForm.pinned_announcement || ''} onChange={e => setSettingsForm(f => ({ ...f, pinned_announcement: e.target.value }))} />
+              </div>
               <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
-                <div>
-                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Visible to everyone</p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Show in public club listing</p>
-                </div>
-                <button onClick={() => setSettingsForm(f => ({ ...f, is_visible: !f.is_visible }))}
-                  className="w-11 h-6 rounded-full transition-all relative flex-shrink-0"
-                  style={{ background: settingsForm.is_visible ? 'var(--lx-accent)' : 'var(--lx-border)' }}>
-                  <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-                    style={{ left: settingsForm.is_visible ? '22px' : '2px' }} />
+                <div><p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Visible to everyone</p><p className="text-xs" style={{ color: 'var(--text-muted)' }}>Show in public listing</p></div>
+                <button onClick={() => setSettingsForm(f => ({ ...f, is_visible: !f.is_visible }))} className="w-11 h-6 rounded-full transition-all relative flex-shrink-0" style={{ background: settingsForm.is_visible ? 'var(--lx-accent)' : 'var(--lx-border)' }}>
+                  <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all" style={{ left: settingsForm.is_visible ? '22px' : '2px' }} />
                 </button>
               </div>
-
               <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
-                <div>
-                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Allow chat</p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Members can discuss</p>
-                </div>
-                <button onClick={() => setSettingsForm(f => ({ ...f, allow_chat: !f.allow_chat }))}
-                  className="w-11 h-6 rounded-full transition-all relative flex-shrink-0"
-                  style={{ background: settingsForm.allow_chat ? 'var(--lx-accent)' : 'var(--lx-border)' }}>
-                  <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-                    style={{ left: settingsForm.allow_chat ? '22px' : '2px' }} />
+                <div><p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Allow chat</p><p className="text-xs" style={{ color: 'var(--text-muted)' }}>Members can discuss</p></div>
+                <button onClick={() => setSettingsForm(f => ({ ...f, allow_chat: !f.allow_chat }))} className="w-11 h-6 rounded-full transition-all relative flex-shrink-0" style={{ background: settingsForm.allow_chat ? 'var(--lx-accent)' : 'var(--lx-border)' }}>
+                  <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all" style={{ left: settingsForm.allow_chat ? '22px' : '2px' }} />
                 </button>
               </div>
-
               {club.join_code && (
                 <div className="p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
                   <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>Join Code</p>
                   <p className="font-mono font-bold text-lg" style={{ color: 'var(--lx-accent)' }}>{club.join_code}</p>
-                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Share this code to invite members</p>
                 </div>
               )}
-
-              <div className="flex gap-2 pt-2">
-                <button onClick={saveSettings} disabled={saving} className="lx-btn-primary flex-1 justify-center text-sm">
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-
+              <button onClick={saveSettings} disabled={saving} className="lx-btn-primary w-full justify-center text-sm">{saving ? 'Saving...' : 'Save Changes'}</button>
               <div className="pt-2 border-t" style={{ borderColor: 'var(--lx-border)' }}>
-                <button onClick={deleteClub} disabled={deleting}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded text-sm font-medium transition-all"
-                  style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.3)' }}>
+                <button onClick={deleteClub} disabled={deleting} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded text-sm font-medium transition-all" style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.3)' }}>
                   <Trash2 size={14} /> {deleting ? 'Deleting...' : 'Delete Club'}
                 </button>
               </div>
