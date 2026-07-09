@@ -38,7 +38,7 @@ export default function ClubDetailPage() {
         setSettingsForm({
           name: c.name, description: c.description || '', current_book_title: c.current_book_title || '',
           is_visible: c.is_visible !== false, allow_chat: c.allow_chat !== false,
-          banner_image: c.banner_image || '', reading_goal: c.reading_goal || '', pinned_announcement: c.pinned_announcement || '',
+          banner_image: c.banner_image || '',           reading_goal: c.reading_goal || null, pinned_announcement: c.pinned_announcement || '',
         });
         const [m, s, posts] = await Promise.all([
           base44.entities.ClubMemberTracking.filter({ club_id: id }),
@@ -247,7 +247,7 @@ export default function ClubDetailPage() {
               </div>
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Reading Goal (books/month)</label>
-                <input type="number" className="lx-input text-sm" placeholder="e.g. 4" value={settingsForm.reading_goal || ''} onChange={e => setSettingsForm(f => ({ ...f, reading_goal: e.target.value ? Number(e.target.value) : '' }))} />
+                <input type="number" className="lx-input text-sm" placeholder="e.g. 4" value={settingsForm.reading_goal ?? ''} onChange={e => setSettingsForm(f => ({ ...f, reading_goal: e.target.value ? Number(e.target.value) : null }))} />
               </div>
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Pinned Announcement</label>
