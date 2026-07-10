@@ -64,12 +64,14 @@ export default function NotificationBell({ user }) {
   }, [open]);
 
   async function loadAll() {
-    const [notifs, broads] = await Promise.all([
-      base44.entities.Notification.filter({ user_email: user.email }, '-created_date', 50),
-      base44.entities.UserBroadcast.filter({ is_active: true }, '-created_date', 10),
-    ]);
-    setNotifications(notifs);
-    setBroadcasts(broads);
+    try {
+      const [notifs, broads] = await Promise.allSettled([
+        base44.entities.Notification.filter({ user_email: user.email }, '-created_date', 50),
+        base44.entities.UserBroadcast.filter({ is_active: true }, '-created_date', 10),
+      ]);
+      if (notifs.status === 'fulfilled') setNotifications(notifs.value);
+      if (broads.status === 'fulfilled') setBroadcasts(broads.value);
+    } catch (e) {}
   }
 
   async function markGroupRead(group) {
