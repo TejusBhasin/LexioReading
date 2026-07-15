@@ -22,6 +22,7 @@ export default function JoinCreateSchool({ user }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [confirmed, setConfirmed] = useState(false);
+  const [createAgreed, setCreateAgreed] = useState(false);
 
   useEffect(() => { if (user?.email) load(); }, [user]);
 
@@ -215,8 +216,29 @@ export default function JoinCreateSchool({ user }) {
           <textarea className="lx-input text-sm resize-none" rows={2} placeholder="Brief description..." value={createForm.description} onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))} />
         </div>
       </div>
+      <div className="p-3 rounded-lg mb-4 flex items-start gap-2" style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid var(--lx-accent)' }}>
+        <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--lx-accent)' }} />
+        <div className="text-xs space-y-2" style={{ color: 'var(--text-secondary)' }}>
+          <p className="font-bold" style={{ color: 'var(--text-primary)' }}>School Creation Agreement</p>
+          <p>By creating a school, you confirm and agree that:</p>
+          <ul style={{ paddingLeft: '1rem', listStyle: 'disc' }}>
+            <li>The group this school is being created for has <strong>10 or more members</strong> who will join using the code.</li>
+            <li>You are authorized to create this school on behalf of the group.</li>
+            <li>You understand that school membership is permanent for all members who join.</li>
+            <li>You agree to Lexio's Terms &amp; Conditions and Privacy Policy.</li>
+          </ul>
+        </div>
+      </div>
+      <label className="flex items-start gap-2 cursor-pointer mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <button onClick={() => setCreateAgreed(!createAgreed)}
+          className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+          style={{ background: createAgreed ? 'var(--lx-accent)' : 'transparent', border: `2px solid ${createAgreed ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
+          {createAgreed && <Check size={11} style={{ color: 'var(--bg-primary)' }} />}
+        </button>
+        I confirm that this group has 10 or more members and I agree to the terms above.
+      </label>
       {error && <p className="text-xs mb-3" style={{ color: '#f87171' }}>{error}</p>}
-      <button onClick={createSchool} disabled={saving || !createForm.name.trim()} className="lx-btn-primary w-full justify-center">
+      <button onClick={createSchool} disabled={saving || !createForm.name.trim() || !createAgreed} className="lx-btn-primary w-full justify-center">
         {saving ? 'Creating...' : 'Create School'}
       </button>
     </div>

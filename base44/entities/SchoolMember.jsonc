@@ -18,9 +18,24 @@
       "type": "string",
       "enum": [
         "admin",
+        "semi_admin",
         "member"
       ],
       "default": "member"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Permissions for semi_admin role: 'view_members', 'view_member_data', 'restrict_individual', 'kick_members', 'manage_restrictions', 'manage_theme'"
+    },
+    "individual_restrictions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Features restricted for this specific student only, in addition to school-wide restrictions"
     },
     "dual_mode_enabled": {
       "type": "boolean",

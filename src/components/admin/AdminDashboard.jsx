@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Megaphone, Ban, Search, Plus, Trash2, Check, X, AlertTriangle, Mail, Flag } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import FlaggedContentTab from '@/components/admin/FlaggedContentTab';
+import AdminAITab from '@/components/admin/AdminAITab';
 
 const ADMIN_TABS = [
+  { id: 'ai', label: '🤖 Admin AI' },
   { id: 'flagged', label: '🚩 Flagged Content' },
   { id: 'safety', label: '🛡️ User Safety' },
   { id: 'broadcasts', label: '📢 Broadcasts' },
@@ -483,7 +485,7 @@ function ContactRequestsTab() {
 
 // ─── Main AdminDashboard ───────────────────────────────────────────────────────
 export default function AdminDashboard({ user }) {
-  const [tab, setTab] = useState('flagged');
+  const [tab, setTab] = useState('ai');
 
   return (
     <div className="space-y-5">
@@ -502,6 +504,7 @@ export default function AdminDashboard({ user }) {
         ))}
       </div>
 
+      {tab === 'ai' && <AdminAITab user={user} />}
       {tab === 'flagged' && <FlaggedContentTab user={user} />}
       {tab === 'safety' && <SafetyTab />}
       {tab === 'broadcasts' && <BroadcastsTab adminEmail={user?.email} />}

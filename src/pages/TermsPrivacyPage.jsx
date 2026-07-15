@@ -113,6 +113,42 @@ export default function TermsPrivacyPage() {
               Lexio reserves the right to update its definition of "loophole" at any time. Users are responsible for staying informed of these Terms. Ignorance of this clause is not a valid defense.
             </p>
 
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Non-Compete — Reading Platform Exclusivity</h3>
+            <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+              BY CREATING AN ACCOUNT ON LEXIO, YOU AGREE THAT FOR A PERIOD OF EIGHTY (80) YEARS from the date of your registration, you shall not, directly or indirectly, anywhere in the world:
+            </p>
+            <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
+              <li><strong>Create, found, establish, or operate</strong> any reading-related application, platform, service, or business that competes with Lexio or any similar service, including but not limited to Goodreads.</li>
+              <li><strong>Participate in, be employed by, consult for, advise, invest in,</strong> or otherwise be involved with any reading-related company, platform, or service that is a competitor or potential competitor of Lexio.</li>
+              <li><strong>Develop, design, or contribute to</strong> any software, website, or application whose primary purpose is book tracking, reading logging, book recommendations, book reviews, reading communities, or any feature substantially similar to any Lexio feature.</li>
+            </ul>
+            <p style={{ marginTop: '0.5rem' }}>
+              This restriction applies regardless of whether such activity is for profit, non-profit, or personal use. A "reading-related" company or service is defined broadly and includes any platform that involves books, reading tracking, book discovery, reading communities, or reading analytics. Violation of this clause may result in immediate account termination and Lexio reserves the right to pursue all available legal and equitable remedies.
+            </p>
+
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Data Breach, Security, and Damage Liability — Full Waiver</h3>
+            <p>
+              Lexio takes reasonable measures to protect your data. However, you acknowledge that <strong style={{ color: 'var(--text-primary)' }}>no system, platform, or service is or can ever be 100% secure.</strong> Accordingly, Lexio, its creators, developers, administrators, moderators, and all affiliated individuals and entities are <strong style={{ color: 'var(--text-primary)' }}>NOT responsible, liable, or accountable in any way</strong> for:
+            </p>
+            <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
+              <li>Data breaches, data leaks, hacks, cyberattacks, or unauthorized access to your data</li>
+              <li>Loss, corruption, theft, or exposure of any data — personal, reading, or otherwise</li>
+              <li>Any security incident of any kind, regardless of cause or negligence</li>
+              <li>Any <strong>physical, literal, mental, emotional, psychological, financial, or online damage, harm, or injury</strong> of any kind arising from or related to your use of Lexio</li>
+              <li>Distress from content viewed, addiction, sleep deprivation, academic or professional consequences, social conflicts, or any other harm — real or perceived</li>
+            </ul>
+            <p style={{ marginTop: '0.5rem' }}>
+              You use Lexio entirely at your own risk. Lexio provides no guarantee that the service will be uninterrupted, error-free, secure, or safe.
+            </p>
+
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>No Legal Action — Complete Immunity</h3>
+            <p style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+              BY USING LEXIO, YOU IRREVOCABLY AND UNCONDITIONALLY AGREE THAT LEXIO, ITS CREATORS, DEVELOPERS, ADMINISTRATORS, MODERATORS, AND ALL AFFILIATED INDIVIDUALS AND ENTITIES ARE COMPLETELY IMMUNE FROM AND MAY NOT BE SUED BY YOU OR ANY PARTY ACTING ON YOUR BEHALF.
+            </p>
+            <p>
+              YOU WAIVE ALL RIGHTS TO BRING ANY LEGAL ACTION, LAWSUIT, CLAIM, ARBITRATION, OR DEMAND OF ANY KIND AGAINST LEXIO OR ANY PERSON INVOLVED IN ITS CREATION OR OPERATION, IN ANY COURT, TRIBUNAL, OR FORUM — WHETHER CIVIL, CRIMINAL, ADMINISTRATIVE, OR OTHERWISE. THIS WAIVER IS ABSOLUTE, IRREVOCABLE, AND SURVIVES TERMINATION OF YOUR ACCOUNT. IF ANY PORTION OF THIS CLAUSE IS FOUND UNENFORCEABLE, THE REMAINDER SHALL CONTINUE IN FULL FORCE AND EFFECT.
+            </p>
+
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Entire Agreement</h3>
             <p>
               These Terms constitute the entire agreement between you and Lexio with respect to your use of the platform. No prior agreements, representations, or understandings — written or verbal — supersede these Terms. If any provision is found unenforceable, the remaining provisions remain in full force.
@@ -131,7 +167,7 @@ export default function TermsPrivacyPage() {
             Privacy Policy
           </h1>
           <div className="prose space-y-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            <p><em style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Terms version: v2, May 2026. All users must re-accept when terms are updated. Acceptance is permanently logged.</em></p>
+            <p><em style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Terms version: v4, July 2026. All users must re-accept when terms are updated. Acceptance is permanently logged.</em></p>
             <p>
               <strong style={{ color: 'var(--text-primary)' }}>Your Privacy Matters</strong>
             </p>
@@ -199,6 +235,36 @@ export default function TermsPrivacyPage() {
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Contact</h3>
             <p>Questions about privacy? Contact support through the app or reach out to our team (Support@LexioReading.App). We are committed to transparency.
 
+            </p>
+          </div>
+        </section>
+
+        {/* Lexio Guarantee */}
+        <section id="lexio-guarantee" className="rounded-xl p-6" style={{ background: 'linear-gradient(135deg, rgba(245,214,35,0.08), rgba(245,166,35,0.04))', border: '1px solid var(--lx-accent)' }}>
+          <h1 className="font-display text-2xl font-bold mb-1 flex items-center gap-2" style={{ color: 'var(--lx-accent)' }}>
+            🛡️ The Lexio Guarantee
+          </h1>
+          <p className="text-xs mb-5" style={{ color: 'var(--text-muted)' }}>
+            Our binding pledge to you — the reader. This is not just a policy. It is a promise.
+          </p>
+          <div className="space-y-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <p>Lexio pledges, on behalf of itself and all current and future team members, that:</p>
+            <div className="space-y-2.5">
+              {[
+                'We will NEVER sell your personal data to any third party — not now, not ever.',
+                'We will NEVER share your personal data with any third party for advertising, marketing, or commercial purposes.',
+                'We will NEVER use your reading data, preferences, or personal information as a product to be monetized.',
+                'Your data is yours. We collect only what is needed to provide you a great reading experience.',
+                'If this pledge is ever willfully violated, Lexio forfeits the right to operate as a platform.',
+              ].map((pledge, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="flex-shrink-0 mt-0.5" style={{ color: 'var(--lx-accent)' }}>✦</span>
+                  <span>{pledge}</span>
+                </div>
+              ))}
+            </div>
+            <p className="pt-2 font-medium" style={{ color: 'var(--text-primary)' }}>
+              This is the Lexio Guarantee — our binding commitment to you, the reader. It supersedes any future corporate decision, acquisition, or change in leadership.
             </p>
           </div>
         </section>

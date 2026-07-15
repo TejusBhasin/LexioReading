@@ -8,6 +8,7 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
   const [hover, setHover] = useState(0);
   const [content, setContent] = useState('');
   const [hasSpoilers, setHasSpoilers] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   async function submit() {
@@ -24,6 +25,7 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
         rating,
         content: content.trim(),
         has_spoilers: hasSpoilers,
+        is_public: isPublic,
         approved: true,
       });
       await awardPoints(userEmail, 'review', username);
@@ -73,10 +75,16 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
         />
         <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>{content.length}/800</p>
 
-        <label className="flex items-center gap-2 cursor-pointer mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <label className="flex items-center gap-2 cursor-pointer mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
           <input type="checkbox" checked={hasSpoilers} onChange={e => setHasSpoilers(e.target.checked)}
             className="rounded" />
           This review contains spoilers
+        </label>
+
+        <label className="flex items-center gap-2 cursor-pointer mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)}
+            className="rounded" />
+          Show on public reviews page
         </label>
 
         <div className="flex gap-2">

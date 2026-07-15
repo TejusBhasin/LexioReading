@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -14,6 +14,15 @@ const FEATURE_LABELS = {
   discover: 'Discover',
 };
 const ALL_FEATURES = Object.keys(FEATURE_LABELS);
+
+const SEMI_ADMIN_PERMISSIONS = [
+  { key: 'view_members', label: 'View Member List' },
+  { key: 'view_member_data', label: 'View Student Reading Data' },
+  { key: 'restrict_individual', label: 'Restrict Individual Students' },
+  { key: 'kick_members', label: 'Remove Students' },
+  { key: 'manage_restrictions', label: 'Manage School-Wide Restrictions' },
+  { key: 'manage_theme', label: 'Manage School Theme' },
+];
 
 export default function SchoolAdminPage() {
   const { user } = useAuth();
@@ -30,6 +39,7 @@ export default function SchoolAdminPage() {
   const [ageRestriction, setAgeRestriction] = useState('all');
   const [applyingAge, setApplyingAge] = useState(false);
   const [ageApplied, setAgeApplied] = useState(false);
+  const [expandedMember, setExpandedMember] = useState(null);
 
   useEffect(() => { if (user?.email) load(); }, [user]);
 
@@ -107,6 +117,30 @@ export default function SchoolAdminPage() {
     await Promise.all(members.map(m => base44.entities.SchoolMember.update(m.id, { kicked: true })));
     await base44.entities.School.update(school.id, { is_active: false });
     navigate('/profile');
+  }
+
+  async function promoteToSemiAdmin(member) {
+    await base44.entities.SchoolMember.update(member.id, { role: 'semi_admin' });
+    setMembers(prev => prev.map(m => m.id === member.id ? { ...m, role: 'semi_admin' } : m));
+  }
+
+  async function demoteToMember(member) {
+    await base44.entities.SchoolMember.update(member.id, { role: 'member', permissions: [] });
+    setMembers(prev => prev.map(m => m.id === member.id ? { ...m, role: 'member', permissions: [] } : m));
+  }
+
+  async function togglePermission(member, perm) {
+    const current = member.permissions || [];
+    const updated = current.includes(perm) ? current.filter(p => p !== perm) : [...current, perm];
+    await base44.entities.SchoolMember.update(member.id, { permissions: updated });
+    setMembers(prev => prev.map(m => m.id === member.id ? { ...m, permissions: updated } : m));
+  }
+
+  async function toggleIndividualRestriction(member, feat) {
+    const current = member.individual_restrictions || [];
+    const updated = current.includes(feat) ? current.filter(f => f !== feat) : [...current, feat];
+    await base44.entities.SchoolMember.update(member.id, { individual_restrictions: updated });
+    setMembers(prev => prev.map(m => m.id === member.id ? { ...m, individual_restrictions: updated } : m));
   }
 
   function toggleRestriction(feat) {
@@ -215,36 +249,106 @@ export default function SchoolAdminPage() {
 
       {/* MEMBERS */}
       {tab === 'members' && (
-        <div className="space-y-3">
-          {members.map(m => (
-            <div key={m.id} className="lx-card p-4 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0"
-                style={{ background: m.kicked ? 'var(--bg-elevated)' : 'var(--lx-accent)', color: m.kicked ? 'var(--text-muted)' : 'var(--bg-primary)' }}>
-                {(m.user_email?.[0] || '?').toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: m.kicked ? 'var(--text-muted)' : 'var(--text-primary)' }}>{m.user_email}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{m.role}</span>
-                  {m.kicked && <span className="text-xs px-1.5 rounded" style={{ background: 'rgba(248,113,113,0.15)', color: '#f87171' }}>Removed</span>}
-                  {m.dual_mode_enabled && <span className="text-xs px-1.5 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)' }}>Dual Mode</span>}
-                </div>
-              </div>
-              {m.role !== 'admin' && (
-                <div className="flex gap-1">
-                  {m.kicked ? (
-                    <button onClick={() => reinstateMemeber(m)} title="Reinstate" className="p-1.5 rounded transition-all" style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>
-                      <UserCheck size={14} />
-                    </button>
-                  ) : (
-                    <button onClick={() => kickMember(m)} title="Remove from school" className="p-1.5 rounded transition-all" style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171' }}>
-                      <UserX size={14} />
-                    </button>
+        <div className="space-y-2">
+          {members.map(m => {
+            const isExpanded = expandedMember === m.id;
+            const isSemiAdmin = m.role === 'semi_admin';
+            const memberPerms = m.permissions || [];
+            const indivRestrictions = m.individual_restrictions || [];
+            return (
+              <div key={m.id} className="lx-card overflow-hidden">
+                <div className="p-4 flex items-center gap-3" style={{ cursor: m.role !== 'admin' && !m.kicked ? 'pointer' : 'default' }} onClick={() => m.role !== 'admin' && !m.kicked && setExpandedMember(isExpanded ? null : m.id)}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0"
+                    style={{ background: m.kicked ? 'var(--bg-elevated)' : isSemiAdmin ? '#818cf8' : 'var(--bg-elevated)', color: m.kicked ? 'var(--text-muted)' : isSemiAdmin ? '#fff' : 'var(--lx-accent)', border: isSemiAdmin || m.kicked ? 'none' : '1px solid var(--lx-border)' }}>
+                    {m.role === 'admin' ? <Crown size={14} /> : (m.user_email?.[0] || '?').toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: m.kicked ? 'var(--text-muted)' : 'var(--text-primary)' }}>{m.user_email}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: m.role === 'admin' ? 'rgba(245,166,35,0.15)' : isSemiAdmin ? 'rgba(99,102,241,0.15)' : 'var(--bg-elevated)', color: m.role === 'admin' ? 'var(--lx-accent)' : isSemiAdmin ? '#818cf8' : 'var(--text-muted)' }}>
+                        {m.role === 'admin' ? 'Admin' : isSemiAdmin ? 'Semi-Admin' : 'Member'}
+                      </span>
+                      {m.kicked && <span className="text-xs px-1.5 rounded" style={{ background: 'rgba(248,113,113,0.15)', color: '#f87171' }}>Removed</span>}
+                      {indivRestrictions.length > 0 && <span className="text-xs px-1.5 rounded" style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171' }}>{indivRestrictions.length} restricted</span>}
+                      {m.dual_mode_enabled && <span className="text-xs px-1.5 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)' }}>Dual Mode</span>}
+                    </div>
+                  </div>
+                  {m.role !== 'admin' && (
+                    <div className="flex items-center gap-1">
+                      {m.kicked ? (
+                        <button onClick={(e) => { e.stopPropagation(); reinstateMemeber(m); }} title="Reinstate" className="p-1.5 rounded transition-all" style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>
+                          <UserCheck size={14} />
+                        </button>
+                      ) : (
+                        <button onClick={(e) => { e.stopPropagation(); kickMember(m); }} title="Remove from school" className="p-1.5 rounded transition-all" style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171' }}>
+                          <UserX size={14} />
+                        </button>
+                      )}
+                      {!m.kicked && (isExpanded ? <ChevronUp size={14} style={{ color: 'var(--text-muted)' }} /> : <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />)}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-          ))}
+
+                {isExpanded && !m.kicked && m.role !== 'admin' && (
+                  <div className="px-4 pb-4 space-y-4 border-t" style={{ borderColor: 'var(--lx-border)' }}>
+                    <div className="pt-3">
+                      <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-muted)' }}>Role</p>
+                      <div className="flex gap-2">
+                        <button onClick={() => demoteToMember(m)} disabled={m.role === 'member'}
+                          className="flex-1 py-2 rounded text-xs font-medium transition-all"
+                          style={{ background: m.role === 'member' ? 'var(--lx-accent)' : 'var(--bg-elevated)', color: m.role === 'member' ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${m.role === 'member' ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
+                          Member
+                        </button>
+                        <button onClick={() => promoteToSemiAdmin(m)} disabled={isSemiAdmin}
+                          className="flex-1 py-2 rounded text-xs font-medium transition-all"
+                          style={{ background: isSemiAdmin ? '#818cf8' : 'var(--bg-elevated)', color: isSemiAdmin ? '#fff' : 'var(--text-secondary)', border: `1px solid ${isSemiAdmin ? '#818cf8' : 'var(--lx-border)'}` }}>
+                          <Shield size={11} className="inline mr-1" /> Semi-Admin
+                        </button>
+                      </div>
+                    </div>
+
+                    {isSemiAdmin && (
+                      <div>
+                        <p className="text-xs font-bold mb-1 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}><Shield size={11} /> Semi-Admin Permissions</p>
+                        <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Choose what this semi-admin can do.</p>
+                        <div className="space-y-1.5">
+                          {SEMI_ADMIN_PERMISSIONS.map(perm => {
+                            const has = memberPerms.includes(perm.key);
+                            return (
+                              <div key={perm.key} className="flex items-center justify-between px-3 py-2 rounded" style={{ background: 'var(--bg-elevated)' }}>
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{perm.label}</span>
+                                <button onClick={() => togglePermission(m, perm.key)} className="w-9 h-5 rounded-full transition-all relative flex-shrink-0" style={{ background: has ? '#818cf8' : 'var(--lx-border)' }}>
+                                  <span className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all" style={{ left: has ? '20px' : '2px' }} />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-xs font-bold mb-1" style={{ color: 'var(--text-muted)' }}>Individual Restrictions</p>
+                      <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Restrict specific features for this student only (in addition to school-wide restrictions).</p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {ALL_FEATURES.map(feat => {
+                          const restricted = indivRestrictions.includes(feat);
+                          return (
+                            <button key={feat} onClick={() => toggleIndividualRestriction(m, feat)}
+                              className="flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-all"
+                              style={{ background: restricted ? 'rgba(248,113,113,0.1)' : 'var(--bg-elevated)', border: `1px solid ${restricted ? 'rgba(248,113,113,0.4)' : 'var(--lx-border)'}`, color: restricted ? '#f87171' : 'var(--text-secondary)' }}>
+                              <span>{FEATURE_LABELS[feat]}</span>
+                              <span className="text-[10px]">{restricted ? 'Blocked' : 'Allowed'}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 

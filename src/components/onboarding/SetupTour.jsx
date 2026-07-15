@@ -16,6 +16,8 @@ function TandC() {
           <p>Lexio is a free reading companion app. By using Lexio you agree to use it for personal, non-commercial reading purposes only.</p>
           <p>You are responsible for the content you post (reviews, discussions). Hateful, illegal, or abusive content is prohibited and may result in account termination.</p>
           <p>Lexio reserves the right to modify or discontinue services at any time. We are not responsible for third-party links (e.g. Amazon, Google Books).</p>
+          <p><strong style={{ color: 'var(--text-primary)' }}>Non-Compete:</strong> For 80 years from registration, you agree not to create, participate in, or be involved with any reading-related platform or business that competes with Lexio or similar services (e.g. Goodreads).</p>
+          <p><strong style={{ color: 'var(--text-primary)' }}>Liability &amp; No-Sue:</strong> Lexio is NOT responsible for data breaches, hacks, security incidents, or any physical, mental, emotional, financial, or online damage. Lexio and its team are immune from all legal action. You waive all rights to sue.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Privacy Policy</strong></p>
           <p>We collect only the data necessary to provide the service: your email address, reading preferences, and content you create (logs, reviews, library entries).</p>
           <p>We do not sell your data to third parties. Your data is stored securely and is never shared without your consent, except as required by law.</p>

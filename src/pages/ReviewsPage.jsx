@@ -41,6 +41,7 @@ export default function ReviewsPage() {
 
   const filtered = reviews
     .filter(r => !blockedEmails.includes(r.user_email))
+    .filter(r => r.is_public !== false)
     .filter(r =>
       r.book_title?.toLowerCase().includes(search.toLowerCase()) ||
       r.username?.toLowerCase().includes(search.toLowerCase()) ||
@@ -145,6 +146,7 @@ function ReviewItem({ review, user, isOwner, onDelete }) {
   const stars = Math.round(review.rating || 0);
   const [showReport, setShowReport] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
+  const isPrivate = review.is_public === false;
   async function handleDelete() {
     if (!confirm('Delete this review?')) return;
     await base44.entities.Review.delete(review.id);
@@ -205,6 +207,7 @@ function ReviewItem({ review, user, isOwner, onDelete }) {
           <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
             by <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>@{review.username || 'reader'}</span>
             {review.created_date && <> · {new Date(review.created_date).toLocaleDateString()}</>}
+            {isPrivate && <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>Private</span>}
           </p>
 
           {review.content && (

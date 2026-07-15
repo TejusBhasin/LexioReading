@@ -36,6 +36,11 @@
       "type": "boolean",
       "default": false
     },
+    "is_public": {
+      "type": "boolean",
+      "default": true,
+      "description": "If false, review won't appear on public/recent reviews page"
+    },
     "approved": {
       "type": "boolean",
       "default": true
