@@ -10,12 +10,14 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
   const [hasSpoilers, setHasSpoilers] = useState(false);
   const [isPublic, setIsPublic] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   async function submit() {
     if (!rating || content.trim().length < 30) return;
     setSubmitting(true);
+    setError('');
     try {
-      await base44.entities.Review.create({
+      const review = await base44.entities.Review.create({
         user_email: userEmail,
         username,
         book_id: book.google_books_id || book.id,
@@ -28,7 +30,8 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
         is_public: isPublic,
         approved: true,
       });
-      await awardPoints(userEmail, 'review', username);
+      // Award points — don't let a points failure block the review
+      awardPoints(userEmail, 'review', username).catch(() => {});
       // Trigger AI analysis to update taste profile and reading strength (fire-and-forget)
       base44.functions.invoke('analyzeUserActivity', {
         user_email: userEmail,
@@ -38,8 +41,10 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
         book_author: book.author,
         rating,
       }).catch(() => {});
-      onSubmitted();
-    } catch (e) {}
+      onSubmitted(review);
+    } catch (e) {
+      setError(e?.message || 'Failed to post review. Please try again.');
+    }
     setSubmitting(false);
   }
 
@@ -87,11 +92,17 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
           Show on public reviews page
         </label>
 
+        {error && (
+          <div className="mb-3 p-3 rounded-lg text-sm" style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.3)' }}>
+            {error}
+          </div>
+        )}
+
         <div className="flex gap-2">
           <button onClick={onClose} className="lx-btn-ghost flex-1 justify-center">Cancel</button>
-          <button onClick={submit} disabled={!rating || content.length < 30 || submitting}
+          <button onClick={submit} disabled={!rating || content.trim().length < 30 || submitting}
             className="lx-btn-primary flex-1 justify-center">
-            {submitting ? 'Submitting...' : 'Post Review'}
+            {submitting ? 'Posting...' : 'Post Review'}
           </button>
         </div>
       </div>

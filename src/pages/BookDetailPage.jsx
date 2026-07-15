@@ -612,7 +612,11 @@ Return a JSON object with a "books" array, each item having "title" and "author"
           username={userProfile.username}
           userEmail={user.email}
           onClose={() => setShowWriteModal(false)}
-          onSubmitted={() => { setShowWriteModal(false); loadReviews(); }}
+          onSubmitted={(newReview) => {
+            setShowWriteModal(false);
+            if (newReview) setReviews(prev => [newReview, ...prev]);
+            loadReviews();
+          }}
         />
       )}
 
