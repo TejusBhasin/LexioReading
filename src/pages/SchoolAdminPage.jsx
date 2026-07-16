@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown, Lock, Send, BookOpen, Sparkles, Bot, Mail, Check, X, Clock, Ban } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown, Lock, Send, BookOpen, Sparkles, Bot, Mail, Check, X, Clock, Ban, Archive, Bell } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ClassesTab from '@/components/schools/ClassesTab';
@@ -10,6 +10,9 @@ import StudentOverviewModal from '@/components/schools/StudentOverviewModal';
 import StudentRequestsTab from '@/components/schools/StudentRequestsTab';
 import SchoolContactTab from '@/components/schools/SchoolContactTab';
 import BanStudentModal from '@/components/schools/BanStudentModal';
+import SchoolSecurityDashboard from '@/components/schools/SchoolSecurityDashboard';
+import OffboardStudentModal from '@/components/schools/OffboardStudentModal';
+import SchoolNotifyModal from '@/components/schools/SchoolNotifyModal';
 
 const FEATURE_LABELS = {
   vault: 'Vault',
@@ -55,6 +58,9 @@ export default function SchoolAdminPage() {
   const [submittingDomain, setSubmittingDomain] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [banTarget, setBanTarget] = useState(null);
+  const [offboardTarget, setOffboardTarget] = useState(null);
+  const [notifyTarget, setNotifyTarget] = useState(null);
+  const [notifyAll, setNotifyAll] = useState(false);
 
   useEffect(() => { if (user?.email) load(); }, [user]);
 
@@ -273,6 +279,7 @@ export default function SchoolAdminPage() {
           ...(userRole === 'admin' ? [{ id: 'members', label: 'Members', icon: Users }] : []),
           ...(userRole === 'admin' ? [{ id: 'requests', label: 'Requests', icon: Clock }] : []),
           ...(userRole === 'admin' ? [{ id: 'contact', label: 'Contact', icon: Mail }] : []),
+          { id: 'security', label: 'Security', icon: Shield },
           { id: 'classes', label: 'Classes', icon: BookOpen },
           { id: 'safety', label: 'Safety', icon: ShieldAlert },
           { id: 'ai', label: 'AI Assistant', icon: Bot },
@@ -294,6 +301,11 @@ export default function SchoolAdminPage() {
       {/* CONTACT */}
       {tab === 'contact' && (
         <SchoolContactTab school={school} user={user} />
+      )}
+
+      {/* SECURITY */}
+      {tab === 'security' && (
+        <SchoolSecurityDashboard school={school} user={user} members={members} onRefresh={load} />
       )}
 
       {/* CLASSES */}
@@ -467,14 +479,28 @@ export default function SchoolAdminPage() {
                         })}
                       </div>
 
-                      {/* Ban student */}
-                      <div className="pt-2 border-t" style={{ borderColor: 'var(--lx-border)' }}>
+                      {/* Actions: Notify, Ban, Offboard */}
+                      <div className="pt-2 border-t space-y-2" style={{ borderColor: 'var(--lx-border)' }}>
+                        <button
+                          onClick={() => setNotifyTarget({ email: m.user_email, name: m.username })}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-xs font-medium transition-all"
+                          style={{ background: 'rgba(245,166,35,0.1)', color: 'var(--lx-accent)', border: '1px solid rgba(245,166,35,0.3)' }}
+                        >
+                          <Bell size={12} /> Send Notification
+                        </button>
                         <button
                           onClick={() => setBanTarget({ email: m.user_email, name: m.username })}
                           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-xs font-medium transition-all"
                           style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.3)' }}
                         >
                           <Ban size={12} /> Ban Student (up to 7 days)
+                        </button>
+                        <button
+                          onClick={() => setOffboardTarget({ email: m.user_email, name: m.username })}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-xs font-medium transition-all"
+                          style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)', border: '1px solid var(--lx-border)' }}
+                        >
+                          <Archive size={12} /> Offboard Student (archive & remove)
                         </button>
                       </div>
                     </div>
@@ -704,6 +730,36 @@ export default function SchoolAdminPage() {
           studentName={banTarget.name}
           onClose={() => setBanTarget(null)}
           onBanned={() => setBanTarget(null)}
+        />
+      )}
+
+      {offboardTarget && (
+        <OffboardStudentModal
+          studentEmail={offboardTarget.email}
+          studentName={offboardTarget.name}
+          schoolId={school.id}
+          onClose={() => setOffboardTarget(null)}
+          onDone={() => { setOffboardTarget(null); load(); }}
+        />
+      )}
+
+      {notifyAll && (
+        <SchoolNotifyModal
+          schoolId={school.id}
+          schoolName={school.name}
+          onClose={() => setNotifyAll(false)}
+          onSent={() => setNotifyAll(false)}
+        />
+      )}
+
+      {notifyTarget && (
+        <SchoolNotifyModal
+          schoolId={school.id}
+          schoolName={school.name}
+          targetEmail={notifyTarget.email}
+          targetName={notifyTarget.name}
+          onClose={() => setNotifyTarget(null)}
+          onSent={() => setNotifyTarget(null)}
         />
       )}
     </div>

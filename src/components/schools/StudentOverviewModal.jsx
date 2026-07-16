@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, BookOpen, Clock, Star, Target, Zap, Settings, MessageSquare, Bot, Send, User, Sparkles, RefreshCw } from 'lucide-react';
+import { X, BookOpen, Clock, Star, Target, Zap, Settings, MessageSquare, Bot, Send, User, Sparkles, RefreshCw, Download, Archive } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 
@@ -11,6 +11,7 @@ export default function StudentOverviewModal({ schoolId, student, onClose }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiOverview, setAiOverview] = useState('');
   const [loadingAiOverview, setLoadingAiOverview] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -71,6 +72,25 @@ export default function StudentOverviewModal({ schoolId, student, onClose }) {
     setAiLoading(false);
   }
 
+  async function downloadData() {
+    setExporting(true);
+    try {
+      const res = await base44.functions.invoke('exportStudentData', {
+        student_email: student.user_email,
+        school_id: schoolId,
+      });
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const safeName = (student.username || student.user_email.split('@')[0]).replace(/[^a-zA-Z0-9]/g, '_');
+      a.download = `${safeName}_reading_data_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {}
+    setExporting(false);
+  }
+
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.8)' }}>
       <div className="w-full max-w-2xl rounded-xl my-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
@@ -86,9 +106,15 @@ export default function StudentOverviewModal({ schoolId, student, onClose }) {
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{student.user_email}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded transition-all hover:opacity-70">
-            <X size={18} style={{ color: 'var(--text-muted)' }} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={downloadData} disabled={exporting} title="Export student data"
+              className="p-1.5 rounded transition-all hover:opacity-70" style={{ color: 'var(--text-muted)' }}>
+              {exporting ? <RefreshCw size={16} className="animate-spin" /> : <Download size={16} />}
+            </button>
+            <button onClick={onClose} className="p-1.5 rounded transition-all hover:opacity-70">
+              <X size={18} style={{ color: 'var(--text-muted)' }} />
+            </button>
+          </div>
         </div>
 
         <div className="p-5 space-y-5 max-h-[calc(85vh-80px)] overflow-y-auto">

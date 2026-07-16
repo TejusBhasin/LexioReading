@@ -113,20 +113,42 @@ export default function TermsPrivacyPage() {
               Lexio reserves the right to update its definition of "loophole" at any time. Users are responsible for staying informed of these Terms. Ignorance of this clause is not a valid defense.
             </p>
 
-            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Data Breach, Security, and Damage Liability — Full Waiver</h3>
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Data Security &amp; Breach Response</h3>
             <p>
-              Lexio takes reasonable measures to protect your data. However, you acknowledge that <strong style={{ color: 'var(--text-primary)' }}>no system, platform, or service is or can ever be 100% secure.</strong> Accordingly, Lexio, its creators, developers, administrators, moderators, and all affiliated individuals and entities are <strong style={{ color: 'var(--text-primary)' }}>NOT responsible, liable, or accountable in any way</strong> for:
+              Lexio takes data security seriously and employs industry-standard practices to protect user data:
             </p>
             <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
-              <li>Data breaches, data leaks, hacks, cyberattacks, or unauthorized access to your data</li>
-              <li>Loss, corruption, theft, or exposure of any data — personal, reading, or otherwise</li>
-              <li>Any security incident of any kind, regardless of cause or negligence</li>
-              <li>Any <strong>physical, literal, mental, emotional, psychological, financial, or online damage, harm, or injury</strong> of any kind arising from or related to your use of Lexio</li>
-              <li>Distress from content viewed, addiction, sleep deprivation, academic or professional consequences, social conflicts, or any other harm — real or perceived</li>
+              <li><strong>Encryption in transit:</strong> All data is transmitted over HTTPS (TLS 1.2+).</li>
+              <li><strong>Encryption at rest:</strong> Database and file storage are encrypted at rest by our cloud infrastructure provider.</li>
+              <li><strong>API key protection:</strong> API keys and secrets are stored securely in encrypted environment variables and are never exposed in client-side code or logs.</li>
+              <li><strong>Access controls:</strong> Row-level security (RLS) ensures users can only access their own data. School admins can only access data for members of their own school.</li>
+              <li><strong>Vault data:</strong> Library card information stored in the Vault is protected by an additional PIN layer and is never included in analytics, AI training, or shared with schools.</li>
             </ul>
             <p style={{ marginTop: '0.5rem' }}>
-              You use Lexio entirely at your own risk. Lexio provides no guarantee that the service will be uninterrupted, error-free, secure, or safe.
+              <strong style={{ color: 'var(--text-primary)' }}>Incident Response:</strong> In the event of a suspected data breach, Lexio will:
             </p>
+            <ol style={{ paddingLeft: '1.5rem', listStyle: 'decimal', marginTop: '0.25rem' }}>
+              <li>Immediately investigate and contain the incident</li>
+              <li>Assess the scope of affected data and users</li>
+              <li>Notify affected users and school administrators within 72 hours of confirmation</li>
+              <li>Take corrective action to prevent recurrence</li>
+              <li>Document the incident and response for transparency</li>
+            </ol>
+            <p style={{ marginTop: '0.5rem' }}>
+              While Lexio implements robust security measures, no system can be guaranteed 100% secure. Lexio is not liable for damages arising from unauthorized access despite these precautions, but is committed to transparency and prompt notification if an incident occurs.
+            </p>
+
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Children's Online Privacy Protection (COPPA)</h3>
+            <p>
+              Lexio is designed for use by students, including those under 13, in school-supervised environments. In compliance with COPPA (Children's Online Privacy Protection Act):
+            </p>
+            <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
+              <li><strong>School consent:</strong> For students under 13, the school (acting as the educational institution) provides consent for data collection on behalf of the student, as permitted under COPPA's school authorization exception.</li>
+              <li><strong>Limited data collection:</strong> We collect only the minimal data needed to provide the reading experience — email, reading activity, and preferences. We do not collect excessive personal information.</li>
+              <li><strong>No marketing to children:</strong> We do not use student data for targeted advertising or commercial purposes.</li>
+              <li><strong>Data deletion:</strong> Schools can request deletion of a student's data at any time by offboarding the student and contacting support.</li>
+              <li><strong>Parental rights:</strong> Parents may review, request deletion of, or opt out of their child's data collection by contacting the school administrator or Lexio support.</li>
+            </ul>
 
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>No Legal Action — Complete Immunity</h3>
             <p style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -195,10 +217,29 @@ export default function TermsPrivacyPage() {
               <li><button onClick={() => navigate('/secret')} style={{ color: 'var(--lx-accent)', fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Legal Authorities:</button> Only if required by law</li>
             </ul>
 
-            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Data Security</h3>
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Data Security &amp; Storage</h3>
             <p>
-              Your data is encrypted in transit (HTTPS) and at rest. We use industry-standard security practices. However, no system is 100% secure.
+              <strong>Where your data is stored:</strong> User data is stored in secure cloud databases managed by Base44's infrastructure (AWS-based). All data is encrypted in transit (HTTPS/TLS) and at rest. Database backups are encrypted and maintained by the infrastructure provider.
             </p>
+            <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
+              <li><strong>Database:</strong> Encrypted at rest; row-level security ensures users only see their own data</li>
+              <li><strong>API keys &amp; secrets:</strong> Stored in encrypted environment variables, never exposed client-side</li>
+              <li><strong>Vault (library cards):</strong> Protected by an additional PIN layer; not included in analytics or AI</li>
+              <li><strong>School data isolation:</strong> When enabled, school members only see content from their own school</li>
+              <li><strong>AI data:</strong> Reading data is used to personalize recommendations; it is not sold or used for model training</li>
+            </ul>
+
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>School Data &amp; FERPA Awareness</h3>
+            <p>
+              For school environments, Lexio is designed with FERPA (Family Educational Rights and Privacy Act) principles in mind:
+            </p>
+            <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
+              <li>School admins control what student data types they can access (reading logs, library, reviews, etc.)</li>
+              <li>Students can be offboarded at any time — school access is revoked while personal reading data is preserved</li>
+              <li>School admins can export a student's reading data before offboarding</li>
+              <li>Content isolation can be enabled so students only see content from their own school</li>
+              <li>School reading data is not shared with other schools or third parties</li>
+            </ul>
 
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Your Rights</h3>
             <p>

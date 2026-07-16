@@ -11,6 +11,7 @@
         "forum_reply",
         "club_new_book",
         "broadcast",
+        "school_notification",
         "general"
       ]
     },
@@ -25,6 +26,10 @@
     },
     "group_key": {
       "type": "string"
+    },
+    "school_id": {
+      "type": "string",
+      "description": "School ID if this notification was sent by a school admin"
     },
     "is_read": {
       "type": "boolean",
