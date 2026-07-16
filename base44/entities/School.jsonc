@@ -63,6 +63,11 @@
       ],
       "default": "all",
       "description": "Mass age restriction for all school members. 'all' = no restriction, 'teen' = teen-appropriate only, 'adult' = adult content visible"
+    },
+    "content_isolation": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, students only see content (reviews, forums, clubs) created by other members of this school. Requires admin approval via SchoolChangeRequest."
     }
   },
   "required": [

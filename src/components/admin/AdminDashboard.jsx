@@ -3,11 +3,13 @@ import { Shield, Megaphone, Ban, Search, Plus, Trash2, Check, X, AlertTriangle, 
 import { base44 } from '@/api/base44Client';
 import FlaggedContentTab from '@/components/admin/FlaggedContentTab';
 import AdminAITab from '@/components/admin/AdminAITab';
+import SchoolRequestsTab from '@/components/admin/SchoolRequestsTab';
 
 const ADMIN_TABS = [
   { id: 'ai', label: '🤖 Admin AI' },
   { id: 'flagged', label: '🚩 Flagged Content' },
   { id: 'safety', label: '🛡️ User Safety' },
+  { id: 'school_requests', label: '🏫 School Requests' },
   { id: 'broadcasts', label: '📢 Broadcasts' },
   { id: 'notify', label: '📨 Direct Notify' },
   { id: 'patterns', label: '🚫 Blocked Patterns' },
@@ -507,6 +509,7 @@ export default function AdminDashboard({ user }) {
       {tab === 'ai' && <AdminAITab user={user} />}
       {tab === 'flagged' && <FlaggedContentTab user={user} />}
       {tab === 'safety' && <SafetyTab />}
+      {tab === 'school_requests' && <SchoolRequestsTab />}
       {tab === 'broadcasts' && <BroadcastsTab adminEmail={user?.email} />}
       {tab === 'notify' && <DirectNotifyTab />}
       {tab === 'contacts' && <ContactRequestsTab />}

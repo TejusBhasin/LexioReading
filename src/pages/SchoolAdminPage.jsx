@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown, Lock, Send } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -40,6 +40,9 @@ export default function SchoolAdminPage() {
   const [applyingAge, setApplyingAge] = useState(false);
   const [ageApplied, setAgeApplied] = useState(false);
   const [expandedMember, setExpandedMember] = useState(null);
+  const [isolationRequest, setIsolationRequest] = useState(null);
+  const [isolationReason, setIsolationReason] = useState('');
+  const [submittingRequest, setSubmittingRequest] = useState(false);
 
   useEffect(() => { if (user?.email) load(); }, [user]);
 
@@ -60,6 +63,10 @@ export default function SchoolAdminPage() {
 
       const mems = await base44.entities.SchoolMember.filter({ school_id: s.id });
       setMembers(mems);
+
+      // Load any existing content isolation request
+      const reqs = await base44.entities.SchoolChangeRequest.filter({ school_id: s.id });
+      setIsolationRequest(reqs.find(r => r.status === 'pending') || reqs[0] || null);
 
       // Fetch reading logs for all members
       const logs = {};
@@ -109,6 +116,24 @@ export default function SchoolAdminPage() {
       setTimeout(() => setAgeApplied(false), 3000);
     } catch (e) {}
     setApplyingAge(false);
+  }
+
+  async function submitIsolationRequest() {
+    if (!school) return;
+    setSubmittingRequest(true);
+    try {
+      const req = await base44.entities.SchoolChangeRequest.create({
+        school_id: school.id,
+        school_name: school.name,
+        admin_email: user.email,
+        request_type: 'content_isolation',
+        reason: isolationReason.trim(),
+        status: 'pending',
+      });
+      setIsolationRequest(req);
+      setIsolationReason('');
+    } catch (e) {}
+    setSubmittingRequest(false);
   }
 
   async function deleteSchool() {
@@ -441,6 +466,63 @@ export default function SchoolAdminPage() {
                   style={{ left: requireSetupTour ? '22px' : '2px' }} />
               </button>
             </div>
+          </div>
+
+          {/* Content Isolation */}
+          <div>
+            <h3 className="font-bold mb-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <Lock size={16} style={{ color: 'var(--lx-accent)' }} /> Content Isolation
+            </h3>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+              When enabled, your students will only see reviews, forum posts, and clubs created by other members of this school — the rest of Lexio's community content is hidden from them.
+            </p>
+
+            {school.content_isolation ? (
+              <div className="p-4 rounded-lg" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                <div className="flex items-center gap-2">
+                  <Lock size={14} style={{ color: '#10b981' }} />
+                  <span className="text-sm font-bold" style={{ color: '#10b981' }}>Isolation Active</span>
+                </div>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Students only see content from school members. Contact Lexio support to disable.</p>
+              </div>
+            ) : isolationRequest?.status === 'pending' ? (
+              <div className="p-4 rounded-lg" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)' }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldAlert size={14} style={{ color: '#f97316' }} />
+                  <span className="text-sm font-bold" style={{ color: '#f97316' }}>Request Pending Review</span>
+                </div>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Submitted on {new Date(isolationRequest.created_date).toLocaleDateString()}. Lexio admins will review your request.</p>
+              </div>
+            ) : isolationRequest?.status === 'rejected' ? (
+              <div className="p-4 rounded-lg" style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)' }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldAlert size={14} style={{ color: '#f87171' }} />
+                  <span className="text-sm font-bold" style={{ color: '#f87171' }}>Request Rejected</span>
+                </div>
+                {isolationRequest.admin_notes && <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>{isolationRequest.admin_notes}</p>}
+                <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>You can submit a new request below.</p>
+                <textarea className="lx-input text-sm resize-none mb-2" rows={3}
+                  placeholder="Why does your school need content isolation?"
+                  value={isolationReason} onChange={e => setIsolationReason(e.target.value)} />
+                <button onClick={submitIsolationRequest} disabled={submittingRequest || !isolationReason.trim()}
+                  className="lx-btn-primary text-sm w-full justify-center">
+                  <Send size={13} /> {submittingRequest ? 'Submitting...' : 'Submit New Request'}
+                </button>
+              </div>
+            ) : (
+              <div className="p-4 rounded-lg space-y-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  Content isolation requires approval from Lexio admins. Submit a request explaining why your school needs this.
+                </p>
+                <textarea className="lx-input text-sm resize-none" rows={3}
+                  placeholder="Why does your school need content isolation?"
+                  value={isolationReason} onChange={e => setIsolationReason(e.target.value)} />
+                <button onClick={submitIsolationRequest} disabled={submittingRequest || !isolationReason.trim()}
+                  className="lx-btn-primary text-sm w-full justify-center">
+                  <Send size={13} /> {submittingRequest ? 'Submitting...' : 'Submit Database View Change Request'}
+                </button>
+              </div>
+            )}
           </div>
 
           <button onClick={saveTheme} disabled={saving} className="lx-btn-primary">

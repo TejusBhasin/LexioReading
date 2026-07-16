@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, TrendingUp, Clock, Flame } from 'lucide-react';
+import { Search, Plus, TrendingUp, Clock, Flame, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useUserSafeness } from '@/hooks/useUserSafeness';
 import { useAuth } from '@/lib/AuthContext';
+import { getIsolationFilter } from '@/lib/schoolIsolation';
 import ForumPostCard from '@/components/forums/ForumPostCard';
 import NewPostModal from '@/components/forums/NewPostModal';
 import PostDetailPage from '@/components/forums/PostDetailPage';
@@ -28,6 +29,7 @@ export default function ForumsPage() {
   const [userProfile, setUserProfile] = useState(null);
   const [popularTags, setPopularTags] = useState([]);
   const [blockedEmails, setBlockedEmails] = useState([]);
+  const [isolation, setIsolation] = useState(null);
 
   useEffect(() => {
     loadPosts();
@@ -51,7 +53,15 @@ export default function ForumsPage() {
 
   async function loadPosts() {
     setLoading(true);
-    const all = await base44.entities.ForumPost.list('-created_date', 100);
+    let all = await base44.entities.ForumPost.list('-created_date', 100);
+    // Apply school content isolation if applicable
+    if (user?.email) {
+      const iso = await getIsolationFilter(user.email);
+      if (iso) {
+        setIsolation(iso);
+        all = all.filter(p => iso.memberEmails.includes(p.author_email));
+      }
+    }
     setPosts(all);
     // Compute popular tags
     const tagCounts = {};
@@ -153,6 +163,13 @@ export default function ForumsPage() {
           <span className="text-xs px-3 py-1.5 rounded" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--lx-border)' }}>Forums restricted</span>
         )}
       </div>
+
+      {isolation && (
+        <div className="mb-5 p-3 rounded-lg flex items-center gap-2" style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)' }}>
+          <Lock size={14} style={{ color: '#818cf8' }} />
+          <p className="text-xs" style={{ color: '#818cf8' }}>Content isolation is active for {isolation.schoolName}. You're only seeing posts from your school.</p>
+        </div>
+      )}
 
       {/* Search + Sort */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">

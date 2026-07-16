@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Search, Sparkles, BookOpen, TrendingUp, Trash2, Flag, Ban } from 'lucide-react';
+import { Star, Search, Sparkles, BookOpen, TrendingUp, Trash2, Flag, Ban, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import ReportContentModal from '@/components/safety/ReportContentModal';
 import BlockUserModal from '@/components/safety/BlockUserModal';
+import { getIsolationFilter } from '@/lib/schoolIsolation';
 
 export default function ReviewsPage() {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export default function ReviewsPage() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('recent');
   const [blockedEmails, setBlockedEmails] = useState([]);
+  const [isolation, setIsolation] = useState(null);
 
   useEffect(() => {
     loadReviews();
@@ -30,7 +32,15 @@ export default function ReviewsPage() {
   async function loadReviews() {
     setLoading(true);
     try {
-      const all = await base44.entities.Review.list('-created_date', 50);
+      let all = await base44.entities.Review.list('-created_date', 50);
+      // Apply school content isolation if applicable
+      if (user?.email) {
+        const iso = await getIsolationFilter(user.email);
+        if (iso) {
+          setIsolation(iso);
+          all = all.filter(r => iso.memberEmails.includes(r.user_email));
+        }
+      }
       setReviews(all);
       if (user?.email) {
         setMyReviews(all.filter(r => r.user_email === user.email));
@@ -63,6 +73,13 @@ export default function ReviewsPage() {
         </h1>
         <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Discover what readers are saying</p>
       </div>
+
+      {isolation && (
+        <div className="mb-5 p-3 rounded-lg flex items-center gap-2" style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)' }}>
+          <Lock size={14} style={{ color: '#818cf8' }} />
+          <p className="text-xs" style={{ color: '#818cf8' }}>Content isolation is active for {isolation.schoolName}. You're only seeing reviews from your school.</p>
+        </div>
+      )}
 
       {/* Stats bar */}
       <div className="grid grid-cols-3 gap-3 mb-8">

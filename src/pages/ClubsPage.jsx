@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { searchBooks } from '@/lib/googleBooks';
+import { getIsolationFilter } from '@/lib/schoolIsolation';
 
 export default function ClubsPage() {
   const { user, isAuthenticated } = useAuth();
@@ -20,13 +21,21 @@ export default function ClubsPage() {
   const [bookSearchResults, setBookSearchResults] = useState([]);
   const [bookSearching, setBookSearching] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [isolation, setIsolation] = useState(null);
 
   useEffect(() => { loadClubs(); }, [user]);
 
   async function loadClubs() {
     setLoading(true);
     try {
-      const all = await base44.entities.ReadingClub.filter({ is_visible: true }, '-created_date', 50);
+      let all = await base44.entities.ReadingClub.filter({ is_visible: true }, '-created_date', 50);
+      if (user?.email) {
+        const iso = await getIsolationFilter(user.email);
+        if (iso) {
+          setIsolation(iso);
+          all = all.filter(c => iso.memberEmails.includes(c.creator_email));
+        }
+      }
       setClubs(all);
       if (user?.email) {
         const mine = await base44.entities.ReadingClub.filter({ creator_email: user.email });
@@ -108,6 +117,13 @@ export default function ClubsPage() {
           </div>
         )}
       </div>
+
+      {isolation && (
+        <div className="mb-6 p-3 rounded-lg flex items-center gap-2" style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)' }}>
+          <Lock size={14} style={{ color: '#818cf8' }} />
+          <p className="text-xs" style={{ color: '#818cf8' }}>Content isolation is active for {isolation.schoolName}. You're only seeing clubs from your school.</p>
+        </div>
+      )}
 
       {myClubs.length > 0 && (
         <section className="mb-8">
