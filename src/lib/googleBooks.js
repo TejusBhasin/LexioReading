@@ -3,47 +3,13 @@ const BASE_URL = 'https://www.googleapis.com/books/v1';
 
 const cache = new Map();
 
-// Concurrency limiter — prevents hammering Google with parallel requests (triggers 503)
-const MAX_CONCURRENT = 2;
-let activeRequests = 0;
-const queue = [];
-
-function withThrottle(fn) {
-  return new Promise((resolve, reject) => {
-    const run = () => {
-      activeRequests++;
-      fn()
-        .then(resolve)
-        .catch(reject)
-        .finally(() => {
-          activeRequests--;
-          if (queue.length > 0) queue.shift()();
-        });
-    };
-    if (activeRequests < MAX_CONCURRENT) run();
-    else queue.push(run);
-  });
-}
-
 async function fetchWithRetry(url) {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const res = await fetch(url);
-      if (res.ok) return res;
-      if (attempt < 1) {
-        await new Promise(r => setTimeout(r, 600));
-        continue;
-      }
-      return null;
-    } catch (e) {
-      if (attempt < 1) {
-        await new Promise(r => setTimeout(r, 600));
-        continue;
-      }
-      return null;
-    }
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(url);
+    if (res.ok) return res;
+    if (attempt < 2) { await new Promise(r => setTimeout(r, 500)); continue; }
+    return res;
   }
-  return null;
 }
 
 export async function searchBooks(query, maxResults = 12) {
@@ -51,21 +17,13 @@ export async function searchBooks(query, maxResults = 12) {
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
   const url = `${BASE_URL}/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&key=${GOOGLE_BOOKS_API_KEY}`;
-
-  try {
-    const res = await withThrottle(() => fetchWithRetry(url));
-    if (!res || !res.ok) {
-      // Return fallback instead of crashing — keeps UX alive when Google is down
-      return FALLBACK_TRENDING.slice(0, maxResults);
-    }
-    const data = await res.json();
-    if (data.error) return FALLBACK_TRENDING.slice(0, maxResults);
-    const books = (data.items || []).map(normalizeBook).filter(Boolean);
-    cache.set(cacheKey, books);
-    return books;
-  } catch (e) {
-    return FALLBACK_TRENDING.slice(0, maxResults);
-  }
+  const res = await fetchWithRetry(url);
+  if (!res.ok) throw new Error(`Search failed (${res.status}). Please try again.`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || 'Search failed.');
+  const books = (data.items || []).map(normalizeBook).filter(Boolean);
+  cache.set(cacheKey, books);
+  return books;
 }
 
 export async function getBookById(id) {
@@ -73,18 +31,13 @@ export async function getBookById(id) {
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
   const url = `${BASE_URL}/volumes/${id}?key=${GOOGLE_BOOKS_API_KEY}`;
-
-  try {
-    const res = await withThrottle(() => fetchWithRetry(url));
-    if (!res || !res.ok) return null;
-    const data = await res.json();
-    if (data.error) return null;
-    const book = normalizeBook(data);
-    cache.set(cacheKey, book);
-    return book;
-  } catch (e) {
-    return null;
-  }
+  const res = await fetchWithRetry(url);
+  if (!res.ok) throw new Error(`Failed to load book (${res.status}).`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || 'Failed to load book.');
+  const book = normalizeBook(data);
+  cache.set(cacheKey, book);
+  return book;
 }
 
 export async function getBooksByCategory(category, maxResults = 8) {
