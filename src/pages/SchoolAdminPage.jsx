@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown, Lock, Send } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown, Lock, Send, BookOpen, Sparkles, Bot } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import ClassesTab from '@/components/schools/ClassesTab';
+import SchoolAIChat from '@/components/schools/SchoolAIChat';
 
 const FEATURE_LABELS = {
   vault: 'Vault',
@@ -43,38 +45,55 @@ export default function SchoolAdminPage() {
   const [isolationRequest, setIsolationRequest] = useState(null);
   const [isolationReason, setIsolationReason] = useState('');
   const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => { if (user?.email) load(); }, [user]);
 
   async function load() {
     setLoading(true);
     try {
-      // Find school where user is admin
-      const allMembers = await base44.entities.SchoolMember.filter({ user_email: user.email, role: 'admin' });
-      if (!allMembers[0]) { setLoading(false); return; }
-      const schools = await base44.entities.School.filter({ id: allMembers[0].school_id });
+      // Find school where user is admin or semi_admin
+      const myMemberships = await base44.entities.SchoolMember.filter({ user_email: user.email, kicked: false });
+      const schoolMember = myMemberships.find(m => m.role === 'admin' || m.role === 'semi_admin');
+
+      // If not admin/semi_admin, check if they're a teacher
+      if (!schoolMember) {
+        try {
+          const teacherClasses = await base44.entities.SchoolClass.filter({ teacher_email: user.email });
+          if (teacherClasses.length > 0) setUserRole('teacher');
+        } catch (e) {}
+        setLoading(false);
+        return;
+      }
+
+      const schools = await base44.entities.School.filter({ id: schoolMember.school_id });
       if (!schools[0]) { setLoading(false); return; }
       const s = schools[0];
       setSchool(s);
+      setUserRole(schoolMember.role);
+      setTab(schoolMember.role === 'semi_admin' ? 'classes' : 'overview');
       setThemeForm({ theme_primary: s.theme_primary, theme_accent: s.theme_accent, theme_secondary: s.theme_secondary });
       setRestrictions(s.restrictions || []);
       setRequireSetupTour(s.require_setup_tour || false);
       setAgeRestriction(s.age_restriction || 'all');
 
-      const mems = await base44.entities.SchoolMember.filter({ school_id: s.id });
-      setMembers(mems);
-
       // Load any existing content isolation request
       const reqs = await base44.entities.SchoolChangeRequest.filter({ school_id: s.id });
       setIsolationRequest(reqs.find(r => r.status === 'pending') || reqs[0] || null);
 
-      // Fetch reading logs for all members
-      const logs = {};
-      await Promise.all(mems.map(async m => {
-        const l = await base44.entities.ReadingLog.filter({ user_email: m.user_email });
-        logs[m.user_email] = l;
-      }));
-      setMemberLogs(logs);
+      // Only load all members and logs if admin (semi_admins can't read all members via RLS)
+      if (schoolMember.role === 'admin') {
+        const mems = await base44.entities.SchoolMember.filter({ school_id: s.id });
+        setMembers(mems);
+
+        // Fetch reading logs for all members
+        const logs = {};
+        await Promise.all(mems.map(async m => {
+          const l = await base44.entities.ReadingLog.filter({ user_email: m.user_email });
+          logs[m.user_email] = l;
+        }));
+        setMemberLogs(logs);
+      }
     } catch (e) {}
     setLoading(false);
   }
@@ -181,9 +200,19 @@ export default function SchoolAdminPage() {
   if (!school) return (
     <div className="max-w-4xl mx-auto px-4 py-12 text-center">
       <GraduationCap size={40} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
-      <p className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>No School Found</p>
-      <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>You don't manage any school yet.</p>
-      <button onClick={() => navigate('/profile')} className="lx-btn-ghost">← Back to Profile</button>
+      {userRole === 'teacher' ? (
+        <>
+          <p className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>You're a Teacher</p>
+          <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>You have classes assigned to you. View your class statistics below.</p>
+          <button onClick={() => navigate('/my-classes')} className="lx-btn-primary">View My Classes →</button>
+        </>
+      ) : (
+        <>
+          <p className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>No School Found</p>
+          <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>You don't manage any school yet.</p>
+          <button onClick={() => navigate('/profile')} className="lx-btn-ghost">← Back to Profile</button>
+        </>
+      )}
     </div>
   );
 
@@ -210,9 +239,11 @@ export default function SchoolAdminPage() {
       {/* Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         {[
-          { id: 'overview', label: 'Overview', icon: BarChart2 },
-          { id: 'members', label: 'Members', icon: Users },
-          { id: 'settings', label: 'Settings', icon: Settings },
+          ...(userRole === 'admin' ? [{ id: 'overview', label: 'Overview', icon: BarChart2 }] : []),
+          ...(userRole === 'admin' ? [{ id: 'members', label: 'Members', icon: Users }] : []),
+          { id: 'classes', label: 'Classes', icon: BookOpen },
+          { id: 'ai', label: 'AI Assistant', icon: Bot },
+          ...(userRole === 'admin' ? [{ id: 'settings', label: 'Settings', icon: Settings }] : []),
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium whitespace-nowrap transition-all"
@@ -221,6 +252,25 @@ export default function SchoolAdminPage() {
           </button>
         ))}
       </div>
+
+      {/* CLASSES */}
+      {tab === 'classes' && (
+        <ClassesTab school={school} user={user} />
+      )}
+
+      {/* AI ASSISTANT */}
+      {tab === 'ai' && (
+        <div>
+          <div className="mb-5 p-4 rounded-lg flex items-center gap-3" style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid var(--lx-accent)' }}>
+            <Bot size={18} style={{ color: 'var(--lx-accent)' }} />
+            <div>
+              <p className="text-sm font-bold" style={{ color: 'var(--lx-accent)' }}>School-Wide AI Analytics</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Ask questions about all your students' reading data, or get an AI-generated overview.</p>
+            </div>
+          </div>
+          <SchoolAIChat schoolId={school.id} classId={null} scopeLabel={school.name} />
+        </div>
+      )}
 
       {/* OVERVIEW */}
       {tab === 'overview' && (

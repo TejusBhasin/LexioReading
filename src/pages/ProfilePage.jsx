@@ -564,6 +564,10 @@ export default function ProfilePage() {
           <a href="/school-admin" className="lx-btn-ghost text-sm flex items-center gap-2 w-full justify-center">
             <GraduationCap size={14} /> Manage My School (Admin Panel)
           </a>
+          {/* Link to teacher classes */}
+          <Link to="/my-classes" className="lx-btn-ghost text-sm flex items-center gap-2 w-full justify-center">
+            <BookOpen size={14} /> My Classes (Teacher)
+          </Link>
         </div>
       )}
 

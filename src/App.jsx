@@ -29,6 +29,8 @@ import UserPublicProfilePage from '@/pages/UserPublicProfilePage';
 import EasterEggPage from '@/pages/EasterEggPage';
 import ForumsPage from '@/pages/ForumsPage';
 import SchoolAdminPage from '@/pages/SchoolAdminPage';
+import ClassDetailPage from '@/pages/ClassDetailPage';
+import TeacherClassesPage from '@/pages/TeacherClassesPage';
 import ReadingGoalPage from '@/pages/ReadingGoalPage';
 import ReadingStrengthPage from '@/pages/ReadingStrengthPage';
 import BookQuotesPage from '@/pages/BookQuotesPage';
@@ -103,6 +105,8 @@ const AuthenticatedApp = () => {
             <Route path="/vault" element={<VaultPage />} />
             <Route path="/wrapped" element={<WrappedPage />} />
             <Route path="/school-admin" element={<SchoolAdminPage />} />
+            <Route path="/school/class/:id" element={<ClassDetailPage />} />
+            <Route path="/my-classes" element={<TeacherClassesPage />} />
             <Route path="/goal" element={<ReadingGoalPage />} />
             <Route path="/strength" element={<ReadingStrengthPage />} />
             <Route path="/quotes" element={<BookQuotesPage />} />
