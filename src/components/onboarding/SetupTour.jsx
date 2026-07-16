@@ -40,7 +40,7 @@ const CONTENT_THEMES = [
   'Romance', 'Violence', 'Death/Loss', 'Addiction', 'War', 'Abuse', 'Mental illness'
 ];
 
-export default function SetupTour({ user, userProfile, onComplete, forceComplete = false }) {
+export default function SetupTour({ user, userProfile, onComplete, forceComplete = false, autoJoinedSchool = null }) {
   const [step, setStep] = useState(0);
   const [genres, setGenres] = useState([]);
   const [blacklisted, setBlacklisted] = useState([]);
@@ -330,6 +330,14 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
               🎓 Schools
             </h2>
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Lexio supports school environments for teachers and classrooms.</p>
+            {autoJoinedSchool && (
+              <div className="mb-4 p-3 rounded-lg flex items-start gap-2" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                <Check size={14} className="flex-shrink-0 mt-0.5" style={{ color: '#10b981' }} />
+                <p className="text-xs" style={{ color: '#10b981' }}>
+                  <strong>You've been automatically joined to {autoJoinedSchool.name}!</strong> Your school admin can manage your reading experience. You can access school features from your profile.
+                </p>
+              </div>
+            )}
             <div className="space-y-1 mb-5 max-h-60 overflow-y-auto">
               {[
                 { emoji: '🏫', title: 'Join a School', desc: 'Use a join code from your teacher. Note: school membership is permanent — you cannot leave once joined.' },

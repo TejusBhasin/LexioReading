@@ -14,9 +14,14 @@
     "request_type": {
       "type": "string",
       "enum": [
-        "content_isolation"
+        "content_isolation",
+        "email_domain"
       ],
       "default": "content_isolation"
+    },
+    "requested_email_domain": {
+      "type": "string",
+      "description": "The email domain requested for auto-join (e.g. 'school.org')"
     },
     "reason": {
       "type": "string",

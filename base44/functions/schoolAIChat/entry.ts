@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { school_id, class_id, question, mode } = body;
+    const { school_id, class_id, question, mode, student_email } = body;
 
     // Verify user is admin or semi_admin of the school
     const memberships = await base44.asServiceRole.entities.SchoolMember.filter({
@@ -36,6 +36,12 @@ Deno.serve(async (req) => {
         kicked: false
       });
       studentEmails = members.filter(m => m.role !== 'admin').map(m => m.user_email);
+    }
+
+    // Student-specific scope overrides class/school scope
+    if (student_email) {
+      studentEmails = [student_email];
+      className = null;
     }
 
     if (studentEmails.length === 0) {
@@ -126,7 +132,7 @@ Deno.serve(async (req) => {
       .map(([title, count]) => `${title} (${count} sessions)`);
 
     // Build context
-    const scope = class_id ? `the class "${className}"` : `the school "${schoolName}"`;
+    const scope = student_email ? `student "${memberMap[student_email]?.username || student_email}"` : class_id ? `the class "${className}"` : `the school "${schoolName}"`;
     const context = `SCOPE: ${scope}
 TOTAL STUDENTS: ${studentEmails.length}
 ACTIVE STUDENTS (with reading sessions): ${activeStudents}
@@ -151,7 +157,20 @@ ${inactiveStudents.length > 0 ? inactiveStudents.map(s => '- ' + s.username + ' 
 
     let prompt;
     if (mode === 'overview') {
-      prompt = `You are an AI reading analytics assistant for a school administrator. Based on the data below, provide a comprehensive but concise overview (3-4 short paragraphs) of reading activity for ${scope}.
+      if (student_email) {
+        prompt = `You are an AI reading analytics assistant for a school administrator. Based on the data below, provide a concise overview (2-3 short paragraphs) of this student's reading activity and engagement.
+
+Cover:
+1. Reading engagement level and key metrics
+2. Reading preferences and patterns
+3. Recommendations for growth or areas to encourage
+
+Be specific and reference actual data. Use a professional but supportive tone.
+
+DATA:
+${context}`;
+      } else {
+        prompt = `You are an AI reading analytics assistant for a school administrator. Based on the data below, provide a comprehensive but concise overview (3-4 short paragraphs) of reading activity for ${scope}.
 
 Cover:
 1. Overall engagement level and key metrics
@@ -164,6 +183,7 @@ Be specific and reference actual data. Use a professional but friendly tone.
 
 DATA:
 ${context}`;
+      }
     } else {
       prompt = `You are an AI reading analytics assistant for a school administrator. You have access to real reading data from ${scope}. Answer the administrator's question based on the data below. Be specific and reference actual numbers and student names. If there's not enough data to answer, say so. Keep answers concise but informative.
 

@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { GraduationCap, Plus, LogIn, AlertTriangle, X, Check } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
+const DATA_ACCESS_OPTIONS = [
+  { key: 'reading_logs', label: 'Reading Logs', emoji: '⏱️' },
+  { key: 'library', label: 'Library', emoji: '📚' },
+  { key: 'reviews', label: 'Reviews', emoji: '⭐' },
+  { key: 'reading_goals', label: 'Reading Goals', emoji: '🎯' },
+  { key: 'points_streaks', label: 'Points & Streaks', emoji: '🔥' },
+  { key: 'preferences', label: 'Preferences', emoji: '⚙️' },
+  { key: 'forum_activity', label: 'Forum Activity', emoji: '💬' },
+];
+
 const FEATURE_LABELS = {
   vault: 'Vault',
   forums: 'Forums',
@@ -18,7 +28,7 @@ export default function JoinCreateSchool({ user }) {
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState(null); // 'join' | 'create' | null
   const [joinCode, setJoinCode] = useState('');
-  const [createForm, setCreateForm] = useState({ name: '', description: '' });
+  const [createForm, setCreateForm] = useState({ name: '', description: '', data_access_fields: ['reading_logs', 'library', 'reviews'] });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [confirmed, setConfirmed] = useState(false);
@@ -83,6 +93,7 @@ export default function JoinCreateSchool({ user }) {
         theme_secondary: '#1a1a1a',
         theme_locked: true,
         restrictions: [],
+        data_access_fields: createForm.data_access_fields || ['reading_logs', 'library', 'reviews'],
         member_count: 1,
         is_active: true,
       });
@@ -214,6 +225,29 @@ export default function JoinCreateSchool({ user }) {
         <div>
           <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Description</label>
           <textarea className="lx-input text-sm resize-none" rows={2} placeholder="Brief description..." value={createForm.description} onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))} />
+        </div>
+      </div>
+      <div className="mb-4">
+        <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Student Data to Access</label>
+        <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Select which student data you want to see in your admin dashboard.</p>
+        <div className="grid grid-cols-2 gap-1.5">
+          {DATA_ACCESS_OPTIONS.map(opt => {
+            const sel = createForm.data_access_fields?.includes(opt.key);
+            return (
+              <button key={opt.key} onClick={() => {
+                setCreateForm(f => ({
+                  ...f,
+                  data_access_fields: sel
+                    ? f.data_access_fields.filter(x => x !== opt.key)
+                    : [...(f.data_access_fields || []), opt.key],
+                }));
+              }} className="flex items-center gap-2 p-2 rounded text-xs transition-all text-left"
+                style={{ background: sel ? 'rgba(245,166,35,0.1)' : 'var(--bg-elevated)', border: `1px solid ${sel ? 'var(--lx-accent)' : 'var(--lx-border)'}`, color: sel ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
+                <span className="text-base">{opt.emoji}</span>
+                <span>{opt.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="p-3 rounded-lg mb-4 flex items-start gap-2" style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid var(--lx-accent)' }}>

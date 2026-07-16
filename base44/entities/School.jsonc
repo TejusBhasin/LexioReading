@@ -37,6 +37,32 @@
       },
       "description": "Features to disable: 'vault', 'forums', 'clubs', 'chat', 'reviews', 'wrapped', 'discover'"
     },
+    "data_access_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Student data types the school can access: 'reading_logs', 'library', 'reviews', 'reading_goals', 'points_streaks', 'preferences', 'forum_activity'",
+      "default": [
+        "reading_logs",
+        "library",
+        "reviews"
+      ]
+    },
+    "email_domain": {
+      "type": "string",
+      "description": "Approved custom email domain for auto-join (e.g. 'school.org')"
+    },
+    "email_domain_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "none"
+    },
     "require_setup_tour": {
       "type": "boolean",
       "default": false,

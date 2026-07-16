@@ -83,6 +83,7 @@ export default function AppShell({ children, user }) {
   const [librarianMode, setLibrarianMode] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [restrictedFeatures, setRestrictedFeatures] = useState([]);
+  const [autoJoinedSchool, setAutoJoinedSchool] = useState(null);
   const menuRef = useRef(null);
 
   // Pull-to-refresh state
@@ -203,6 +204,16 @@ export default function AppShell({ children, user }) {
           } catch (e) {}
           setRestrictedFeatures([...new Set(studentRestrictions)]);
         }
+      }
+
+      // Check for school auto-join via email domain
+      if (user?.email && !activeSchoolMember) {
+        try {
+          const res = await base44.functions.invoke('checkSchoolAutoJoin', {});
+          if (res.data?.joined && res.data?.school) {
+            setAutoJoinedSchool(res.data.school);
+          }
+        } catch (e) {}
       }
 
       // Check full ban (with optional expiry)
@@ -356,7 +367,8 @@ export default function AppShell({ children, user }) {
         user={user}
         userProfile={userProfile}
         forceComplete={forceTour}
-        onComplete={() => {setShowTour(false);setForceTour(false);loadUserProfile();}} />
+        autoJoinedSchool={autoJoinedSchool}
+        onComplete={() => {setShowTour(false);setForceTour(false);setAutoJoinedSchool(null);loadUserProfile();}} />
       }
       {/* Top Nav — logo far left, extra icons center, notification far right; invisible spacer when hidden */}
       <header className="sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', background: prefs?.hide_top_bar ? 'transparent' : 'var(--bg-secondary)', borderBottom: prefs?.hide_top_bar ? 'none' : '1px solid var(--lx-border)' }}>

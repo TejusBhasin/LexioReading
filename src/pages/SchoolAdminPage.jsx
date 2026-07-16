@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown, Lock, Send, BookOpen, Sparkles, Bot } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown, Lock, Send, BookOpen, Sparkles, Bot, Mail, Check, X, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ClassesTab from '@/components/schools/ClassesTab';
 import SchoolAIChat from '@/components/schools/SchoolAIChat';
 import SchoolSafetyTab from '@/components/schools/SchoolSafetyTab';
+import StudentOverviewModal from '@/components/schools/StudentOverviewModal';
 
 const FEATURE_LABELS = {
   vault: 'Vault',
@@ -47,6 +48,9 @@ export default function SchoolAdminPage() {
   const [isolationReason, setIsolationReason] = useState('');
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [emailDomainInput, setEmailDomainInput] = useState('');
+  const [submittingDomain, setSubmittingDomain] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => { if (user?.email) load(); }, [user]);
 
@@ -154,6 +158,27 @@ export default function SchoolAdminPage() {
       setIsolationReason('');
     } catch (e) {}
     setSubmittingRequest(false);
+  }
+
+  async function submitEmailDomain() {
+    if (!emailDomainInput.trim() || !school) return;
+    const domain = emailDomainInput.trim().toLowerCase().replace(/^@/, '');
+    setSubmittingDomain(true);
+    try {
+      await base44.entities.SchoolChangeRequest.create({
+        school_id: school.id,
+        school_name: school.name,
+        admin_email: user.email,
+        request_type: 'email_domain',
+        requested_email_domain: domain,
+        reason: `Requesting email domain @${domain} for auto-join`,
+        status: 'pending',
+      });
+      await base44.entities.School.update(school.id, { email_domain: domain, email_domain_status: 'pending' });
+      setSchool(s => ({ ...s, email_domain: domain, email_domain_status: 'pending' }));
+      setEmailDomainInput('');
+    } catch (e) {}
+    setSubmittingDomain(false);
   }
 
   async function deleteSchool() {
@@ -304,9 +329,9 @@ export default function SchoolAdminPage() {
                 const mins = logs.reduce((s, l) => s + (l.time_spent_minutes || 0), 0);
                 const books = [...new Set(logs.map(l => l.book_title).filter(Boolean))];
                 return (
-                  <div key={m.id} className="lx-card p-3">
+                  <div key={m.id} className="lx-card p-3" style={{ cursor: 'pointer' }} onClick={() => setSelectedStudent(m)}>
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{m.user_email}</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{m.username || m.user_email} <span className="text-xs" style={{ color: 'var(--text-muted)' }}>→ View Details</span></p>
                       <span className="text-xs font-bold" style={{ color: 'var(--lx-accent)' }}>{mins}m</span>
                     </div>
                     <div className="flex gap-4 text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
@@ -582,6 +607,49 @@ export default function SchoolAdminPage() {
             )}
           </div>
 
+          {/* Email Domain */}
+          <div>
+            <h3 className="font-bold mb-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <Mail size={16} style={{ color: 'var(--lx-accent)' }} /> Custom Email Domain
+            </h3>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+              If your school uses a custom email domain (e.g. @school.org), submit it for approval. Once approved, anyone who signs up with that domain will automatically join your school.
+            </p>
+            {school.email_domain_status === 'approved' ? (
+              <div className="p-4 rounded-lg" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                <div className="flex items-center gap-2">
+                  <Check size={14} style={{ color: '#10b981' }} />
+                  <span className="text-sm font-bold" style={{ color: '#10b981' }}>Domain Approved</span>
+                </div>
+                <p className="text-sm mt-1 font-mono" style={{ color: 'var(--text-secondary)' }}>@{school.email_domain}</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Users signing up with this domain will auto-join your school.</p>
+              </div>
+            ) : school.email_domain_status === 'pending' ? (
+              <div className="p-4 rounded-lg" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)' }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <Clock size={14} style={{ color: '#f97316' }} />
+                  <span className="text-sm font-bold" style={{ color: '#f97316' }}>Pending Review</span>
+                </div>
+                <p className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>@{school.email_domain}</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Lexio admins will review your request.</p>
+              </div>
+            ) : (
+              <div className="p-4 rounded-lg space-y-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+                {school.email_domain_status === 'rejected' && (
+                  <p className="text-xs" style={{ color: '#f87171' }}>Previous request was rejected. You can submit a new one.</p>
+                )}
+                <div className="flex gap-2">
+                  <input className="lx-input text-sm flex-1" placeholder="e.g. school.org"
+                    value={emailDomainInput} onChange={e => setEmailDomainInput(e.target.value)} />
+                  <button onClick={submitEmailDomain} disabled={submittingDomain || !emailDomainInput.trim()}
+                    className="lx-btn-primary text-sm whitespace-nowrap">
+                    <Send size={13} /> {submittingDomain ? '...' : 'Submit'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <button onClick={saveTheme} disabled={saving} className="lx-btn-primary">
             {saving ? 'Saving...' : 'Save Settings'}
           </button>
@@ -593,6 +661,14 @@ export default function SchoolAdminPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {selectedStudent && (
+        <StudentOverviewModal
+          schoolId={school.id}
+          student={selectedStudent}
+          onClose={() => setSelectedStudent(null)}
+        />
       )}
     </div>
   );
