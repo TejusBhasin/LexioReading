@@ -179,7 +179,7 @@ export default function ClassDetailPage() {
       ) : (
         <div className="rounded-xl p-5 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
           <GraduationCap size={28} className="mx-auto mb-2" style={{ color: 'var(--text-muted)' }} />
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>AI analytics is available to school admins and sub-admins.</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>AI analytics is available to school admins, sub-admins, and class teachers.</p>
         </div>
       )}
     </div>

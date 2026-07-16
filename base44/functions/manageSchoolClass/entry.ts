@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
 
       return Response.json({
         class: cls,
-        canUseAI: isAdmin,
+        canUseAI: isAdmin || isTeacher,
         studentStats,
         aggregate: {
           totalStudents: studentEmails.length,

@@ -9,15 +9,28 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { school_id, class_id, question, mode, student_email } = body;
 
-    // Verify user is admin or semi_admin of the school
+    // Verify user is admin, semi_admin, or teacher of the class
     const memberships = await base44.asServiceRole.entities.SchoolMember.filter({
       user_email: user.email,
       school_id,
       kicked: false
     });
     const membership = memberships.find(m => m.role === 'admin' || m.role === 'semi_admin');
+    let isTeacher = false;
     if (!membership) {
-      return Response.json({ error: 'Not authorized. Only school admins and sub-admins can use the AI assistant.' }, { status: 403 });
+      if (class_id) {
+        const teacherClasses = await base44.asServiceRole.entities.SchoolClass.filter({ id: class_id, school_id });
+        if (teacherClasses[0] && teacherClasses[0].teacher_email === user.email) {
+          isTeacher = true;
+        }
+      }
+      if (!isTeacher) {
+        return Response.json({ error: 'Not authorized. Only school admins, sub-admins, and class teachers can use the AI assistant.' }, { status: 403 });
+      }
+    }
+    // Teachers can only query their own class, not school-wide
+    if (isTeacher && !class_id) {
+      return Response.json({ error: 'Please select a class to analyze.' }, { status: 400 });
     }
 
     // Determine scope: class-wide or school-wide
@@ -155,10 +168,11 @@ INACTIVE STUDENTS (may need encouragement):
 ${inactiveStudents.length > 0 ? inactiveStudents.map(s => '- ' + s.username + ' (' + s.email + ')').join('\n') : 'None - all students have reading activity.'}
 `;
 
+    const userRoleLabel = isTeacher ? 'teacher' : 'school administrator';
     let prompt;
     if (mode === 'overview') {
       if (student_email) {
-        prompt = `You are an AI reading analytics assistant for a school administrator. Based on the data below, provide a concise overview (2-3 short paragraphs) of this student's reading activity and engagement.
+        prompt = `You are an AI reading analytics assistant for a ${userRoleLabel}. Based on the data below, provide a concise overview (2-3 short paragraphs) of this student's reading activity and engagement.
 
 Cover:
 1. Reading engagement level and key metrics
@@ -170,7 +184,7 @@ Be specific and reference actual data. Use a professional but supportive tone.
 DATA:
 ${context}`;
       } else {
-        prompt = `You are an AI reading analytics assistant for a school administrator. Based on the data below, provide a comprehensive but concise overview (3-4 short paragraphs) of reading activity for ${scope}.
+        prompt = `You are an AI reading analytics assistant for a ${userRoleLabel}. Based on the data below, provide a comprehensive but concise overview (3-4 short paragraphs) of reading activity for ${scope}.
 
 Cover:
 1. Overall engagement level and key metrics
@@ -185,12 +199,12 @@ DATA:
 ${context}`;
       }
     } else {
-      prompt = `You are an AI reading analytics assistant for a school administrator. You have access to real reading data from ${scope}. Answer the administrator's question based on the data below. Be specific and reference actual numbers and student names. If there's not enough data to answer, say so. Keep answers concise but informative.
+      prompt = `You are an AI reading analytics assistant for a ${userRoleLabel}. You have access to real reading data from ${scope}. Answer the ${userRoleLabel}'s question based on the data below. Be specific and reference actual numbers and student names. If there's not enough data to answer, say so. Keep answers concise but informative.
 
 DATA:
 ${context}
 
-ADMINISTRATOR'S QUESTION: ${question}`;
+QUESTION: ${question}`;
     }
 
     const result = await base44.integrations.Core.InvokeLLM({
