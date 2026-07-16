@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Users, Ban, Send, AlertTriangle, Clock, ArrowRight, Archive, Download, Bot } from 'lucide-react';
+import { Shield, Users, Ban, Send, AlertTriangle, Clock, ArrowRight, Archive, Download, Bot, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import BanStudentModal from '@/components/schools/BanStudentModal';
 import OffboardStudentModal from '@/components/schools/OffboardStudentModal';
 import SchoolNotifyModal from '@/components/schools/SchoolNotifyModal';
+import BulkDeleteModal from '@/components/schools/BulkDeleteModal';
 
 export default function SchoolSecurityDashboard({ school, user, members, onRefresh }) {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export default function SchoolSecurityDashboard({ school, user, members, onRefre
   const [offboardTarget, setOffboardTarget] = useState(null);
   const [notifyTarget, setNotifyTarget] = useState(null);
   const [notifyAll, setNotifyAll] = useState(false);
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
   const [aiSorting, setAiSorting] = useState(false);
   const [sortedIncidents, setSortedIncidents] = useState(null);
 
@@ -94,7 +96,7 @@ ${JSON.stringify(incidentSummaries, null, 2)}`,
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <button onClick={() => setNotifyAll(true)}
           className="lx-card p-4 flex items-center gap-3 text-left transition-all hover:border-accent">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,166,35,0.15)' }}>
@@ -125,6 +127,18 @@ ${JSON.stringify(incidentSummaries, null, 2)}`,
           <div>
             <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Safety Settings</p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Restrictions, age filters, isolation</p>
+          </div>
+        </button>
+
+        <button onClick={() => setShowBulkDelete(true)}
+          className="lx-card p-4 flex items-center gap-3 text-left transition-all hover:border-accent"
+          style={{ borderColor: 'rgba(248,113,113,0.3)' }}>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(248,113,113,0.15)' }}>
+            <Trash2 size={18} style={{ color: '#f87171' }} />
+          </div>
+          <div>
+            <p className="text-sm font-bold" style={{ color: '#f87171' }}>Bulk Delete</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Delete accounts by email list</p>
           </div>
         </button>
       </div>
@@ -258,6 +272,15 @@ ${JSON.stringify(incidentSummaries, null, 2)}`,
           targetName={notifyTarget.name}
           onClose={() => setNotifyTarget(null)}
           onSent={() => setNotifyTarget(null)}
+        />
+      )}
+
+      {showBulkDelete && (
+        <BulkDeleteModal
+          schoolId={school.id}
+          schoolName={school.name}
+          onClose={() => setShowBulkDelete(false)}
+          onDone={() => { setShowBulkDelete(false); onRefresh?.(); }}
         />
       )}
     </div>

@@ -49,6 +49,23 @@
       ],
       "default": "pending"
     },
+    "routed_to": {
+      "type": "string",
+      "enum": [
+        "lexio",
+        "school"
+      ],
+      "default": "lexio",
+      "description": "Who handles this report: 'lexio' for platform admins, 'school' for school admins (when content isolation is enabled)"
+    },
+    "school_id": {
+      "type": "string",
+      "description": "School ID when routed_to is 'school'"
+    },
+    "school_name": {
+      "type": "string",
+      "description": "School name when routed_to is 'school'"
+    },
     "ai_verdict": {
       "type": "string",
       "enum": [

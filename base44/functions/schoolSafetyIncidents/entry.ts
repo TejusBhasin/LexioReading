@@ -33,7 +33,12 @@ Deno.serve(async (req) => {
 
     if (action === 'list') {
       const allReports = await base44.asServiceRole.entities.ReportedContent.list('-created_date', 200);
-      const schoolReports = allReports.filter(r => memberEmails.includes(r.reported_user_email));
+      // Only show reports routed to this school (content isolation enabled)
+      const schoolReports = allReports.filter(r =>
+        r.routed_to === 'school' &&
+        r.school_id === school_id &&
+        memberEmails.includes(r.reported_user_email)
+      );
 
       return Response.json({
         incidents: schoolReports.map(r => ({

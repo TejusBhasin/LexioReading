@@ -21,15 +21,13 @@ export default function ReportContentModal({ contentType, contentId, contentSnap
     if (!reason) return;
     setSubmitting(true);
     try {
-      await base44.entities.ReportedContent.create({
-        reporter_email: (await base44.auth.me()).email,
+      await base44.functions.invoke('createContentReport', {
         reported_user_email: reportedUserEmail,
         content_type: contentType,
         content_id: contentId,
         content_snapshot: contentSnapshot || '',
         reason,
         details: details.trim(),
-        status: 'pending',
       });
       setDone(true);
     } catch (e) {}
@@ -45,7 +43,7 @@ export default function ReportContentModal({ contentType, contentId, contentSnap
               <Flag size={22} style={{ color: '#10b981' }} />
             </div>
             <p className="font-bold text-sm mb-1" style={{ color: 'var(--text-primary)' }}>Report submitted</p>
-            <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>Our team will review this within 24 hours.</p>
+            <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>Your report has been routed to the appropriate team for review.</p>
             <button onClick={onClose} className="lx-btn-primary w-full justify-center text-sm">Done</button>
           </div>
         ) : (

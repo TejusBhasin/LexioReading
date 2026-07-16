@@ -68,6 +68,8 @@ export default function FlaggedContentTab({ user: adminUser }) {
   }
 
   const filtered = reports.filter(r => {
+    // Hide school-routed reports — those are handled by the school admin
+    if (r.routed_to === 'school') return false;
     if (filter === 'all') return true;
     if (filter === 'pending') return r.status === 'pending';
     if (filter === 'actioned') return r.status === 'actioned';
