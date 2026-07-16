@@ -3,52 +3,88 @@ const BASE_URL = 'https://www.googleapis.com/books/v1';
 
 const cache = new Map();
 
+// Concurrency limiter — prevents hammering Google with parallel requests (triggers 503)
+const MAX_CONCURRENT = 2;
+let activeRequests = 0;
+const queue = [];
+
+function withThrottle(fn) {
+  return new Promise((resolve, reject) => {
+    const run = () => {
+      activeRequests++;
+      fn()
+        .then(resolve)
+        .catch(reject)
+        .finally(() => {
+          activeRequests--;
+          if (queue.length > 0) queue.shift()();
+        });
+    };
+    if (activeRequests < MAX_CONCURRENT) run();
+    else queue.push(run);
+  });
+}
+
+async function fetchWithRetry(url) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) return res;
+      // Retry on 503, 502, 429, 500
+      if ((res.status === 503 || res.status === 502 || res.status === 429 || res.status === 500) && attempt < 4) {
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt))); // 1s, 2s, 4s, 8s
+        continue;
+      }
+      return res;
+    } catch (e) {
+      if (attempt < 4) {
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
 export async function searchBooks(query, maxResults = 12) {
   const cacheKey = `search:${query}:${maxResults}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
   const url = `${BASE_URL}/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&key=${GOOGLE_BOOKS_API_KEY}`;
-  let res;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      res = await fetch(url);
-      if (res.ok || (res.status !== 503 && res.status !== 502 && res.status !== 429)) break;
-      // Transient error — wait and retry
-      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
-    } catch (networkErr) {
-      if (attempt === 2) throw new Error('Network error — check your connection and try again.');
-      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+
+  try {
+    const res = await withThrottle(() => fetchWithRetry(url));
+    if (!res || !res.ok) {
+      // Return fallback instead of crashing — keeps UX alive when Google is down
+      return FALLBACK_TRENDING.slice(0, maxResults);
     }
+    const data = await res.json();
+    if (data.error) return FALLBACK_TRENDING.slice(0, maxResults);
+    const books = (data.items || []).map(normalizeBook).filter(Boolean);
+    cache.set(cacheKey, books);
+    return books;
+  } catch (e) {
+    return FALLBACK_TRENDING.slice(0, maxResults);
   }
-
-  if (!res) throw new Error('Book search failed. Please try again.');
-  if (!res.ok) {
-    if (res.status === 429) throw new Error('Search rate limit reached. Please wait a moment and try again.');
-    throw new Error(`Book search failed (${res.status}). Please try again.`);
-  }
-
-  const data = await res.json();
-
-  if (data.error) {
-    throw new Error(data.error.message || 'Book search failed. Please try again.');
-  }
-
-  const books = (data.items || []).map(normalizeBook).filter(Boolean);
-  cache.set(cacheKey, books);
-  return books;
 }
 
 export async function getBookById(id) {
   const cacheKey = `book:${id}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
-  const res = await fetch(`${BASE_URL}/volumes/${id}?key=${GOOGLE_BOOKS_API_KEY}`);
-  if (!res.ok) throw new Error(`Failed to load book (${res.status}).`);
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message || 'Failed to load book.');
-  const book = normalizeBook(data);
-  cache.set(cacheKey, book);
-  return book;
+  const url = `${BASE_URL}/volumes/${id}?key=${GOOGLE_BOOKS_API_KEY}`;
+
+  try {
+    const res = await withThrottle(() => fetchWithRetry(url));
+    if (!res || !res.ok) return null;
+    const data = await res.json();
+    if (data.error) return null;
+    const book = normalizeBook(data);
+    cache.set(cacheKey, book);
+    return book;
+  } catch (e) {
+    return null;
+  }
 }
 
 export async function getBooksByCategory(category, maxResults = 8) {
