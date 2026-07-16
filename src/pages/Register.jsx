@@ -45,7 +45,7 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      window.location.href = "/onboarding";
+      window.location.href = "/";
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
@@ -134,7 +134,7 @@ export default function Register() {
         </>
       }
     >
-      <SocialAuthButtons redirectTo="/onboarding" />
+      <SocialAuthButtons redirectTo="/" />
 
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center">
