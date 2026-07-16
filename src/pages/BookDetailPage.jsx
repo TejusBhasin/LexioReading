@@ -137,9 +137,16 @@ Use your knowledge of this book.`,
     loadAgeInfo(b);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Write a compelling, spoiler-free 3-sentence summary of "${b.title}" by ${b.author}. 
+        prompt: `Write a compelling, spoiler-free 3-sentence summary of "${b.title}" by ${b.author}.
+
+CRITICAL RULES — this is for a reading app used by students:
+- Do NOT reveal any plot points, twists, character arcs, deaths, or endings.
+- Do NOT summarize what happens in the story or retell any events.
+- Write like a back-cover blurb: describe the premise, tone, and who would enjoy it.
+- Tease the book's appeal WITHOUT giving away what actually happens.
 Make it feel like a knowledgeable friend recommending it — enthusiastic but honest.
-Also write one "hook line" (max 15 words) that captures the book's essence.
+
+Also write one "hook line" (max 15 words) that captures the book's essence without spoiling anything.
 
 Context: ${b.description?.slice(0, 500) || 'No description available'}`,
         response_json_schema: {

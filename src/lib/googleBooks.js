@@ -7,8 +7,25 @@ export async function searchBooks(query, maxResults = 12) {
   const cacheKey = `search:${query}:${maxResults}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
-  const res = await fetch(`${BASE_URL}/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&key=${GOOGLE_BOOKS_API_KEY}`);
+  const url = `${BASE_URL}/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&key=${GOOGLE_BOOKS_API_KEY}`;
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (networkErr) {
+    throw new Error('Network error — check your connection and try again.');
+  }
+
+  if (!res.ok) {
+    if (res.status === 429) throw new Error('Search rate limit reached. Please wait a moment and try again.');
+    throw new Error(`Book search failed (${res.status}). Please try again.`);
+  }
+
   const data = await res.json();
+
+  if (data.error) {
+    throw new Error(data.error.message || 'Book search failed. Please try again.');
+  }
+
   const books = (data.items || []).map(normalizeBook).filter(Boolean);
   cache.set(cacheKey, books);
   return books;
@@ -19,7 +36,9 @@ export async function getBookById(id) {
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
   const res = await fetch(`${BASE_URL}/volumes/${id}?key=${GOOGLE_BOOKS_API_KEY}`);
+  if (!res.ok) throw new Error(`Failed to load book (${res.status}).`);
   const data = await res.json();
+  if (data.error) throw new Error(data.error.message || 'Failed to load book.');
   const book = normalizeBook(data);
   cache.set(cacheKey, book);
   return book;

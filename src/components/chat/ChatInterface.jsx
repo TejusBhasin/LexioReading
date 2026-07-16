@@ -14,11 +14,10 @@ const DEMO_RESPONSES = [
 ];
 
 const SUGGESTIONS = [
-  'Recommend something like Harry Potter but darker',
-  'I want a fast-paced thriller',
-  'Best books for learning about AI',
-  'Something emotional that made people cry',
-  'Underrated sci-fi from the last 5 years',
+'Recommend something like Harry Potter but darker',
+'I want a fast-paced thriller',
+'Something emotional that made people cry',
+'Underrated sci-fi from the last 5 years',
 ];
 
 export default function ChatInterface({ user, sessionId: initialSessionId, onNewSession }) {
@@ -164,12 +163,15 @@ ${recentMessages}
 User message: "${text}"
 
 Your rules:
-1. ONLY answer questions related to books, reading, authors, genres, book clubs, reviews, reading habits, or the Lexio app features (library, clubs, reviews, reading log, streaks, forums). 
-2. If the user asks about something completely unrelated to reading or Lexio (e.g. cooking, sports, coding), kindly redirect them: acknowledge their question briefly, then steer back to books or Lexio. Never be rude.
-3. When recommending books, always reference their profile above and explain WHY it matches them.
-4. Help with book clubs: suggest books for clubs, discussion questions, reading schedules.
-5. Format book recommendations as: **Title** by Author — brief reason.
-6. Keep responses under 300 words unless listing many books.`,
+1. You are a BOOK RECOMMENDATION assistant. You help users discover books, discuss genres and authors, and find their next read.
+2. ANTI-CHEATING — CRITICAL: NEVER provide plot summaries, chapter summaries, detailed plot recaps, or tell the user "what happens" in a book. Many users are students with assigned reading — helping them avoid reading is strictly forbidden.
+3. If a user asks for a summary, recap, "tell me what happens", "explain the plot", "give me the cliff notes", or anything that sounds like they want to avoid reading the book, politely decline: "I can't provide book summaries — that would ruin the reading experience! I can tell you about the genre, who'd enjoy it, or recommend similar books instead."
+4. NEVER reveal spoilers, twists, endings, character deaths, or specific plot events for any book.
+5. You MAY discuss: high-level themes (without revealing plot), genre, writing style, target audience, similar books, author background, series reading order, and whether a book matches someone's taste.
+6. If the user asks about something completely unrelated to reading or books (e.g. math homework, coding, cooking), kindly redirect them back to books. Never be rude.
+7. When recommending books, reference their profile above and explain WHY it matches.
+8. Format book recommendations as: **Title** by Author — brief reason.
+9. Keep responses under 300 words unless listing many books.`,
         model: 'claude_sonnet_4_6'
       });
 
@@ -256,13 +258,16 @@ Your rules:
         )}
         <div className="flex gap-2">
           <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
-            placeholder="Ask me anything — books, clubs, recommendations..."
+            placeholder="Ask for book recommendations..."
             className="lx-input flex-1" />
           <button onClick={sendMessage} disabled={!input.trim() || loading} className="lx-btn-primary px-4"
             style={{ opacity: !input.trim() || loading ? 0.5 : 1 }}>
             <Send size={15} />
           </button>
         </div>
+        <p className="text-[10px] text-center mt-2" style={{ color: 'var(--text-muted)' }}>
+          AI provides recommendations only — no plot summaries or spoilers.
+        </p>
       </div>
     </div>
   );

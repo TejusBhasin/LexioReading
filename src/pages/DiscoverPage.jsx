@@ -10,9 +10,6 @@ import LoadMoreRecommendations from '@/components/discover/LoadMoreRecommendatio
 
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Historical', 'Thriller', 'Non-Fiction'];
 
-// Banned words — any query or book title/description containing these is filtered out
-const BANNED_WORDS = ['teen', 'teenager', 'young adult', 'ya fiction', 'middle grade', 'children', 'kids', 'abuse', 'war', 'romance', 'self help', 'self-help', 'adult content', 'explicit'];
-
 const FOR_YOU_QUERIES = [
   'bestselling literary fiction 2022', 'award winning mystery novel 2023',
   'gripping thriller bestseller 2023', 'epic fantasy series acclaimed',
@@ -31,10 +28,7 @@ const FOR_YOU_QUERIES = [
   'detective noir mystery 2022', 'climate future science fiction 2023',
 ];
 
-function isSafeBook(book) {
-  const text = `${book.title} ${book.author} ${(book.categories || []).join(' ')}`.toLowerCase();
-  return !BANNED_WORDS.some(w => text.includes(w));
-}
+
 
 export default function DiscoverPage() {
   const { user, isAuthenticated } = useAuth();
@@ -46,6 +40,8 @@ export default function DiscoverPage() {
   const [savedIds, setSavedIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
   const [showPopular, setShowPopular] = useState(true);
   const [activeGenre, setActiveGenre] = useState('All');
   const [trendingEmpty, setTrendingEmpty] = useState(false);
@@ -85,7 +81,7 @@ export default function DiscoverPage() {
     const allResults = await Promise.all(
       selectedQueries.map(q => searchBooks(q, 10).catch(() => []))
     );
-    const pool = allResults.flat().filter(b => b?.cover_image && isSafeBook(b) && b.published_date >= '2020');
+    const pool = allResults.flat().filter(b => b?.cover_image && b.published_date >= '2020');
     const unique = Object.values(Object.fromEntries(pool.map(b => [b.google_books_id || b.title, b])));
     const randomSix = [...unique].sort(() => Math.random() - 0.5).slice(0, 6);
     setForYouBooks(randomSix);
@@ -143,11 +139,18 @@ export default function DiscoverPage() {
       return;
     }
     setSearching(true);
+    setSearchError('');
+    setHasSearched(true);
     try {
       const results = await searchBooks(searchQuery, 12);
-      setSearchResults(results.filter(b => b.cover_image));
+      const filtered = results.filter(b => b.cover_image);
+      setSearchResults(filtered);
+      if (filtered.length === 0 && results.length > 0) {
+        setSearchError('Some results were found but don\'t have cover images. Try a different search term.');
+      }
     } catch (e) {
       setSearchResults([]);
+      setSearchError(e.message || 'Search failed. Please try again.');
     } finally {
       setSearching(false);
     }
@@ -207,7 +210,7 @@ export default function DiscoverPage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
           <input
             className="lx-input pl-10"
-            placeholder=""
+            placeholder="Search by title, author, or keyword..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
@@ -218,13 +221,54 @@ export default function DiscoverPage() {
       </form>
 
       {/* Search Results */}
-      {searchResults.length > 0 && (
+      {searching && (
+        <section className="mb-12">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--lx-accent)', borderTopColor: 'transparent' }} />
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              Searching for "{searchQuery}"...
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="rounded animate-pulse" style={{ aspectRatio: '2/3', background: 'var(--bg-card)' }} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!searching && searchError && (
+        <section className="mb-12">
+          <div className="lx-card p-8 text-center">
+            <Search size={28} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+            <p className="text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>{searchError}</p>
+            <button onClick={() => handleSearch({ preventDefault: () => {} })} className="lx-btn-ghost text-sm mt-3">Try Again</button>
+          </div>
+        </section>
+      )}
+
+      {!searching && !searchError && hasSearched && searchResults.length === 0 && (
+        <section className="mb-12">
+          <div className="lx-card p-8 text-center">
+            <Search size={28} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+            <h2 className="font-display text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+              No results for "{searchQuery}"
+            </h2>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+              Try checking the spelling, or use fewer words. You can also search by author name.
+            </p>
+            <button onClick={() => { setSearchQuery(''); setSearchResults([]); setHasSearched(false); }} className="lx-btn-ghost text-sm">Clear Search</button>
+          </div>
+        </section>
+      )}
+
+      {!searching && searchResults.length > 0 && (
         <section className="mb-12">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               Results for "{searchQuery}"
             </h2>
-            <button onClick={() => setSearchResults([])} className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            <button onClick={() => { setSearchResults([]); setHasSearched(false); }} className="text-sm" style={{ color: 'var(--text-muted)' }}>
               Clear
             </button>
           </div>
