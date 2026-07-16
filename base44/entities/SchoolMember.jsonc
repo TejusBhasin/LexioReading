@@ -37,6 +37,17 @@
       },
       "description": "Features restricted for this specific student only, in addition to school-wide restrictions"
     },
+    "pending_class_id": {
+      "type": "string",
+      "description": "Class ID the student is requesting to change to (empty if no pending request)"
+    },
+    "pending_class_name": {
+      "type": "string"
+    },
+    "pending_role": {
+      "type": "string",
+      "description": "Role the member is requesting (e.g. 'semi_admin'). Empty if no pending request."
+    },
     "dual_mode_enabled": {
       "type": "boolean",
       "default": false

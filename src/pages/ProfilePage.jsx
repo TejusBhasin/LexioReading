@@ -6,6 +6,7 @@ import SetupTour from '@/components/onboarding/SetupTour';
 import ContactForm from '@/components/profile/ContactForm';
 import ProfileExport from '@/components/profile/ProfileExport';
 import JoinCreateSchool from '@/components/schools/JoinCreateSchool';
+import SchoolClassManager from '@/components/schools/SchoolClassManager';
 import PrivacyTab from '@/components/profile/PrivacyTab';
 import DeleteAccountSection from '@/components/profile/DeleteAccountSection';
 import LibrarianSettings from '@/components/profile/LibrarianSettings';
@@ -560,6 +561,7 @@ export default function ProfilePage() {
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Schools are managed environments for teachers and students. Joining is permanent, but your data always stays with you.</p>
           </div>
           <JoinCreateSchool user={user} />
+          <SchoolClassManager user={user} />
           {/* Link to admin panel */}
           <a href="/school-admin" className="lx-btn-ghost text-sm flex items-center gap-2 w-full justify-center">
             <GraduationCap size={14} /> Manage My School (Admin Panel)

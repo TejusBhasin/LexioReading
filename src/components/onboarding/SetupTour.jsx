@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 
 function TandC() {
@@ -16,13 +16,13 @@ function TandC() {
           <p>Lexio is a free reading companion app. By using Lexio you agree to use it for personal, non-commercial reading purposes only.</p>
           <p>You are responsible for the content you post (reviews, discussions). Hateful, illegal, or abusive content is prohibited and may result in account termination.</p>
           <p>Lexio reserves the right to modify or discontinue services at any time. We are not responsible for third-party links (e.g. Amazon, Google Books).</p>
-          <p><strong style={{ color: 'var(--text-primary)' }}>Non-Compete:</strong> For 80 years from registration, you agree not to create, participate in, or be involved with any reading-related platform or business that competes with Lexio or similar services (e.g. Goodreads).</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Liability &amp; No-Sue:</strong> Lexio is NOT responsible for data breaches, hacks, security incidents, or any physical, mental, emotional, financial, or online damage. Lexio and its team are immune from all legal action. You waive all rights to sue.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Privacy Policy</strong></p>
           <p>We collect only the data necessary to provide the service: your email address, reading preferences, and content you create (logs, reviews, library entries).</p>
           <p>We do not sell your data to third parties. Your data is stored securely and is never shared without your consent, except as required by law.</p>
           <p>You can delete your account and all associated data at any time by contacting support.</p>
           <p className="pt-1" style={{ color: 'var(--text-secondary)' }}>Lexio is free forever for core features. Premium features, if introduced, will always be optional.</p>
+          <p style={{ color: 'var(--text-muted)' }}>You are welcome to use other reading platforms and services. You agree not to create, develop, or build any new reading-related application or platform that competes with Lexio.</p>
         </div>
       )}
     </div>
@@ -46,12 +46,39 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
   const [blacklisted, setBlacklisted] = useState([]);
   const [tcAgreed, setTcAgreed] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [schoolClasses, setSchoolClasses] = useState([]);
+  const [selectedClassId, setSelectedClassId] = useState(null);
+  const [enrolling, setEnrolling] = useState(false);
 
   function toggleGenre(g) {
     setGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
   }
   function toggleTheme(t) {
     setBlacklisted(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  }
+
+  async function loadSchoolClasses() {
+    try {
+      let schoolId = autoJoinedSchool?.id;
+      if (!schoolId) {
+        const memberships = await base44.entities.SchoolMember.filter({ user_email: user.email, kicked: false });
+        const activeMember = memberships.find(m => !m.dual_mode_enabled || m.currently_school_mode);
+        if (activeMember) schoolId = activeMember.school_id;
+      }
+      if (schoolId) {
+        const classes = await base44.entities.SchoolClass.filter({ school_id: schoolId });
+        setSchoolClasses(classes);
+      }
+    } catch (e) {}
+  }
+
+  async function enrollInClass() {
+    if (!selectedClassId) return;
+    setEnrolling(true);
+    try {
+      await base44.functions.invoke('manageClassEnrollment', { action: 'enroll', class_id: selectedClassId });
+    } catch (e) {}
+    setEnrolling(false);
   }
 
   function handleSchoolsNext() {
@@ -121,6 +148,12 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
     } catch (e) {}
     setSaving(false);
   }
+
+  useEffect(() => {
+    if (STEPS[step] === 'schools' && user?.email) {
+      loadSchoolClasses();
+    }
+  }, [step, user]);
 
   const currentStep = STEPS[step];
 
@@ -336,6 +369,32 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
                 <p className="text-xs" style={{ color: '#10b981' }}>
                   <strong>You've been automatically joined to {autoJoinedSchool.name}!</strong> Your school admin can manage your reading experience. You can access school features from your profile.
                 </p>
+              </div>
+            )}
+            {schoolClasses.length > 0 && (
+              <div className="mb-5">
+                <p className="text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Select Your Class</p>
+                <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Choose your class to join. You can change it later from your profile.</p>
+                <div className="space-y-1.5">
+                  {schoolClasses.map(cls => (
+                    <button key={cls.id} onClick={() => setSelectedClassId(cls.id)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded text-sm transition-all"
+                      style={{
+                        background: selectedClassId === cls.id ? 'var(--lx-accent)' : 'var(--bg-elevated)',
+                        color: selectedClassId === cls.id ? 'var(--bg-primary)' : 'var(--text-secondary)',
+                        border: `1px solid ${selectedClassId === cls.id ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+                      }}>
+                      <span>{cls.class_name}</span>
+                      {cls.subject && <span className="text-xs opacity-70">{cls.subject}</span>}
+                    </button>
+                  ))}
+                </div>
+                {selectedClassId && (
+                  <button onClick={enrollInClass} disabled={enrolling}
+                    className="lx-btn-primary w-full justify-center text-sm mt-3">
+                    {enrolling ? 'Joining...' : 'Join This Class'}
+                  </button>
+                )}
               </div>
             )}
             <div className="space-y-1 mb-5 max-h-60 overflow-y-auto">

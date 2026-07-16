@@ -7,6 +7,7 @@ import ClassesTab from '@/components/schools/ClassesTab';
 import SchoolAIChat from '@/components/schools/SchoolAIChat';
 import SchoolSafetyTab from '@/components/schools/SchoolSafetyTab';
 import StudentOverviewModal from '@/components/schools/StudentOverviewModal';
+import StudentRequestsTab from '@/components/schools/StudentRequestsTab';
 
 const FEATURE_LABELS = {
   vault: 'Vault',
@@ -267,6 +268,7 @@ export default function SchoolAdminPage() {
         {[
           ...(userRole === 'admin' ? [{ id: 'overview', label: 'Overview', icon: BarChart2 }] : []),
           ...(userRole === 'admin' ? [{ id: 'members', label: 'Members', icon: Users }] : []),
+          ...(userRole === 'admin' ? [{ id: 'requests', label: 'Requests', icon: Clock }] : []),
           { id: 'classes', label: 'Classes', icon: BookOpen },
           { id: 'safety', label: 'Safety', icon: ShieldAlert },
           { id: 'ai', label: 'AI Assistant', icon: Bot },
@@ -279,6 +281,11 @@ export default function SchoolAdminPage() {
           </button>
         ))}
       </div>
+
+      {/* REQUESTS */}
+      {tab === 'requests' && (
+        <StudentRequestsTab school={school} user={user} />
+      )}
 
       {/* CLASSES */}
       {tab === 'classes' && (

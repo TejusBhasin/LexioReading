@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export const CURRENT_TERMS_VERSION = 'v4-2026-07';
+export const CURRENT_TERMS_VERSION = 'v5-2026-07';
 
 function TermsText() {
   const [open, setOpen] = useState(false);
@@ -21,12 +21,12 @@ function TermsText() {
           <p><strong style={{ color: 'var(--text-primary)' }}>Moderation &amp; Banning &mdash; FINAL &amp; BINDING</strong><br />Lexio administrators reserve the right to ban, restrict, suspend, or permanently terminate any user account at any time, for any reason, at their sole discretion, without prior notice or explanation. By using Lexio, you acknowledge and agree that all moderation decisions are FINAL and BINDING. You waive any right to contest, dispute, appeal through legal channels, or claim damages in connection with any moderation action taken on your account. The only permitted appeal method is a courtesy email to Support@LexioReading.App, which administrators may respond to at their discretion.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Limitation of Liability &mdash; FULL WAIVER</strong><br />To the fullest extent permitted by applicable law, Lexio, its creators, developers, administrators, moderators, and all affiliated individuals ARE NOT LIABLE for any direct, indirect, incidental, consequential, special, punitive, or exemplary damages arising from your use of or inability to use Lexio, including but not limited to: data loss, account termination, content removal, service interruptions, third-party actions, or any other matter related to the platform. YOU EXPRESSLY AGREE NOT TO BRING ANY LEGAL ACTION, LAWSUIT, CLAIM, OR DEMAND against any person involved in the creation, development, administration, or operation of Lexio. By using this service you irrevocably waive all such claims.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Data Breach &amp; Security Liability &mdash; FULL WAIVER</strong><br />No system is or can be 100% secure. Lexio, its creators, developers, administrators, moderators, and all affiliated individuals are NOT responsible or liable for: data breaches, data leaks, hacks, cyberattacks, unauthorized access, loss or corruption of data, or any security incident of any kind. Furthermore, Lexio is NOT responsible for any physical, literal, mental, emotional, psychological, financial, or online damage, harm, or injury of any kind arising from your use of Lexio. You use Lexio entirely at your own risk.</p>
-          <p><strong style={{ color: 'var(--text-primary)' }}>Non-Compete &mdash; Reading Platform Exclusivity</strong><br />For a period of 80 years from your registration, you agree not to create, found, operate, participate in, be employed by, consult for, invest in, or be involved with any reading-related application, platform, or business that competes with Lexio or any similar service, including Goodreads. This applies worldwide regardless of profit motive.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Complete Immunity &mdash; No Right to Sue</strong><br />Lexio and all affiliated individuals are completely immune from legal action. You irrevocably waive all rights to bring any legal action, lawsuit, claim, arbitration, or demand against Lexio or any person involved in its creation or operation, in any court or forum. This waiver is absolute and survives account termination.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>No Warranty</strong><br />Lexio is provided as-is with no warranties of any kind, express or implied, including fitness for a particular purpose or uninterrupted availability.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Modifications</strong><br />Lexio may modify or discontinue the service at any time without liability.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Privacy</strong><br />We collect only the data necessary to run the platform. We do not sell your data. Your data may be reviewed by administrators for safety and abuse prevention.</p>
           <p><strong style={{ color: '#f87171' }}>Loopholes — STRICTLY PROHIBITED &amp; LEGALLY ACTIONABLE</strong><br />The use of any loophole, exploit, technical workaround, or unintended mechanism is strictly prohibited. Any method that technically complies with these Terms while violating their spirit — as judged solely by Lexio — constitutes a violation. This includes ban evasion, fake engagement, automation, and manipulation of any platform feature. Violations may result in immediate permanent termination and civil legal action for damages. By accepting these Terms, you waive any defense that the conduct was not explicitly named.</p>
+          <p style={{ color: 'var(--text-muted)' }}>You are welcome to use other reading platforms and services. You agree not to create, develop, or build any new reading-related application or platform that competes with Lexio.</p>
           <p style={{ color: 'var(--lx-accent)', fontWeight: 600 }}>By clicking "I Agree", you confirm you have read, understood, and agree to ALL of the above terms, including the loopholes clause.</p>
         </div>
       )}
@@ -95,7 +95,7 @@ export default function TermsReAcceptModal({ user, onAccepted }) {
             style={{ background: agreed ? 'var(--lx-accent)' : 'transparent', border: `2px solid ${agreed ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
             {agreed && <Check size={12} style={{ color: 'var(--bg-primary)' }} />}
           </button>
-          <span>I have read and agree to the Terms &amp; Conditions, including the moderation policy, liability waiver, data breach waiver, 80-year non-compete, complete immunity/no-sue clause, and loopholes prohibition.</span>
+          <span>I have read and agree to the Terms &amp; Conditions, including the moderation policy, liability waiver, data breach waiver, complete immunity/no-sue clause, and loopholes prohibition.</span>
         </label>
 
         <button onClick={handleAccept} disabled={!agreed || saving} className="lx-btn-primary w-full justify-center">

@@ -113,19 +113,6 @@ export default function TermsPrivacyPage() {
               Lexio reserves the right to update its definition of "loophole" at any time. Users are responsible for staying informed of these Terms. Ignorance of this clause is not a valid defense.
             </p>
 
-            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Non-Compete — Reading Platform Exclusivity</h3>
-            <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-              BY CREATING AN ACCOUNT ON LEXIO, YOU AGREE THAT FOR A PERIOD OF EIGHTY (80) YEARS from the date of your registration, you shall not, directly or indirectly, anywhere in the world:
-            </p>
-            <ul style={{ paddingLeft: '1.5rem', listStyle: 'disc', marginTop: '0.5rem' }}>
-              <li><strong>Create, found, establish, or operate</strong> any reading-related application, platform, service, or business that competes with Lexio or any similar service, including but not limited to Goodreads.</li>
-              <li><strong>Participate in, be employed by, consult for, advise, invest in,</strong> or otherwise be involved with any reading-related company, platform, or service that is a competitor or potential competitor of Lexio.</li>
-              <li><strong>Develop, design, or contribute to</strong> any software, website, or application whose primary purpose is book tracking, reading logging, book recommendations, book reviews, reading communities, or any feature substantially similar to any Lexio feature.</li>
-            </ul>
-            <p style={{ marginTop: '0.5rem' }}>
-              This restriction applies regardless of whether such activity is for profit, non-profit, or personal use. A "reading-related" company or service is defined broadly and includes any platform that involves books, reading tracking, book discovery, reading communities, or reading analytics. Violation of this clause may result in immediate account termination and Lexio reserves the right to pursue all available legal and equitable remedies.
-            </p>
-
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Data Breach, Security, and Damage Liability — Full Waiver</h3>
             <p>
               Lexio takes reasonable measures to protect your data. However, you acknowledge that <strong style={{ color: 'var(--text-primary)' }}>no system, platform, or service is or can ever be 100% secure.</strong> Accordingly, Lexio, its creators, developers, administrators, moderators, and all affiliated individuals and entities are <strong style={{ color: 'var(--text-primary)' }}>NOT responsible, liable, or accountable in any way</strong> for:
@@ -157,6 +144,9 @@ export default function TermsPrivacyPage() {
             <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Free Service</h3>
             <p>
               Lexio is free forever for core features. If premium features are introduced in the future, they will be optional and transparent.
+            </p>
+            <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>
+              You are welcome to use other reading platforms and services. You agree not to create, develop, or build any new reading-related application or platform that competes with Lexio.
             </p>
           </div>
         </section>
