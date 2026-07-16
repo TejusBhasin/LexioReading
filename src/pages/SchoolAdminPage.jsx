@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ClassesTab from '@/components/schools/ClassesTab';
 import SchoolAIChat from '@/components/schools/SchoolAIChat';
+import SchoolSafetyTab from '@/components/schools/SchoolSafetyTab';
 
 const FEATURE_LABELS = {
   vault: 'Vault',
@@ -242,6 +243,7 @@ export default function SchoolAdminPage() {
           ...(userRole === 'admin' ? [{ id: 'overview', label: 'Overview', icon: BarChart2 }] : []),
           ...(userRole === 'admin' ? [{ id: 'members', label: 'Members', icon: Users }] : []),
           { id: 'classes', label: 'Classes', icon: BookOpen },
+          { id: 'safety', label: 'Safety', icon: ShieldAlert },
           { id: 'ai', label: 'AI Assistant', icon: Bot },
           ...(userRole === 'admin' ? [{ id: 'settings', label: 'Settings', icon: Settings }] : []),
         ].map(t => (
@@ -256,6 +258,11 @@ export default function SchoolAdminPage() {
       {/* CLASSES */}
       {tab === 'classes' && (
         <ClassesTab school={school} user={user} />
+      )}
+
+      {/* SAFETY */}
+      {tab === 'safety' && (
+        <SchoolSafetyTab school={school} user={user} />
       )}
 
       {/* AI ASSISTANT */}

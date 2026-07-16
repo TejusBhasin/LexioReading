@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flag, Bot, Check, X, Loader2, AlertTriangle, Ban, Trash2, Undo2 } from 'lucide-react';
+import { Flag, Bot, Check, X, Loader2, AlertTriangle, Ban, Trash2, Undo2, MessageSquareReply } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const CONTENT_TYPE_LABELS = {
@@ -157,6 +157,18 @@ export default function FlaggedContentTab({ user: adminUser }) {
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   <span className="font-bold">Reporter note:</span> {r.details}
                 </p>
+              )}
+
+              {/* School suggestion */}
+              {r.school_suggested_action && (
+                <div className="p-3 rounded-lg" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.3)' }}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <MessageSquareReply size={12} style={{ color: '#818cf8' }} />
+                    <span className="text-xs font-bold" style={{ color: '#818cf8' }}>School Suggested Action</span>
+                    {r.school_suggested_by && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>· by {r.school_suggested_by}</span>}
+                  </div>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{r.school_suggested_action}</p>
+                </div>
               )}
 
               {/* AI verdict if already reviewed */}

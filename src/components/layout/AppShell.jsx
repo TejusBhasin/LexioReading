@@ -56,6 +56,16 @@ const BOTTOM_NAV_ITEMS = [
 { path: '/reading-log', icon: Clock, label: 'Log' },
 { path: '/profile', icon: User, label: 'Profile' }];
 
+const PATH_FEATURE_MAP = {
+  '/vault': 'vault',
+  '/forums': 'forums',
+  '/clubs': 'clubs',
+  '/chat': 'chat',
+  '/reviews': 'reviews',
+  '/wrapped': 'wrapped',
+  '/discover': 'discover',
+};
+
 
 export default function AppShell({ children, user }) {
   const location = useLocation();
@@ -72,6 +82,7 @@ export default function AppShell({ children, user }) {
   const [appLocked, setAppLocked] = useState(false);
   const [librarianMode, setLibrarianMode] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [restrictedFeatures, setRestrictedFeatures] = useState([]);
   const menuRef = useRef(null);
 
   // Pull-to-refresh state
@@ -147,6 +158,7 @@ export default function AppShell({ children, user }) {
 
   async function loadUserProfile() {
     try {
+      setRestrictedFeatures([]);
       const [p, safetyRecs, blockedPatterns, schoolMemberRecs] = await Promise.all([
       base44.entities.UserProfile.filter({ user_email: user.email }),
       base44.entities.UserSafeness.filter({ user_email: user.email }),
@@ -179,6 +191,17 @@ export default function AppShell({ children, user }) {
               } catch (e) {}
             }
           }
+
+          // Compute student restrictions (school-wide + class-level + individual)
+          let studentRestrictions = [...(s.restrictions || []), ...(activeSchoolMember.individual_restrictions || [])];
+          try {
+            const classes = await base44.entities.SchoolClass.filter({ school_id: s.id });
+            const studentClasses = classes.filter(c => c.student_emails?.includes(user.email));
+            for (const cls of studentClasses) {
+              studentRestrictions.push(...(cls.restrictions || []));
+            }
+          } catch (e) {}
+          setRestrictedFeatures([...new Set(studentRestrictions)]);
         }
       }
 
@@ -304,6 +327,24 @@ export default function AppShell({ children, user }) {
     );
   }
 
+  const isRestricted = (path) => {
+    const feature = PATH_FEATURE_MAP[path];
+    return feature ? restrictedFeatures.includes(feature) : false;
+  };
+  const allNavItems = [...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].filter(item => !isRestricted(item.path));
+  const visibleExtraNav = EXTRA_NAV.filter(item => !isRestricted(item.path));
+  const visibleTopBarIcons = TOP_BAR_ICON_OPTIONS.filter(item => !isRestricted(item.path));
+  const visibleBottomNav = [
+    { path: '/', icon: LayoutDashboard },
+    { path: '/discover', icon: Compass },
+    { path: '/chat', icon: MessageSquare }
+  ].filter(({ path }) => !isRestricted(path));
+  const visibleDesktopNav = [
+    { path: '/', icon: LayoutDashboard, label: 'Home' },
+    { path: '/discover', icon: Compass, label: 'Discover' },
+    { path: '/chat', icon: MessageSquare, label: 'Chat' },
+  ].filter(({ path }) => !isRestricted(path));
+
   return (
     <div className="overflow-hidden lx-bg flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh' }}>
       {isBanned && <BanScreen reason={banReason} />}
@@ -332,7 +373,7 @@ export default function AppShell({ children, user }) {
 
           {/* Center: user-selected extra icons (icon-only, all sizes) + desktop nav */}
           <div className="flex items-center gap-0.5">
-            {TOP_BAR_ICON_OPTIONS.filter(opt => prefs?.top_bar_icons?.includes(opt.path)).map(({ path, icon: NavIcon, label }) => {
+            {visibleTopBarIcons.filter(opt => prefs?.top_bar_icons?.includes(opt.path)).map(({ path, icon: NavIcon, label }) => {
               const active = location.pathname === path;
               return (
                 <Link key={path} to={path} title={label}
@@ -345,11 +386,7 @@ export default function AppShell({ children, user }) {
 
             {/* Desktop/Landscape Nav — items with labels + all-pages menu */}
             <nav className="hidden md:flex items-center gap-0.5 ml-1">
-              {[
-                { path: '/', icon: LayoutDashboard, label: 'Home' },
-                { path: '/discover', icon: Compass, label: 'Discover' },
-                { path: '/chat', icon: MessageSquare, label: 'Chat' },
-              ].map(({ path, icon: NavIcon, label }) => {
+              {visibleDesktopNav.map(({ path, icon: NavIcon, label }) => {
                 const active = location.pathname === path;
                 return (
                   <Link
@@ -379,7 +416,7 @@ export default function AppShell({ children, user }) {
                 {otherOpen &&
                 <div className="absolute top-full right-0 mt-1 w-52 rounded-lg shadow-lg py-1 z-50"
                   style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
-                  {[...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].map(({ path, icon: OIcon, label }) =>
+                  {allNavItems.map(({ path, icon: OIcon, label }) =>
                     <Link key={path} to={path}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:opacity-80"
                       style={{ color: location.pathname === path ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
@@ -407,7 +444,7 @@ export default function AppShell({ children, user }) {
 
             {user ?
             <div className="hidden md:flex items-center gap-2">
-                {EXTRA_NAV.map(({ path, icon: EIcon, label }) =>
+                {visibleExtraNav.map(({ path, icon: EIcon, label }) =>
               <Link key={path} to={path} title={label}
               className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-all"
               style={{ color: 'var(--text-muted)' }}>
@@ -432,7 +469,7 @@ export default function AppShell({ children, user }) {
       <div ref={menuRef} className="md:hidden fixed left-0 right-0 z-40 border-b shadow-lg overflow-y-auto"
       style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', top: 'calc(3.5rem + env(safe-area-inset-top, 0px))', maxHeight: 'calc(100svh - 3.5rem - env(safe-area-inset-top, 0px))' }}>
           <nav className="px-4 py-3 space-y-1">
-            {[...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].map(({ path, icon: MIcon, label }) => {
+            {allNavItems.map(({ path, icon: MIcon, label }) => {
             const active = location.pathname === path;
             return (
               <Link key={path} to={path}
@@ -497,11 +534,7 @@ export default function AppShell({ children, user }) {
       {/* Mobile Bottom Tab Bar — shown on all sizes when top bar is hidden */}
       <nav className={`fixed bottom-0 left-0 right-0 z-40 border-t flex ${prefs?.hide_top_bar ? '' : 'md:hidden'}`}
       style={{ background: 'var(--bg-secondary)', borderColor: 'var(--lx-border)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        {[
-        { path: '/', icon: LayoutDashboard },
-        { path: '/discover', icon: Compass },
-        { path: '/chat', icon: MessageSquare }].
-        map(({ path, icon: Icon }) => {
+        {visibleBottomNav.map(({ path, icon: Icon }) => {
           const active = location.pathname === path;
           return (
             <Link key={path} to={path}
@@ -537,7 +570,7 @@ export default function AppShell({ children, user }) {
           </div>
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <div className="grid grid-cols-3 gap-3">
-              {[...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].map(({ path, icon: MIcon, label }) => {
+              {allNavItems.map(({ path, icon: MIcon, label }) => {
               const active = location.pathname === path;
               return (
                 <Link key={path} to={path}

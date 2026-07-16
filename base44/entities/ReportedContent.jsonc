@@ -77,6 +77,16 @@
     },
     "reviewed_at": {
       "type": "string"
+    },
+    "school_suggested_action": {
+      "type": "string",
+      "description": "School admin's suggested course of action, recommended to Lexio admins for consideration"
+    },
+    "school_suggested_by": {
+      "type": "string"
+    },
+    "school_suggested_at": {
+      "type": "string"
     }
   },
   "required": [

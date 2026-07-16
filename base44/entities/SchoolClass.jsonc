@@ -29,6 +29,13 @@
         "type": "string"
       }
     },
+    "restrictions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Features to disable for students in this class: 'vault', 'forums', 'clubs', 'chat', 'reviews', 'wrapped', 'discover'"
+    },
     "created_by_email": {
       "type": "string"
     }

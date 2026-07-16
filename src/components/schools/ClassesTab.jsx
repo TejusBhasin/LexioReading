@@ -3,13 +3,24 @@ import { Plus, Trash2, ChevronRight, X, BookOpen, Users, Pencil, Search } from '
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 
+const FEATURE_LABELS = {
+  vault: 'Vault',
+  forums: 'Forums',
+  clubs: 'Clubs',
+  chat: 'AI Chat',
+  reviews: 'Reviews',
+  wrapped: 'Wrapped',
+  discover: 'Discover',
+};
+const ALL_FEATURES = Object.keys(FEATURE_LABELS);
+
 export default function ClassesTab({ school, user }) {
   const [classes, setClasses] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ class_name: '', subject: '', description: '', teacher_email: '', teacher_name: '', student_emails: [] });
+  const [form, setForm] = useState({ class_name: '', subject: '', description: '', teacher_email: '', teacher_name: '', student_emails: [], restrictions: [] });
   const [saving, setSaving] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
 
@@ -43,7 +54,7 @@ export default function ClassesTab({ school, user }) {
       }
       setShowCreate(false);
       setEditing(null);
-      setForm({ class_name: '', subject: '', description: '', teacher_email: '', teacher_name: '', student_emails: [] });
+      setForm({ class_name: '', subject: '', description: '', teacher_email: '', teacher_name: '', student_emails: [], restrictions: [] });
     } catch (e) {}
     setSaving(false);
   }
@@ -65,13 +76,14 @@ export default function ClassesTab({ school, user }) {
       teacher_email: cls.teacher_email || '',
       teacher_name: cls.teacher_name || '',
       student_emails: cls.student_emails || [],
+      restrictions: cls.restrictions || [],
     });
     setShowCreate(true);
   }
 
   function openCreate() {
     setEditing(null);
-    setForm({ class_name: '', subject: '', description: '', teacher_email: '', teacher_name: '', student_emails: [] });
+    setForm({ class_name: '', subject: '', description: '', teacher_email: '', teacher_name: '', student_emails: [], restrictions: [] });
     setShowCreate(true);
   }
 
@@ -81,6 +93,13 @@ export default function ClassesTab({ school, user }) {
       student_emails: f.student_emails.includes(email)
         ? f.student_emails.filter(e => e !== email)
         : [...f.student_emails, email],
+    }));
+  }
+
+  function toggleRestriction(feat) {
+    setForm(f => ({
+      ...f,
+      restrictions: f.restrictions?.includes(feat) ? f.restrictions.filter(x => x !== feat) : [...(f.restrictions || []), feat],
     }));
   }
 
@@ -214,6 +233,25 @@ export default function ClassesTab({ school, user }) {
                         style={{ background: selected ? 'rgba(245,166,35,0.1)' : 'transparent', color: selected ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
                         <span className="truncate">{m.username || m.user_email}</span>
                         {selected && <span className="text-xs">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Class restrictions */}
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Class Feature Restrictions</label>
+                <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Restrict features for students in this class (in addition to school-wide restrictions).</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {ALL_FEATURES.map(feat => {
+                    const restricted = form.restrictions?.includes(feat);
+                    return (
+                      <button key={feat} onClick={() => toggleRestriction(feat)}
+                        className="flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-all"
+                        style={{ background: restricted ? 'rgba(248,113,113,0.1)' : 'var(--bg-elevated)', border: `1px solid ${restricted ? 'rgba(248,113,113,0.4)' : 'var(--lx-border)'}`, color: restricted ? '#f87171' : 'var(--text-secondary)' }}>
+                        <span>{FEATURE_LABELS[feat]}</span>
+                        <span className="text-[10px]">{restricted ? 'Blocked' : 'Allowed'}</span>
                       </button>
                     );
                   })}
