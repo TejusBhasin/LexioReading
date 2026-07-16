@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown, Lock, Send, BookOpen, Sparkles, Bot, Mail, Check, X, Clock } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Users, Settings, BarChart2, Trash2, UserX, UserCheck, RefreshCw, ShieldAlert, ChevronDown, ChevronUp, Shield, Crown, Lock, Send, BookOpen, Sparkles, Bot, Mail, Check, X, Clock, Ban } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ClassesTab from '@/components/schools/ClassesTab';
@@ -9,6 +9,7 @@ import SchoolSafetyTab from '@/components/schools/SchoolSafetyTab';
 import StudentOverviewModal from '@/components/schools/StudentOverviewModal';
 import StudentRequestsTab from '@/components/schools/StudentRequestsTab';
 import SchoolContactTab from '@/components/schools/SchoolContactTab';
+import BanStudentModal from '@/components/schools/BanStudentModal';
 
 const FEATURE_LABELS = {
   vault: 'Vault',
@@ -53,6 +54,7 @@ export default function SchoolAdminPage() {
   const [emailDomainInput, setEmailDomainInput] = useState('');
   const [submittingDomain, setSubmittingDomain] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [banTarget, setBanTarget] = useState(null);
 
   useEffect(() => { if (user?.email) load(); }, [user]);
 
@@ -464,6 +466,17 @@ export default function SchoolAdminPage() {
                           );
                         })}
                       </div>
+
+                      {/* Ban student */}
+                      <div className="pt-2 border-t" style={{ borderColor: 'var(--lx-border)' }}>
+                        <button
+                          onClick={() => setBanTarget({ email: m.user_email, name: m.username })}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-xs font-medium transition-all"
+                          style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.3)' }}
+                        >
+                          <Ban size={12} /> Ban Student (up to 7 days)
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -682,6 +695,15 @@ export default function SchoolAdminPage() {
           schoolId={school.id}
           student={selectedStudent}
           onClose={() => setSelectedStudent(null)}
+        />
+      )}
+
+      {banTarget && (
+        <BanStudentModal
+          studentEmail={banTarget.email}
+          studentName={banTarget.name}
+          onClose={() => setBanTarget(null)}
+          onBanned={() => setBanTarget(null)}
         />
       )}
     </div>

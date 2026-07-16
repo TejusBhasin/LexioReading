@@ -16,6 +16,27 @@
       "type": "string",
       "description": "ISO date string. If set and past, ban is automatically lifted."
     },
+    "banned_by_email": {
+      "type": "string",
+      "description": "Email of the user who issued the ban"
+    },
+    "banned_by_name": {
+      "type": "string",
+      "description": "Display name of the user who issued the ban"
+    },
+    "ban_source": {
+      "type": "string",
+      "enum": [
+        "platform_admin",
+        "school_admin"
+      ],
+      "default": "platform_admin",
+      "description": "Who issued the ban: platform admin or school admin"
+    },
+    "ban_issued_at": {
+      "type": "string",
+      "description": "ISO date string of when the ban was issued (for cooldown tracking)"
+    },
     "banned_from_forums": {
       "type": "boolean",
       "default": false

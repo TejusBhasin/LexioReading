@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Flag, ShieldAlert, Send, Clock, Check, AlertTriangle, MessageSquareReply } from 'lucide-react';
+import { Flag, ShieldAlert, Send, Clock, Check, AlertTriangle, MessageSquareReply, Ban } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import BanStudentModal from '@/components/schools/BanStudentModal';
 
 const CONTENT_TYPE_LABELS = {
   forum_post: 'Forum Post',
@@ -17,6 +18,7 @@ export default function SchoolSafetyTab({ school, user }) {
   const [loading, setLoading] = useState(true);
   const [suggestionText, setSuggestionText] = useState({});
   const [submitting, setSubmitting] = useState(null);
+  const [banTarget, setBanTarget] = useState(null);
 
   useEffect(() => { if (school?.id) load(); }, [school]);
 
@@ -81,7 +83,7 @@ export default function SchoolSafetyTab({ school, user }) {
             <div>
               <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-muted)' }}>PENDING REVIEW ({pending.length})</p>
               <div className="space-y-3">
-                {pending.map(inc => <IncidentCard key={inc.id} incident={inc} suggestionText={suggestionText} setSuggestionText={setSuggestionText} submitting={submitting} onSubmit={submitSuggestion} />)}
+                {pending.map(inc => <IncidentCard key={inc.id} incident={inc} suggestionText={suggestionText} setSuggestionText={setSuggestionText} submitting={submitting} onSubmit={submitSuggestion} onBan={(email, name, incidentId) => setBanTarget({ email, name, incidentId })} />)}
               </div>
             </div>
           )}
@@ -90,17 +92,29 @@ export default function SchoolSafetyTab({ school, user }) {
             <div>
               <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-muted)' }}>RESOLVED ({resolved.length})</p>
               <div className="space-y-3">
-                {resolved.map(inc => <IncidentCard key={inc.id} incident={inc} suggestionText={suggestionText} setSuggestionText={setSuggestionText} submitting={submitting} onSubmit={submitSuggestion} />)}
+                {resolved.map(inc => <IncidentCard key={inc.id} incident={inc} suggestionText={suggestionText} setSuggestionText={setSuggestionText} submitting={submitting} onSubmit={submitSuggestion} onBan={(email, name, incidentId) => setBanTarget({ email, name, incidentId })} />)}
               </div>
             </div>
           )}
         </>
       )}
+      {banTarget && (
+        <BanStudentModal
+          studentEmail={banTarget.email}
+          studentName={banTarget.name}
+          incidentId={banTarget.incidentId}
+          onClose={() => setBanTarget(null)}
+          onBanned={() => {
+            setBanTarget(null);
+            load();
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function IncidentCard({ incident, suggestionText, setSuggestionText, submitting, onSubmit }) {
+function IncidentCard({ incident, suggestionText, setSuggestionText, submitting, onSubmit, onBan }) {
   const hasSuggestion = !!incident.school_suggested_action;
 
   return (
@@ -186,6 +200,17 @@ function IncidentCard({ incident, suggestionText, setSuggestionText, submitting,
             {submitting === incident.id ? 'Submitting...' : <><Send size={12} /> Submit Suggestion</>}
           </button>
         </div>
+      )}
+
+      {/* Ban button — available on all incidents */}
+      {incident.status !== 'actioned' && (
+        <button
+          onClick={() => onBan(incident.reported_user_email, incident.reported_username, incident.id)}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-xs font-medium transition-all"
+          style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.3)' }}
+        >
+          <Ban size={12} /> Ban Student (up to 7 days)
+        </button>
       )}
     </div>
   );
