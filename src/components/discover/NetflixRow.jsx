@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, RefreshCw } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { RefreshCw } from 'lucide-react';
 import { searchBooks } from '@/lib/googleBooks';
+import { base44 } from '@/api/base44Client';
 import BookCard from '@/components/books/BookCard';
 
 // Netflix-style "Because you liked X" row
@@ -16,18 +16,43 @@ export default function NetflixRow({ seed, onSave, savedIds }) {
   async function load() {
     setLoading(true);
     try {
-      // Fetch similar books AND author books in parallel
-      const genre = seed.genre || 'fiction';
-      const [similar, byAuthor] = await Promise.all([
-        searchBooks(`subject:${genre} books similar to "${seed.title}"`, 6),
-        seed.author ? searchBooks(`inauthor:"${seed.author}" -intitle:"${seed.title}"`, 4) : Promise.resolve([]),
-      ]);
-      // Deduplicate and filter out the seed itself
-      const all = [...similar, ...byAuthor].filter(b =>
-        b.cover_image && b.title?.toLowerCase() !== seed.title?.toLowerCase()
+      // Use AI to recommend 2 genuinely similar books
+      const res = await base44.integrations.Core.InvokeLLM({
+        prompt: `Recommend exactly 2 books that are genuinely similar to "${seed.title}"${seed.author ? ` by ${seed.author}` : ''}. These should be books that a reader who enjoyed the seed book would love. Consider similar themes, writing style, genre, and tone. Return the exact title and author for each.`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            recommendations: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string' },
+                  author: { type: 'string' },
+                  reason: { type: 'string' }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      const recs = res?.recommendations || [];
+      // Fetch each recommended book from Google Books to get covers & metadata
+      const results = await Promise.all(
+        recs.map(async (rec) => {
+          try {
+            const found = await searchBooks(`${rec.title} ${rec.author}`, 2);
+            const match = found.find(b =>
+              b.title?.toLowerCase().includes(rec.title.toLowerCase().split(':')[0].trim()) ||
+              rec.title.toLowerCase().includes(b.title?.toLowerCase().split(':')[0].trim() || '')
+            ) || found[0];
+            return match ? { ...match, recommendation_reason: rec.reason } : null;
+          } catch (e) { return null; }
+        })
       );
-      const unique = Object.values(Object.fromEntries(all.map(b => [b.google_books_id || b.title, b])));
-      setBooks(unique.slice(0, 8));
+      const valid = results.filter(b => b?.cover_image && b.title?.toLowerCase() !== seed.title?.toLowerCase());
+      setBooks(valid);
     } catch (e) {}
     setLoading(false);
   }
@@ -60,8 +85,13 @@ export default function NetflixRow({ seed, onSave, savedIds }) {
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-2">
           {books.map(book => (
-            <div key={book.google_books_id || book.title} className="flex-shrink-0 w-28">
-              <BookCard book={book} onSave={onSave} saved={savedIds?.includes(book.google_books_id)} compact />
+            <div key={book.google_books_id || book.title} className="flex-shrink-0 w-36">
+              <BookCard book={book} onSave={onSave} saved={savedIds?.includes(book.google_books_id)} />
+              {book.recommendation_reason && (
+                <p className="text-xs mt-1.5 italic leading-snug line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+                  {book.recommendation_reason}
+                </p>
+              )}
             </div>
           ))}
         </div>
