@@ -1,4 +1,4 @@
-const GOOGLE_BOOKS_API_KEY = 'AIzaSyBGeB1gHpeknPyEYtxD3xbJRiSOxjZ9EWE';
+const GOOGLE_BOOKS_API_KEY = 'AIzaSyBcgSpa9IRF_BEyphp_vApq4UiGuctuuAI';
 const BASE_URL = 'https://www.googleapis.com/books/v1';
 
 const cache = new Map();
