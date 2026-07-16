@@ -36,6 +36,11 @@
       },
       "description": "Features to disable for students in this class: 'vault', 'forums', 'clubs', 'chat', 'reviews', 'wrapped', 'discover'"
     },
+    "enable_assignments": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, students in this class see an Assignments tab"
+    },
     "created_by_email": {
       "type": "string"
     }

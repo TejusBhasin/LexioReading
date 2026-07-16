@@ -4,6 +4,8 @@ import { ArrowLeft, BookOpen, Users, Clock, Star, TrendingUp, Bot, GraduationCap
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import SchoolAIChat from '@/components/schools/SchoolAIChat';
+import AssignmentManager from '@/components/schools/AssignmentManager';
+import { ClipboardList } from 'lucide-react';
 
 export default function ClassDetailPage() {
   const { id } = useParams();
@@ -157,6 +159,14 @@ export default function ClassDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Assignments */}
+      <div className="mb-8">
+        <h2 className="font-display text-lg font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <ClipboardList size={18} style={{ color: 'var(--lx-accent)' }} /> Assignments
+        </h2>
+        <AssignmentManager cls={cls} students={students} />
+      </div>
 
       {/* AI Chat (admin/semi_admin only) */}
       {canUseAI ? (

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown, Zap } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown, Zap, ClipboardList } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
@@ -25,6 +25,7 @@ const NAV_ITEMS = [
 
 
 const OTHER_NAV = [
+{ path: '/assignments', icon: ClipboardList, label: 'Assignments' },
 { path: '/goal', icon: Target, label: 'Reading Goal' },
 { path: '/quotes', icon: Quote, label: 'Quotes' },
 { path: '/challenges', icon: Trophy, label: 'Challenges' },
@@ -83,6 +84,7 @@ export default function AppShell({ children, user }) {
   const [librarianMode, setLibrarianMode] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [restrictedFeatures, setRestrictedFeatures] = useState([]);
+  const [hasAssignments, setHasAssignments] = useState(false);
   const [autoJoinedSchool, setAutoJoinedSchool] = useState(null);
   const menuRef = useRef(null);
 
@@ -160,6 +162,7 @@ export default function AppShell({ children, user }) {
   async function loadUserProfile() {
     try {
       setRestrictedFeatures([]);
+      setHasAssignments(false);
       const [p, safetyRecs, blockedPatterns, schoolMemberRecs] = await Promise.all([
       base44.entities.UserProfile.filter({ user_email: user.email }),
       base44.entities.UserSafeness.filter({ user_email: user.email }),
@@ -198,11 +201,12 @@ export default function AppShell({ children, user }) {
           try {
             const classes = await base44.entities.SchoolClass.filter({ school_id: s.id });
             const studentClasses = classes.filter(c => c.student_emails?.includes(user.email));
+            setHasAssignments(studentClasses.some(c => c.enable_assignments));
             for (const cls of studentClasses) {
               studentRestrictions.push(...(cls.restrictions || []));
             }
-          } catch (e) {}
-          setRestrictedFeatures([...new Set(studentRestrictions)]);
+            } catch (e) {}
+            setRestrictedFeatures([...new Set(studentRestrictions)]);
         }
       }
 
@@ -342,7 +346,7 @@ export default function AppShell({ children, user }) {
     const feature = PATH_FEATURE_MAP[path];
     return feature ? restrictedFeatures.includes(feature) : false;
   };
-  const allNavItems = [...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].filter(item => !isRestricted(item.path));
+  const allNavItems = [...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].filter(item => !isRestricted(item.path) && (item.path !== '/assignments' || hasAssignments));
   const visibleExtraNav = EXTRA_NAV.filter(item => !isRestricted(item.path));
   const visibleTopBarIcons = TOP_BAR_ICON_OPTIONS.filter(item => !isRestricted(item.path));
   const visibleBottomNav = [

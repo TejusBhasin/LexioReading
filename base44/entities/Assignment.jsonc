@@ -1,0 +1,138 @@
+{
+  "name": "Assignment",
+  "type": "object",
+  "properties": {
+    "school_id": {
+      "type": "string"
+    },
+    "class_id": {
+      "type": "string"
+    },
+    "class_name": {
+      "type": "string"
+    },
+    "teacher_email": {
+      "type": "string"
+    },
+    "teacher_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "assignment_type": {
+      "type": "string",
+      "enum": [
+        "any_book",
+        "genre",
+        "lexile",
+        "specific_book"
+      ],
+      "default": "any_book"
+    },
+    "target_genre": {
+      "type": "string"
+    },
+    "target_lexile_min": {
+      "type": "number"
+    },
+    "target_lexile_max": {
+      "type": "number"
+    },
+    "target_book_id": {
+      "type": "string"
+    },
+    "target_book_title": {
+      "type": "string"
+    },
+    "target_book_author": {
+      "type": "string"
+    },
+    "target_book_cover": {
+      "type": "string"
+    },
+    "time_requirement_minutes": {
+      "type": "number"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "assigned_student_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Empty array means whole class"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "class_id",
+    "teacher_email",
+    "title",
+    "assignment_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.teacher_email": "{{user.email}}"
+        },
+        {
+          "data.class_id": {
+            "$in": [
+              {
+                "entity": "SchoolClass",
+                "field": "id",
+                "query": {
+                  "data.student_emails": "{{user.email}}"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "data.school_id": {
+            "$in": [
+              {
+                "entity": "SchoolMember",
+                "field": "data.school_id",
+                "query": {
+                  "data.user_email": "{{user.email}}",
+                  "data.kicked": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
