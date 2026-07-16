@@ -26,24 +26,24 @@ function withThrottle(fn) {
 }
 
 async function fetchWithRetry(url) {
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const res = await fetch(url);
       if (res.ok) return res;
-      // Retry on 503, 502, 429, 500
-      if ((res.status === 503 || res.status === 502 || res.status === 429 || res.status === 500) && attempt < 4) {
-        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt))); // 1s, 2s, 4s, 8s
+      if (attempt < 1) {
+        await new Promise(r => setTimeout(r, 600));
         continue;
       }
-      return res;
+      return null;
     } catch (e) {
-      if (attempt < 4) {
-        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+      if (attempt < 1) {
+        await new Promise(r => setTimeout(r, 600));
         continue;
       }
-      throw e;
+      return null;
     }
   }
+  return null;
 }
 
 export async function searchBooks(query, maxResults = 12) {
