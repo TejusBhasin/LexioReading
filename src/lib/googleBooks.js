@@ -9,12 +9,19 @@ export async function searchBooks(query, maxResults = 12) {
 
   const url = `${BASE_URL}/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&key=${GOOGLE_BOOKS_API_KEY}`;
   let res;
-  try {
-    res = await fetch(url);
-  } catch (networkErr) {
-    throw new Error('Network error — check your connection and try again.');
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      res = await fetch(url);
+      if (res.ok || (res.status !== 503 && res.status !== 502 && res.status !== 429)) break;
+      // Transient error — wait and retry
+      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+    } catch (networkErr) {
+      if (attempt === 2) throw new Error('Network error — check your connection and try again.');
+      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+    }
   }
 
+  if (!res) throw new Error('Book search failed. Please try again.');
   if (!res.ok) {
     if (res.status === 429) throw new Error('Search rate limit reached. Please wait a moment and try again.');
     throw new Error(`Book search failed (${res.status}). Please try again.`);
