@@ -143,11 +143,7 @@ export default function DiscoverPage() {
     setHasSearched(true);
     try {
       const results = await searchBooks(searchQuery, 12);
-      const filtered = results.filter(b => b.cover_image);
-      setSearchResults(filtered);
-      if (filtered.length === 0 && results.length > 0) {
-        setSearchError('Some results were found but don\'t have cover images. Try a different search term.');
-      }
+      setSearchResults(results);
     } catch (e) {
       setSearchResults([]);
       setSearchError(e.message || 'Search failed. Please try again.');

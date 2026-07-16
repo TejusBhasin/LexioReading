@@ -12,11 +12,43 @@ async function fetchWithRetry(url) {
   }
 }
 
+// Common book abbreviations → full titles for better Google Books matching
+const ABBREVIATIONS = {
+  'lotr': 'The Lord of the Rings',
+  'fellowship': 'The Fellowship of the Ring',
+  'two towers': 'The Two Towers',
+  'return of the king': 'The Return of the King',
+  'got': 'A Game of Thrones',
+  'asoiaf': 'A Song of Ice and Fire',
+  'hobbit': 'The Hobbit',
+  'hp': 'Harry Potter',
+  'narnia': 'The Chronicles of Narnia',
+  'percy jackson': 'Percy Jackson',
+  'pjo': 'Percy Jackson and the Olympians',
+  'hoo': 'Heroes of Olympus',
+  'goosebumps': 'Goosebumps',
+};
+
+function expandQuery(query) {
+  const trimmed = query.trim().toLowerCase();
+  // Exact abbreviation match
+  if (ABBREVIATIONS[trimmed]) return ABBREVIATIONS[trimmed];
+  // Check if the query contains a known abbreviation as a word
+  for (const [abbr, full] of Object.entries(ABBREVIATIONS)) {
+    const regex = new RegExp(`\\b${abbr}\\b`, 'i');
+    if (regex.test(trimmed)) {
+      return query.replace(regex, full);
+    }
+  }
+  return query;
+}
+
 export async function searchBooks(query, maxResults = 12) {
-  const cacheKey = `search:${query}:${maxResults}`;
+  const expanded = expandQuery(query);
+  const cacheKey = `search:${expanded}:${maxResults}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
-  const url = `${BASE_URL}/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&key=${GOOGLE_BOOKS_API_KEY}`;
+  const url = `${BASE_URL}/volumes?q=${encodeURIComponent(expanded)}&maxResults=${maxResults}&key=${GOOGLE_BOOKS_API_KEY}`;
   const res = await fetchWithRetry(url);
   if (!res.ok) throw new Error(`Search failed (${res.status}). Please try again.`);
   const data = await res.json();
