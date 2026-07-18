@@ -28,7 +28,7 @@ export default function TermsPrivacyPage() {
           </h1>
           <div className="prose space-y-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
             <p>
-              <strong style={{ color: 'var(--text-primary)' }}>Welcome to Lexio</strong>
+              <strong className="font-brand" style={{ color: 'var(--text-primary)' }}>Welcome to Lexio</strong>
             </p>
             <p>
               Lexio is a free reading companion app. By using Lexio, you agree to use it for personal, non-commercial reading purposes only.

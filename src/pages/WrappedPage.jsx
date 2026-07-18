@@ -267,7 +267,7 @@ Also write a 2-sentence personalized reading personality summary.`,
           </div>
         </div>
 
-        <p className="text-center text-xs mt-4" style={{ color: 'var(--text-muted)' }}>
+        <p className="font-brand text-center text-xs mt-4" style={{ color: 'var(--text-muted)' }}>
           Lexio {year} Reading Wrapped
         </p>
       </div>

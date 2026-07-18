@@ -7,6 +7,8 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         display: ['Syne', 'Inter', 'sans-serif'],
+        brand: ['Manrope', 'sans-serif'],
+        serif: ['Merriweather', 'serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -170,7 +170,7 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
 
         {currentStep === 'welcome' && (
           <div className="text-center">
-            <h2 className="font-display text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+            <h2 className="font-brand text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
               Welcome to Lexio 📚
             </h2>
             <p className="text-sm mb-1 font-semibold" style={{ color: 'var(--lx-accent)' }}>Free forever. No credit card needed.</p>

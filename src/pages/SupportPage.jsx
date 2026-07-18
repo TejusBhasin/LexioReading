@@ -100,7 +100,7 @@ export default function SupportPage() {
 
           
           
-          <span className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+          <span className="font-brand text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
             Lexio Support
           </span>
         </div>
@@ -272,7 +272,7 @@ export default function SupportPage() {
           className="text-center text-xs pt-8 border-t"
           style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}>
           
-          <p>Lexio — Your Reading Companion</p>
+          <p className="font-brand">Lexio — Your Reading Companion</p>
           <p className="mt-1">
             <Link to="/terms-privacy" style={{ color: 'var(--text-secondary)' }}>Terms</Link>
             {' · '}

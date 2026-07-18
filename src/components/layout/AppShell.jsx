@@ -384,7 +384,7 @@ export default function AppShell({ children, user }) {
               src="https://media.base44.com/images/public/6a123803b5827eb9277efa4d/63f81eba7_7c1bd0943_logo.png"
               alt="Lexio"
               className="h-9 w-9 rounded-lg object-contain" />
-            <span className="font-display font-bold text-lg hidden sm:block" style={{ color: 'var(--text-primary)' }}>Lexio</span>
+            <span className="font-brand font-bold text-lg hidden sm:block" style={{ color: 'var(--text-primary)' }}>Lexio</span>
           </Link>
 
           {/* Center: user-selected extra icons (icon-only, all sizes) + desktop nav */}

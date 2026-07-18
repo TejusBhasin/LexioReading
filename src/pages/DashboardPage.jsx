@@ -93,7 +93,7 @@ export default function DashboardPage() {
           />
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
             Your reading life,<br />
-            <span style={{ color: 'var(--lx-accent)' }}>supercharged.</span>
+            <span className="font-serif italic" style={{ color: 'var(--lx-accent)' }}>supercharged.</span>
           </h1>
           <p className="text-lg mb-8 max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
             AI-powered book discovery, a personal library tracker, and a reading companion that learns your taste.

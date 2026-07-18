@@ -11,7 +11,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
         <Link to="/" className="flex items-center gap-3 relative z-10">
           <img src="https://media.base44.com/images/public/6a123803b5827eb9277efa4d/63f81eba7_7c1bd0943_logo.png"
             alt="Lexio" style={{ height: 40, width: 40, borderRadius: 12, objectFit: 'contain' }} />
-          <span style={{ fontWeight: 900, fontSize: 22, color: '#f5a623' }}>Lexio</span>
+          <span style={{ fontWeight: 900, fontSize: 22, color: '#f5a623', fontFamily: "'Manrope', sans-serif" }}>Lexio</span>
         </Link>
 
         <div className="relative z-10">
@@ -44,7 +44,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
         <Link to="/" className="flex items-center gap-2 mb-8 lg:hidden">
           <img src="https://media.base44.com/images/public/6a123803b5827eb9277efa4d/63f81eba7_7c1bd0943_logo.png"
             alt="Lexio" style={{ height: 32, width: 32, borderRadius: 8, objectFit: 'contain' }} />
-          <span style={{ fontWeight: 900, fontSize: 20, color: '#f5a623' }}>Lexio</span>
+          <span style={{ fontWeight: 900, fontSize: 20, color: '#f5a623', fontFamily: "'Manrope', sans-serif" }}>Lexio</span>
         </Link>
 
         <div className="w-full max-w-sm">
