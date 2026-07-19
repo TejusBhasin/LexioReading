@@ -6,11 +6,13 @@ import AdminAITab from '@/components/admin/AdminAITab';
 import SchoolRequestsTab from '@/components/admin/SchoolRequestsTab';
 import AdminAccessGate from '@/components/admin/AdminAccessGate';
 import SchoolCreationCodesTab from '@/components/admin/SchoolCreationCodesTab';
+import AllSchoolsView from '@/components/admin/AllSchoolsView';
 
 const ADMIN_TABS = [
   { id: 'ai', label: '🤖 Admin AI' },
   { id: 'flagged', label: '🚩 Flagged Content' },
   { id: 'safety', label: '🛡️ User Safety' },
+  { id: 'school_management', label: '🏫 School Management' },
   { id: 'school_requests', label: '🏫 School Requests' },
   { id: 'school_codes', label: '🔑 School Codes' },
   { id: 'broadcasts', label: '📢 Broadcasts' },
@@ -513,6 +515,7 @@ export default function AdminDashboard({ user }) {
       {tab === 'ai' && <AdminAITab user={user} />}
       {tab === 'flagged' && <FlaggedContentTab user={user} />}
       {tab === 'safety' && <SafetyTab />}
+      {tab === 'school_management' && <AllSchoolsView />}
       {tab === 'school_requests' && <SchoolRequestsTab />}
       {tab === 'school_codes' && <SchoolCreationCodesTab />}
       {tab === 'broadcasts' && <BroadcastsTab adminEmail={user?.email} />}

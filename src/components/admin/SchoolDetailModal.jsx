@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Loader2, GraduationCap, Users, Shield, ScrollText, AlertTriangle, Eye, EyeOff, ArrowRight, Clock } from 'lucide-react';
+import { X, Loader2, GraduationCap, Users, Shield, ScrollText, AlertTriangle, Eye, EyeOff, ArrowRight, Clock, Power, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function SchoolDetailModal({ schoolId, onClose }) {
@@ -9,6 +9,7 @@ export default function SchoolDetailModal({ schoolId, onClose }) {
   const [data, setData] = useState(null);
   const [tab, setTab] = useState('overview');
   const [actionLoading, setActionLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => { loadDetails(); }, [schoolId]);
 
@@ -35,6 +36,24 @@ export default function SchoolDetailModal({ schoolId, onClose }) {
     try {
       await base44.functions.invoke('adminSchoolView', { action: 'leave_admin', school_id: schoolId });
       await loadDetails();
+    } catch (e) {}
+    setActionLoading(false);
+  }
+
+  async function toggleActive() {
+    setActionLoading(true);
+    try {
+      await base44.functions.invoke('adminSchoolView', { action: 'toggle_active', school_id: schoolId });
+      await loadDetails();
+    } catch (e) {}
+    setActionLoading(false);
+  }
+
+  async function deleteSchool() {
+    setActionLoading(true);
+    try {
+      await base44.functions.invoke('adminSchoolView', { action: 'delete_school', school_id: schoolId });
+      onClose();
     } catch (e) {}
     setActionLoading(false);
   }
@@ -88,6 +107,7 @@ export default function SchoolDetailModal({ schoolId, onClose }) {
                     <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Content Isolation</span><span style={{ color: data.school.content_isolation ? '#10b981' : 'var(--text-muted)' }}>{data.school.content_isolation ? 'Enabled' : 'Disabled'}</span></div>
                     <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Age Restriction</span><span style={{ color: 'var(--text-primary)' }}>{data.school.age_restriction || 'all'}</span></div>
                     <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Created</span><span style={{ color: 'var(--text-primary)' }}>{new Date(data.school.created_date).toLocaleDateString()}</span></div>
+                    <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Status</span><span style={{ color: data.school.is_active ? '#10b981' : '#f87171' }}>{data.school.is_active ? 'Active' : 'Inactive'}</span></div>
                   </div>
                 </div>
 
@@ -136,6 +156,39 @@ export default function SchoolDetailModal({ schoolId, onClose }) {
                       </div>
                     ))}
                     {data.members.length > 20 && <p className="text-xs text-center pt-1" style={{ color: 'var(--text-muted)' }}>+{data.members.length - 20} more</p>}
+                  </div>
+                </div>
+
+                {/* Management Actions */}
+                <div className="lx-card p-5" style={{ borderColor: 'rgba(248,113,113,0.3)' }}>
+                  <h3 className="font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                    <Power size={16} style={{ color: 'var(--lx-accent)' }} /> School Management
+                  </h3>
+                  <div className="space-y-3">
+                    <button onClick={toggleActive} disabled={actionLoading}
+                      className="lx-btn-ghost w-full justify-center text-sm"
+                      style={{ borderColor: data.school.is_active ? 'rgba(248,113,113,0.4)' : 'rgba(16,185,129,0.4)', color: data.school.is_active ? '#f87171' : '#10b981' }}>
+                      {actionLoading ? '...' : <>{data.school.is_active ? <><Power size={14} /> Deactivate School</> : <><Power size={14} /> Activate School</>}</>}
+                    </button>
+                    {!confirmDelete ? (
+                      <button onClick={() => setConfirmDelete(true)} disabled={actionLoading}
+                        className="lx-btn-ghost w-full justify-center text-sm" style={{ borderColor: 'rgba(248,113,113,0.4)', color: '#f87171' }}>
+                        <Trash2 size={14} /> Delete School
+                      </button>
+                    ) : (
+                      <div className="p-3 rounded-lg space-y-2" style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)' }}>
+                        <p className="text-xs" style={{ color: '#f87171' }}>
+                          ⚠️ This permanently deletes the school and ALL related data (members, classes, logs, assignments, incidents). This cannot be undone.
+                        </p>
+                        <div className="flex gap-2">
+                          <button onClick={() => setConfirmDelete(false)} className="lx-btn-ghost flex-1 justify-center text-sm">Cancel</button>
+                          <button onClick={deleteSchool} disabled={actionLoading}
+                            className="flex-1 justify-center text-sm px-4 py-2 rounded font-bold transition-all" style={{ background: '#dc2626', color: '#fff' }}>
+                            {actionLoading ? 'Deleting...' : 'Confirm Delete'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

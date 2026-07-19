@@ -127,6 +127,10 @@ export default function SchoolCodeEntry({ user, onCreated }) {
               <button onClick={validateCode} disabled={validating || code.length !== 300} className="lx-btn-primary w-full justify-center text-sm">
                 {validating ? <><Loader2 size={14} className="animate-spin" /> Validating...</> : 'Validate Code'}
               </button>
+              <p className="text-xs text-center pt-1" style={{ color: 'var(--text-muted)' }}>
+                Want to make a school? Email{' '}
+                <a href="mailto:SchoolCreation@LexioReading.App" style={{ color: 'var(--lx-accent)', fontWeight: 600 }}>SchoolCreation@LexioReading.App</a>
+              </p>
             </>
           ) : (
             <>
@@ -165,6 +169,10 @@ export default function SchoolCodeEntry({ user, onCreated }) {
                   {creating ? <><Loader2 size={14} className="animate-spin" /> Creating...</> : 'Create School'}
                 </button>
               </div>
+              <p className="text-xs text-center pt-1" style={{ color: 'var(--text-muted)' }}>
+                Want to make a school? Email{' '}
+                <a href="mailto:SchoolCreation@LexioReading.App" style={{ color: 'var(--lx-accent)', fontWeight: 600 }}>SchoolCreation@LexioReading.App</a>
+              </p>
             </>
           )}
         </div>
