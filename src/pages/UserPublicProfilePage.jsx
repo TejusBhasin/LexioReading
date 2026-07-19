@@ -32,12 +32,13 @@ export default function UserPublicProfilePage() {
 
       const email = p[0].user_email;
 
+      const isPublic = !!p[0].is_public;
       const [lib, revs, forumPosts, forumComments, cPosts] = await Promise.all([
-        p[0].show_library ? base44.entities.UserLibrary.filter({ user_email: email }, '-created_date', 100) : Promise.resolve([]),
-        p[0].show_reviews ? base44.entities.Review.filter({ user_email: email }, '-created_date', 20) : Promise.resolve([]),
-        base44.entities.ForumPost.filter({ author_email: email }, '-created_date', 20),
-        base44.entities.ForumComment.filter({ author_email: email }, '-created_date', 20),
-        base44.entities.ClubPost.filter({ user_email: email }, '-created_date', 20),
+        isPublic && p[0].show_library ? base44.entities.UserLibrary.filter({ user_email: email }, '-created_date', 100) : Promise.resolve([]),
+        isPublic && p[0].show_reviews ? base44.entities.Review.filter({ user_email: email }, '-created_date', 20) : Promise.resolve([]),
+        isPublic ? base44.entities.ForumPost.filter({ author_email: email }, '-created_date', 20) : Promise.resolve([]),
+        isPublic ? base44.entities.ForumComment.filter({ author_email: email }, '-created_date', 20) : Promise.resolve([]),
+        isPublic ? base44.entities.ClubPost.filter({ user_email: email }, '-created_date', 20) : Promise.resolve([]),
       ]);
 
       setLibrary(lib);

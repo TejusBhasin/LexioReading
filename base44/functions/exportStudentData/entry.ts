@@ -42,8 +42,12 @@ Deno.serve(async (req) => {
     // Get school for data_access_fields
     const schools = await base44.asServiceRole.entities.School.filter({ id: sid });
     const school = schools[0];
-    const accessFields = school?.data_access_fields?.length > 0
-      ? school.data_access_fields
+    // Platform-defined maximum set of data fields a school may access.
+    // School admins cannot widen this beyond the platform boundary.
+    const PLATFORM_ALLOWED_FIELDS = ['reading_logs', 'library', 'reviews', 'reading_goals', 'points_streaks', 'preferences', 'forum_activity'];
+    const schoolFields = Array.isArray(school?.data_access_fields) ? school.data_access_fields : [];
+    const accessFields = schoolFields.length > 0
+      ? schoolFields.filter(f => PLATFORM_ALLOWED_FIELDS.includes(f))
       : ['reading_logs', 'library', 'reviews'];
 
     const safe = (p) => p.catch(() => []);
