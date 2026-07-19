@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { club_id } = body;
+    const { club_id, join_code } = body;
     if (!club_id) return Response.json({ error: 'club_id is required' }, { status: 400 });
 
     const clubs = await base44.asServiceRole.entities.ReadingClub.filter({ id: club_id });
@@ -18,6 +18,14 @@ Deno.serve(async (req) => {
     // Already a member?
     if (club.member_emails?.includes(user.email)) {
       return Response.json({ success: true, already_member: true, club });
+    }
+
+    // Enforce join code / invite-only restrictions
+    const requiresCode = !club.is_visible || (club.join_code && club.join_code.length > 0);
+    if (requiresCode) {
+      if (!join_code || join_code !== club.join_code) {
+        return Response.json({ error: 'This club requires a valid join code.' }, { status: 403 });
+      }
     }
 
     const updated = await base44.asServiceRole.entities.ReadingClub.update(club_id, {
