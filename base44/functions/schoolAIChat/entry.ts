@@ -53,6 +53,15 @@ Deno.serve(async (req) => {
 
     // Student-specific scope overrides class/school scope
     if (student_email) {
+      // Verify the requested student belongs to the caller's authorized school
+      const studentMemberships = await base44.asServiceRole.entities.SchoolMember.filter({
+        user_email: student_email,
+        school_id,
+        kicked: false,
+      });
+      if (studentMemberships.length === 0) {
+        return Response.json({ error: 'Student is not a member of your school.' }, { status: 404 });
+      }
       studentEmails = [student_email];
       className = null;
     }
