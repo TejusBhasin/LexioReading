@@ -6,6 +6,10 @@ const CONTENT_FIELDS = ['content', 'title', 'message', 'body', 'text', 'progress
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'admin') return Response.json({ error: 'Forbidden — admin only.' }, { status: 403 });
+
     const oneHourAgo = Date.now() - 60 * 60 * 1000;
 
     let checked = 0;
