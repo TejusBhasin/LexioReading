@@ -170,10 +170,10 @@ export default function JoinCreateSchool({ user }) {
           <button onClick={() => setMode('join')} className="lx-btn-ghost flex-1 justify-center text-sm">
             <LogIn size={14} /> Join a School
           </button>
-          <button onClick={() => setMode('create')} className="lx-btn-primary flex-1 justify-center text-sm">
-            <Plus size={14} /> Create a School
-          </button>
         </div>
+        <p className="text-xs mt-3 text-center" style={{ color: 'var(--text-muted)' }}>
+          To create a school, enter an authorization code at the bottom of your profile page.
+        </p>
       </div>
     );
   }
@@ -210,71 +210,4 @@ export default function JoinCreateSchool({ user }) {
     );
   }
 
-  // Create form
-  return (
-    <div className="lx-card p-5">
-      <div className="flex items-center justify-between mb-4">
-        <p className="font-bold" style={{ color: 'var(--text-primary)' }}>Create a School</p>
-        <button onClick={() => { setMode(null); setError(''); }}><X size={16} style={{ color: 'var(--text-muted)' }} /></button>
-      </div>
-      <div className="space-y-3 mb-4">
-        <div>
-          <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>School Name *</label>
-          <input className="lx-input text-sm" placeholder="e.g. Lincoln High Book Club" value={createForm.name} onChange={e => setCreateForm(f => ({ ...f, name: e.target.value }))} />
-        </div>
-        <div>
-          <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Description</label>
-          <textarea className="lx-input text-sm resize-none" rows={2} placeholder="Brief description..." value={createForm.description} onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))} />
-        </div>
-      </div>
-      <div className="mb-4">
-        <label className="text-xs font-medium mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Student Data to Access</label>
-        <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Select which student data you want to see in your admin dashboard.</p>
-        <div className="grid grid-cols-2 gap-1.5">
-          {DATA_ACCESS_OPTIONS.map(opt => {
-            const sel = createForm.data_access_fields?.includes(opt.key);
-            return (
-              <button key={opt.key} onClick={() => {
-                setCreateForm(f => ({
-                  ...f,
-                  data_access_fields: sel
-                    ? f.data_access_fields.filter(x => x !== opt.key)
-                    : [...(f.data_access_fields || []), opt.key],
-                }));
-              }} className="flex items-center gap-2 p-2 rounded text-xs transition-all text-left"
-                style={{ background: sel ? 'rgba(245,166,35,0.1)' : 'var(--bg-elevated)', border: `1px solid ${sel ? 'var(--lx-accent)' : 'var(--lx-border)'}`, color: sel ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
-                <span className="text-base">{opt.emoji}</span>
-                <span>{opt.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      <div className="p-3 rounded-lg mb-4 flex items-start gap-2" style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid var(--lx-accent)' }}>
-        <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--lx-accent)' }} />
-        <div className="text-xs space-y-2" style={{ color: 'var(--text-secondary)' }}>
-          <p className="font-bold" style={{ color: 'var(--text-primary)' }}>School Creation Agreement</p>
-          <p>By creating a school, you confirm and agree that:</p>
-          <ul style={{ paddingLeft: '1rem', listStyle: 'disc' }}>
-            <li>The group this school is being created for has <strong>10 or more members</strong> who will join using the code.</li>
-            <li>You are authorized to create this school on behalf of the group.</li>
-            <li>You understand that school membership is permanent for all members who join.</li>
-            <li>You agree to Lexio's Terms &amp; Conditions and Privacy Policy.</li>
-          </ul>
-        </div>
-      </div>
-      <label className="flex items-start gap-2 cursor-pointer mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-        <button onClick={() => setCreateAgreed(!createAgreed)}
-          className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
-          style={{ background: createAgreed ? 'var(--lx-accent)' : 'transparent', border: `2px solid ${createAgreed ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
-          {createAgreed && <Check size={11} style={{ color: 'var(--bg-primary)' }} />}
-        </button>
-        I confirm that this group has 10 or more members and I agree to the terms above.
-      </label>
-      {error && <p className="text-xs mb-3" style={{ color: '#f87171' }}>{error}</p>}
-      <button onClick={createSchool} disabled={saving || !createForm.name.trim() || !createAgreed} className="lx-btn-primary w-full justify-center">
-        {saving ? 'Creating...' : 'Create School'}
-      </button>
-    </div>
-  );
 }

@@ -171,7 +171,7 @@ export default function AppShell({ children, user }) {
       );
 
       // Apply school theme if member of active school
-      const activeSchoolMember = schoolMemberRecs.find((m) => !m.kicked);
+      const activeSchoolMember = schoolMemberRecs.find((m) => !m.kicked && !m.hidden);
       if (activeSchoolMember) {
         const schools = await base44.entities.School.filter({ id: activeSchoolMember.school_id, is_active: true });
         if (schools[0]) {

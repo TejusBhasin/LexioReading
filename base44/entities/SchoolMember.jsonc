@@ -63,6 +63,11 @@
       "type": "boolean",
       "default": false
     },
+    "hidden": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, this member is hidden from other school admins and members. Used for Lexio admin invisible access."
+    },
     "archived": {
       "type": "boolean",
       "default": false,

@@ -13,6 +13,7 @@ import BanStudentModal from '@/components/schools/BanStudentModal';
 import SchoolSecurityDashboard from '@/components/schools/SchoolSecurityDashboard';
 import OffboardStudentModal from '@/components/schools/OffboardStudentModal';
 import SchoolNotifyModal from '@/components/schools/SchoolNotifyModal';
+import AdminAccessGate from '@/components/admin/AdminAccessGate';
 
 const FEATURE_LABELS = {
   vault: 'Vault',
@@ -98,7 +99,7 @@ export default function SchoolAdminPage() {
 
       // Only load all members and logs if admin (semi_admins can't read all members via RLS)
       if (schoolMember.role === 'admin') {
-        const mems = await base44.entities.SchoolMember.filter({ school_id: s.id });
+        const mems = (await base44.entities.SchoolMember.filter({ school_id: s.id })).filter(m => !m.hidden);
         setMembers(mems);
 
         // Fetch reading logs for all members
@@ -257,6 +258,7 @@ export default function SchoolAdminPage() {
   const totalMinutes = Object.values(memberLogs).flat().reduce((s, l) => s + (l.time_spent_minutes || 0), 0);
 
   return (
+    <AdminAccessGate label="School Admin Panel">
     <div className="max-w-5xl mx-auto px-4 py-8 pb-24 md:pb-8">
       <button onClick={() => navigate('/profile')} className="lx-btn-ghost text-sm mb-6 py-1.5 px-3">
         <ArrowLeft size={14} /> Back
@@ -763,5 +765,6 @@ export default function SchoolAdminPage() {
         />
       )}
     </div>
+    </AdminAccessGate>
   );
 }

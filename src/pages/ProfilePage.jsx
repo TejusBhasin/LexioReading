@@ -6,6 +6,7 @@ import SetupTour from '@/components/onboarding/SetupTour';
 import ContactForm from '@/components/profile/ContactForm';
 import ProfileExport from '@/components/profile/ProfileExport';
 import JoinCreateSchool from '@/components/schools/JoinCreateSchool';
+import SchoolCodeEntry from '@/components/schools/SchoolCodeEntry';
 import SchoolClassManager from '@/components/schools/SchoolClassManager';
 import PrivacyTab from '@/components/profile/PrivacyTab';
 import DeleteAccountSection from '@/components/profile/DeleteAccountSection';
@@ -741,6 +742,13 @@ export default function ProfilePage() {
       {user && (
         <div className="mt-12 pt-8 border-t" style={{ borderColor: 'var(--lx-border)' }}>
           <ContactForm user={user} />
+        </div>
+      )}
+
+      {/* School Creation Code Entry */}
+      {user && (
+        <div className="mt-8">
+          <SchoolCodeEntry user={user} />
         </div>
       )}
 

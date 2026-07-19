@@ -1,0 +1,36 @@
+{
+  "name": "AdminAccessPin",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "The email the user signed up with"
+    },
+    "pin": {
+      "type": "string",
+      "description": "Admin access password (min 8 chars, alphanumeric, 2+ capitals)"
+    },
+    "has_pin": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_email",
+    "pin"
+  ],
+  "rls": {
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "data.user_email": "{{user.email}}"
+    },
+    "delete": {
+      "data.user_email": "{{user.email}}"
+    }
+  }
+}

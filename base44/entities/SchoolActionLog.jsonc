@@ -1,0 +1,131 @@
+{
+  "name": "SchoolActionLog",
+  "type": "object",
+  "properties": {
+    "school_id": {
+      "type": "string"
+    },
+    "school_name": {
+      "type": "string"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "actor_name": {
+      "type": "string"
+    },
+    "actor_role": {
+      "type": "string",
+      "enum": [
+        "school_admin",
+        "semi_admin",
+        "lexio_admin",
+        "system"
+      ]
+    },
+    "action_type": {
+      "type": "string",
+      "description": "Type of action: school_created, member_joined, member_kicked, member_banned, member_offboarded, restrictions_changed, theme_changed, class_created, notification_sent, admin_became_admin, etc."
+    },
+    "action_description": {
+      "type": "string"
+    },
+    "target_email": {
+      "type": "string",
+      "description": "Email of the user affected by the action, if applicable"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "JSON string with additional action details"
+    }
+  },
+  "required": [
+    "school_id",
+    "actor_email",
+    "action_type"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.school_id": {
+            "$in": [
+              {
+                "entity": "School",
+                "field": "id",
+                "query": {
+                  "data.creator_email": "{{user.email}}"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "data.school_id": {
+            "$in": [
+              {
+                "entity": "SchoolMember",
+                "field": "data.school_id",
+                "query": {
+                  "data.user_email": "{{user.email}}",
+                  "data.kicked": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.school_id": {
+            "$in": [
+              {
+                "entity": "School",
+                "field": "id",
+                "query": {
+                  "data.creator_email": "{{user.email}}"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "data.school_id": {
+            "$in": [
+              {
+                "entity": "SchoolMember",
+                "field": "data.school_id",
+                "query": {
+                  "data.user_email": "{{user.email}}",
+                  "data.kicked": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

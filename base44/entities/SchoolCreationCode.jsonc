@@ -1,0 +1,61 @@
+{
+  "name": "SchoolCreationCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "300-character alphanumeric code that allows a user to create a school"
+    },
+    "created_by_email": {
+      "type": "string"
+    },
+    "used_by_email": {
+      "type": "string",
+      "description": "Email of user who used this code to create a school"
+    },
+    "school_id": {
+      "type": "string",
+      "description": "School created with this code"
+    },
+    "school_name": {
+      "type": "string"
+    },
+    "is_used": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "code",
+    "created_by_email"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -4,12 +4,15 @@ import { base44 } from '@/api/base44Client';
 import FlaggedContentTab from '@/components/admin/FlaggedContentTab';
 import AdminAITab from '@/components/admin/AdminAITab';
 import SchoolRequestsTab from '@/components/admin/SchoolRequestsTab';
+import AdminAccessGate from '@/components/admin/AdminAccessGate';
+import SchoolCreationCodesTab from '@/components/admin/SchoolCreationCodesTab';
 
 const ADMIN_TABS = [
   { id: 'ai', label: '🤖 Admin AI' },
   { id: 'flagged', label: '🚩 Flagged Content' },
   { id: 'safety', label: '🛡️ User Safety' },
   { id: 'school_requests', label: '🏫 School Requests' },
+  { id: 'school_codes', label: '🔑 School Codes' },
   { id: 'broadcasts', label: '📢 Broadcasts' },
   { id: 'notify', label: '📨 Direct Notify' },
   { id: 'patterns', label: '🚫 Blocked Patterns' },
@@ -490,6 +493,7 @@ export default function AdminDashboard({ user }) {
   const [tab, setTab] = useState('ai');
 
   return (
+    <AdminAccessGate label="Lexio Admin Panel">
     <div className="space-y-5">
       <div className="flex items-center gap-2 p-3 rounded-lg" style={{ background: 'rgba(245,166,35,0.1)', border: '1px solid var(--lx-accent)' }}>
         <Shield size={16} style={{ color: 'var(--lx-accent)' }} />
@@ -510,9 +514,11 @@ export default function AdminDashboard({ user }) {
       {tab === 'flagged' && <FlaggedContentTab user={user} />}
       {tab === 'safety' && <SafetyTab />}
       {tab === 'school_requests' && <SchoolRequestsTab />}
+      {tab === 'school_codes' && <SchoolCreationCodesTab />}
       {tab === 'broadcasts' && <BroadcastsTab adminEmail={user?.email} />}
       {tab === 'notify' && <DirectNotifyTab />}
       {tab === 'contacts' && <ContactRequestsTab />}
     </div>
+    </AdminAccessGate>
   );
 }
