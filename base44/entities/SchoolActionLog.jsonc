@@ -46,69 +46,12 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "SchoolMember",
-                "field": "data.school_id",
-                "query": {
-                  "data.user_email": "{{user.email}}",
-                  "data.kicked": false
-                }
-              }
-            ]
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "created_by_id": "{{user.id}}"
     },
     "read": {
       "$or": [
         {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "SchoolMember",
-                "field": "data.school_id",
-                "query": {
-                  "data.user_email": "{{user.email}}",
-                  "data.kicked": false
-                }
-              }
-            ]
-          }
+          "data.actor_email": "{{user.email}}"
         },
         {
           "user_condition": {

@@ -54,17 +54,7 @@
     "create": {
       "$or": [
         {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
+          "data.teacher_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -76,37 +66,10 @@
     "read": {
       "$or": [
         {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
-        },
-        {
           "data.teacher_email": "{{user.email}}"
         },
         {
           "data.student_emails": "{{user.email}}"
-        },
-        {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "SchoolMember",
-                "field": "data.school_id",
-                "query": {
-                  "data.user_email": "{{user.email}}",
-                  "data.kicked": false
-                }
-              }
-            ]
-          }
         },
         {
           "user_condition": {
@@ -118,17 +81,7 @@
     "update": {
       "$or": [
         {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
+          "data.teacher_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -140,17 +93,7 @@
     "delete": {
       "$or": [
         {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
+          "data.teacher_email": "{{user.email}}"
         },
         {
           "user_condition": {

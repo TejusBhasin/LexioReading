@@ -60,19 +60,6 @@
           "data.student_email": "{{user.email}}"
         },
         {
-          "data.assignment_id": {
-            "$in": [
-              {
-                "entity": "Assignment",
-                "field": "id",
-                "query": {
-                  "data.teacher_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -83,19 +70,6 @@
       "$or": [
         {
           "data.student_email": "{{user.email}}"
-        },
-        {
-          "data.assignment_id": {
-            "$in": [
-              {
-                "entity": "Assignment",
-                "field": "id",
-                "query": {
-                  "data.teacher_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
         },
         {
           "user_condition": {

@@ -97,19 +97,6 @@
           "data.user_email": "{{user.email}}"
         },
         {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -117,47 +104,14 @@
       ]
     },
     "read": {
-      "$or": [
-        {
-          "data.user_email": "{{user.email}}"
-        },
-        {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "created_by_id": {
+        "$exists": true
+      }
     },
     "update": {
       "$or": [
         {
           "data.user_email": "{{user.email}}"
-        },
-        {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
         },
         {
           "user_condition": {
@@ -170,19 +124,6 @@
       "$or": [
         {
           "data.user_email": "{{user.email}}"
-        },
-        {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
         },
         {
           "user_condition": {

@@ -105,30 +105,9 @@
       "data.creator_email": "{{user.email}}"
     },
     "read": {
-      "$or": [
-        {
-          "data.creator_email": "{{user.email}}"
-        },
-        {
-          "id": {
-            "$in": [
-              {
-                "entity": "SchoolMember",
-                "field": "data.school_id",
-                "query": {
-                  "data.user_email": "{{user.email}}",
-                  "data.kicked": false
-                }
-              }
-            ]
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "created_by_id": {
+        "$exists": true
+      }
     },
     "update": {
       "$or": [

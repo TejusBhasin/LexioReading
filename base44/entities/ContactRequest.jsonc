@@ -62,20 +62,6 @@
           "user_condition": {
             "role": "admin"
           }
-        },
-        {
-          "data.recipient": "school",
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
         }
       ]
     },
@@ -87,20 +73,6 @@
         {
           "user_condition": {
             "role": "admin"
-          }
-        },
-        {
-          "data.recipient": "school",
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
           }
         }
       ]

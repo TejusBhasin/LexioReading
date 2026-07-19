@@ -91,31 +91,7 @@
           "data.teacher_email": "{{user.email}}"
         },
         {
-          "data.class_id": {
-            "$in": [
-              {
-                "entity": "SchoolClass",
-                "field": "id",
-                "query": {
-                  "data.student_emails": "{{user.email}}"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "SchoolMember",
-                "field": "data.school_id",
-                "query": {
-                  "data.user_email": "{{user.email}}",
-                  "data.kicked": false
-                }
-              }
-            ]
-          }
+          "data.assigned_student_emails": "{{user.email}}"
         },
         {
           "user_condition": {

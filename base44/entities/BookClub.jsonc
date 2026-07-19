@@ -49,7 +49,7 @@
           "data.is_public": true
         },
         {
-          "data.member_emails": "{{user.email}}"
+          "data.creator_email": "{{user.email}}"
         },
         {
           "user_condition": {

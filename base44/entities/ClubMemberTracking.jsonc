@@ -64,76 +64,17 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "data.club_id": {
-            "$in": [
-              {
-                "entity": "ReadingClub",
-                "field": "id",
-                "query": {
-                  "created_by_id": "{{user.id}}"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "data.user_email": "{{user.email}}"
     },
     "read": {
-      "$or": [
-        {
-          "data.user_email": "{{user.email}}"
-        },
-        {
-          "data.club_id": {
-            "$in": [
-              {
-                "entity": "ReadingClub",
-                "field": "id",
-                "query": {
-                  "$or": [
-                    {
-                      "created_by_id": "{{user.id}}"
-                    },
-                    {
-                      "data.member_emails": "{{user.email}}"
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "created_by_id": {
+        "$exists": true
+      }
     },
     "update": {
       "$or": [
         {
           "data.user_email": "{{user.email}}"
-        },
-        {
-          "data.club_id": {
-            "$in": [
-              {
-                "entity": "ReadingClub",
-                "field": "id",
-                "query": {
-                  "created_by_id": "{{user.id}}"
-                }
-              }
-            ]
-          }
         },
         {
           "user_condition": {
@@ -145,17 +86,7 @@
     "delete": {
       "$or": [
         {
-          "data.club_id": {
-            "$in": [
-              {
-                "entity": "ReadingClub",
-                "field": "id",
-                "query": {
-                  "created_by_id": "{{user.id}}"
-                }
-              }
-            ]
-          }
+          "data.user_email": "{{user.email}}"
         },
         {
           "user_condition": {
