@@ -23,7 +23,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Only school admins and sub-admins can offboard students.' }, { status: 403 });
     }
 
-    const sid = school_id || adminMembership.school_id;
+    // Use the admin's own school_id as the trust boundary — ignore any school_id from the body
+    const sid = adminMembership.school_id;
+    if (school_id && school_id !== sid) {
+      return Response.json({ error: 'You can only offboard students in your own school.' }, { status: 403 });
+    }
 
     // Verify target is in the same school
     const studentMembers = await base44.asServiceRole.entities.SchoolMember.filter({
