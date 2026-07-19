@@ -55,6 +55,9 @@ export default function AppFooter({ dark = false }) {
           Support@LexioReading.App
         </a>
       </p>
+      <p style={{ fontSize: 11, color: textColor, marginTop: 12, fontWeight: 600 }}>
+        Copyright, And All Rights Reserved {new Date().getFullYear()} Tejus Bhasin and Jyotsna Anand Bhasin And Gagan Bhasin. Sole Proprietorship.
+      </p>
     </footer>
   );
 }

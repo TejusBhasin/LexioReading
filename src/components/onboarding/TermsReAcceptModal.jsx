@@ -29,6 +29,7 @@ function TermsText() {
           <p><strong style={{ color: '#f87171' }}>Loopholes — STRICTLY PROHIBITED &amp; LEGALLY ACTIONABLE</strong><br />The use of any loophole, exploit, technical workaround, or unintended mechanism is strictly prohibited. Any method that technically complies with these Terms while violating their spirit — as judged solely by Lexio — constitutes a violation. This includes ban evasion, fake engagement, automation, and manipulation of any platform feature. Violations may result in immediate permanent termination and civil legal action for damages. By accepting these Terms, you waive any defense that the conduct was not explicitly named.</p>
           <p style={{ color: 'var(--text-muted)' }}>You are welcome to use other reading platforms and services. You agree not to create, develop, or build any new reading-related application or platform that competes with Lexio.</p>
           <p style={{ color: 'var(--lx-accent)', fontWeight: 600 }}>By clicking "I Agree", you confirm you have read, understood, and agree to ALL of the above terms, including the loopholes clause.</p>
+          <p style={{ fontWeight: 700, color: 'var(--text-primary)', borderTop: '1px solid var(--lx-border)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>Copyright, And All Rights Reserved 2026 Tejus Bhasin and Jyotsna Anand Bhasin And Gagan Bhasin. Sole Proprietorship.</p>
         </div>
       )}
     </div>

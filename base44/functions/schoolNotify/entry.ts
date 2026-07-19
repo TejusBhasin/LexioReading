@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { school_id, target_email, title, message, link } = body;
+    const { school_id, target_email, class_id, target_group, title, message, link } = body;
 
     if (!title || !message) {
       return Response.json({ error: 'title and message are required' }, { status: 400 });
@@ -38,6 +38,30 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Student is not a member of your school.' }, { status: 404 });
       }
       recipients = [target_email];
+    } else if (class_id) {
+      // Send to all students in a specific class
+      const cls = await base44.asServiceRole.entities.SchoolClass.filter({ id: class_id, school_id: sid });
+      if (cls.length === 0) {
+        return Response.json({ error: 'Class not found in your school.' }, { status: 404 });
+      }
+      recipients = cls[0].student_emails || [];
+      if (recipients.length === 0) {
+        return Response.json({ error: 'This class has no students.' }, { status: 400 });
+      }
+    } else if (target_group === 'students') {
+      // Send to all non-admin members
+      const allMembers = await base44.asServiceRole.entities.SchoolMember.filter({
+        school_id: sid,
+        kicked: false,
+      });
+      recipients = allMembers.filter(m => m.role === 'member').map(m => m.user_email);
+    } else if (target_group === 'admins') {
+      // Send to all admins and semi_admins
+      const allMembers = await base44.asServiceRole.entities.SchoolMember.filter({
+        school_id: sid,
+        kicked: false,
+      });
+      recipients = allMembers.filter(m => m.role === 'admin' || m.role === 'semi_admin').map(m => m.user_email);
     } else {
       // Send to all active members
       const allMembers = await base44.asServiceRole.entities.SchoolMember.filter({
@@ -46,6 +70,9 @@ Deno.serve(async (req) => {
       });
       recipients = allMembers.map(m => m.user_email);
     }
+
+    // Deduplicate recipients
+    recipients = [...new Set(recipients)];
 
     if (recipients.length === 0) {
       return Response.json({ error: 'No recipients found.' }, { status: 400 });

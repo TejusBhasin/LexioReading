@@ -7,9 +7,8 @@ const LOCK_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
 export function validateAdminPassword(password) {
   if (password.length < 8) return 'Password must be at least 8 characters.';
-  if (!/^[a-zA-Z0-9]+$/.test(password)) return 'Password must be alphanumeric only (letters and numbers, no special characters).';
   const upperCount = (password.match(/[A-Z]/g) || []).length;
-  if (upperCount < 2) return 'Password must have at least 2 capital letters.';
+  if (upperCount < 1) return 'Password must have at least 1 capital letter.';
   return null;
 }
 
@@ -120,7 +119,7 @@ export default function AdminAccessGate({ children, label = 'Admin Panel' }) {
           <div className="space-y-3 text-left">
             <div>
               <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Password</label>
-              <input type="password" className="lx-input" placeholder="Min 8 chars, 2+ capitals" value={setupPin} onChange={e => setSetupPin(e.target.value)} />
+              <input type="password" className="lx-input" placeholder="Min 8 chars, 1+ capital" value={setupPin} onChange={e => setSetupPin(e.target.value)} />
             </div>
             <div>
               <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Confirm Password</label>
@@ -131,8 +130,8 @@ export default function AdminAccessGate({ children, label = 'Admin Panel' }) {
               <p className="font-bold mb-1" style={{ color: 'var(--text-secondary)' }}>Requirements:</p>
               <ul className="space-y-0.5 pl-3 list-disc">
                 <li>At least 8 characters</li>
-                <li>Alphanumeric only (letters and numbers)</li>
-                <li>At least 2 capital letters</li>
+                <li>At least 1 capital letter</li>
+                <li>Special characters allowed</li>
               </ul>
             </div>
             <button onClick={handleSetup} disabled={saving} className="lx-btn-primary w-full justify-center">

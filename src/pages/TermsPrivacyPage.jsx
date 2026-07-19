@@ -170,6 +170,10 @@ export default function TermsPrivacyPage() {
             <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>
               You are welcome to use other reading platforms and services. You agree not to create, develop, or build any new reading-related application or platform that competes with Lexio.
             </p>
+
+            <p style={{ marginTop: '2rem', fontWeight: 700, color: 'var(--text-primary)', borderTop: '1px solid var(--lx-border)', paddingTop: '1rem' }}>
+              Copyright, And All Rights Reserved {new Date().getFullYear()} Tejus Bhasin and Jyotsna Anand Bhasin And Gagan Bhasin. Sole Proprietorship.
+            </p>
           </div>
         </section>
 

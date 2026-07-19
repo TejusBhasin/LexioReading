@@ -23,6 +23,7 @@ function TandC() {
           <p>You can delete your account and all associated data at any time by contacting support.</p>
           <p className="pt-1" style={{ color: 'var(--text-secondary)' }}>Lexio is free forever for core features. Premium features, if introduced, will always be optional.</p>
           <p style={{ color: 'var(--text-muted)' }}>You are welcome to use other reading platforms and services. You agree not to create, develop, or build any new reading-related application or platform that competes with Lexio.</p>
+          <p style={{ fontWeight: 700, color: 'var(--text-primary)', borderTop: '1px solid var(--lx-border)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>Copyright, And All Rights Reserved 2026 Tejus Bhasin and Jyotsna Anand Bhasin And Gagan Bhasin. Sole Proprietorship.</p>
         </div>
       )}
     </div>
