@@ -37,6 +37,7 @@ import BookQuotesPage from '@/pages/BookQuotesPage';
 import ChallengesPage from '@/pages/ChallengesPage';
 import ImportPage from '@/pages/ImportPage';
 import AssignmentsPage from '@/pages/AssignmentsPage';
+import BookCreatorPage from '@/pages/BookCreatorPage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
 // Auth pages
@@ -114,6 +115,7 @@ const AuthenticatedApp = () => {
             <Route path="/challenges" element={<ChallengesPage />} />
             <Route path="/import" element={<ImportPage />} />
             <Route path="/assignments" element={<AssignmentsPage />} />
+            <Route path="/book-creator" element={<BookCreatorPage />} />
           </Route>
 
           <Route path="*" element={<PageNotFound />} />

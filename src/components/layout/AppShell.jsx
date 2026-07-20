@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown, Zap, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Compass, BookOpen, MessageSquare, User, Star, Users, Clock, Lock, Menu, X, Newspaper, Target, Quote, Trophy, ChevronDown, Zap, ClipboardList, Feather } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell.jsx';
 import { base44 } from '@/api/base44Client';
 import { applyTheme } from '@/lib/theme';
@@ -26,6 +26,7 @@ const NAV_ITEMS = [
 
 const OTHER_NAV = [
 { path: '/assignments', icon: ClipboardList, label: 'Assignments' },
+{ path: '/book-creator', icon: Feather, label: 'Book Creator' },
 { path: '/goal', icon: Target, label: 'Reading Goal' },
 { path: '/quotes', icon: Quote, label: 'Quotes' },
 { path: '/challenges', icon: Trophy, label: 'Challenges' },
@@ -65,6 +66,7 @@ const PATH_FEATURE_MAP = {
   '/reviews': 'reviews',
   '/wrapped': 'wrapped',
   '/discover': 'discover',
+  '/book-creator': 'book_creator',
 };
 
 

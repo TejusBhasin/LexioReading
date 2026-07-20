@@ -11,6 +11,7 @@ const FEATURE_LABELS = {
   reviews: 'Reviews',
   wrapped: 'Wrapped',
   discover: 'Discover',
+  book_creator: 'Book Creator',
 };
 const ALL_FEATURES = Object.keys(FEATURE_LABELS);
 

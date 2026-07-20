@@ -35,7 +35,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Features to disable: 'vault', 'forums', 'clubs', 'chat', 'reviews', 'wrapped', 'discover'"
+      "description": "Features to disable: 'vault', 'forums', 'clubs', 'chat', 'reviews', 'wrapped', 'discover', 'book_creator'"
     },
     "data_access_fields": {
       "type": "array",
@@ -105,9 +105,30 @@
       "data.creator_email": "{{user.email}}"
     },
     "read": {
-      "created_by_id": {
-        "$exists": true
-      }
+      "$or": [
+        {
+          "data.creator_email": "{{user.email}}"
+        },
+        {
+          "id": {
+            "$in": [
+              {
+                "entity": "SchoolMember",
+                "field": "data.school_id",
+                "query": {
+                  "data.user_email": "{{user.email}}",
+                  "data.kicked": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "update": {
       "$or": [
