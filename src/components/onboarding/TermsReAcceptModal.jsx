@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export const CURRENT_TERMS_VERSION = 'v5-2026-07';
+export const CURRENT_TERMS_VERSION = 'v6-2026-07';
 
 function TermsText() {
   const [open, setOpen] = useState(false);
@@ -25,6 +25,7 @@ function TermsText() {
           <p><strong style={{ color: 'var(--text-primary)' }}>Complete Immunity &mdash; No Right to Sue</strong><br />Lexio and all affiliated individuals are completely immune from legal action. You irrevocably waive all rights to bring any legal action, lawsuit, claim, arbitration, or demand against Lexio or any person involved in its creation or operation, in any court or forum. This waiver is absolute and survives account termination.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>No Warranty</strong><br />Lexio is provided as-is with no warranties of any kind, express or implied, including fitness for a particular purpose or uninterrupted availability.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Modifications</strong><br />Lexio may modify or discontinue the service at any time without liability.</p>
+          <p><strong style={{ color: 'var(--text-primary)' }}>Custom Book Creator &mdash; Ownership &amp; Rights</strong><br />All books generated using Lexio's Custom Book Creator feature are the exclusive property of Lexio. Lexio retains all rights, title, and interest in and to all generated books, including copyright and all other intellectual property rights. You may NOT publicly distribute, sell, publish, or commercially exploit any book generated through the Custom Book Creator. Generated books are provided for personal, private use only. By generating a book on Lexio, you irrevocably assign all rights in the generated content to Lexio.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Privacy</strong><br />We collect only the data necessary to run the platform. We do not sell your data. Your data may be reviewed by administrators for safety and abuse prevention.</p>
           <p><strong style={{ color: '#f87171' }}>Loopholes — STRICTLY PROHIBITED &amp; LEGALLY ACTIONABLE</strong><br />The use of any loophole, exploit, technical workaround, or unintended mechanism is strictly prohibited. Any method that technically complies with these Terms while violating their spirit — as judged solely by Lexio — constitutes a violation. This includes ban evasion, fake engagement, automation, and manipulation of any platform feature. Violations may result in immediate permanent termination and civil legal action for damages. By accepting these Terms, you waive any defense that the conduct was not explicitly named.</p>
           <p style={{ color: 'var(--text-muted)' }}>You are welcome to use other reading platforms and services. You agree not to create, develop, or build any new reading-related application or platform that competes with Lexio.</p>

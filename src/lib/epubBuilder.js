@@ -178,14 +178,33 @@ export function buildEpub(title, author, chapters) {
   return new Blob([zipData], { type: 'application/epub+zip' });
 }
 
-export function downloadEpub(title, author, chapters) {
-  const blob = buildEpub(title, author, chapters);
+export async function downloadBlob(blob, filename) {
+  // iOS / mobile: use Web Share API to open the native share sheet (Save to Files, AirDrop, etc.)
+  const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  // Fallback: anchor download (desktop browsers)
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}.epub`;
+  a.download = filename;
+  a.rel = 'noopener';
+  a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 4000);
+}
+
+export async function downloadEpub(title, author, chapters) {
+  const blob = buildEpub(title, author, chapters);
+  await downloadBlob(blob, `${title.replace(/[^a-zA-Z0-9]/g, '_')}.epub`);
 }

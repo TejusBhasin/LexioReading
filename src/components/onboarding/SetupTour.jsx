@@ -16,6 +16,7 @@ function TandC() {
           <p>Lexio is a free reading companion app. By using Lexio you agree to use it for personal, non-commercial reading purposes only.</p>
           <p>You are responsible for the content you post (reviews, discussions). Hateful, illegal, or abusive content is prohibited and may result in account termination.</p>
           <p>Lexio reserves the right to modify or discontinue services at any time. We are not responsible for third-party links (e.g. Amazon, Google Books).</p>
+          <p><strong style={{ color: 'var(--text-primary)' }}>Custom Book Creator — Ownership:</strong> All books generated using the Custom Book Creator are the exclusive property of Lexio. You may not publicly distribute, sell, or commercially exploit any generated book. By generating a book, you assign all rights to Lexio.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Liability &amp; No-Sue:</strong> Lexio is NOT responsible for data breaches, hacks, security incidents, or any physical, mental, emotional, financial, or online damage. Lexio and its team are immune from all legal action. You waive all rights to sue.</p>
           <p><strong style={{ color: 'var(--text-primary)' }}>Privacy Policy</strong></p>
           <p>We collect only the data necessary to provide the service: your email address, reading preferences, and content you create (logs, reviews, library entries).</p>

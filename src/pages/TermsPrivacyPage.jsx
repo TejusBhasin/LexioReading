@@ -171,6 +171,14 @@ export default function TermsPrivacyPage() {
               You are welcome to use other reading platforms and services. You agree not to create, develop, or build any new reading-related application or platform that competes with Lexio.
             </p>
 
+            <h3 style={{ color: 'var(--text-primary)', marginTop: '1.5rem', fontWeight: 'bold' }}>Custom Book Creator — Ownership &amp; Rights</h3>
+            <p>
+              All books generated using Lexio's Custom Book Creator feature are the exclusive property of Lexio. Lexio retains all rights, title, and interest in and to all generated books, including but not limited to copyright and all other intellectual property rights. Users may NOT publicly distribute, sell, publish, or commercially exploit any book generated through the Custom Book Creator.
+            </p>
+            <p>
+              Generated books are provided for personal, private use only. By generating a book on Lexio, you irrevocably assign all rights, title, and interest in the generated content to Lexio. Lexio reserves the right to modify, remove, or restrict access to any generated book at any time, at its sole discretion.
+            </p>
+
             <p style={{ marginTop: '2rem', fontWeight: 700, color: 'var(--text-primary)', borderTop: '1px solid var(--lx-border)', paddingTop: '1rem' }}>
               Copyright, And All Rights Reserved {new Date().getFullYear()} Tejus Bhasin and Jyotsna Anand Bhasin And Gagan Bhasin. Sole Proprietorship.
             </p>
@@ -183,7 +191,7 @@ export default function TermsPrivacyPage() {
             Privacy Policy
           </h1>
           <div className="prose space-y-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            <p><em style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Terms version: v4, July 2026. All users must re-accept when terms are updated. Acceptance is permanently logged.</em></p>
+            <p><em style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Terms version: v6, July 2026. All users must re-accept when terms are updated. Acceptance is permanently logged.</em></p>
             <p>
               <strong style={{ color: 'var(--text-primary)' }}>Your Privacy Matters</strong>
             </p>

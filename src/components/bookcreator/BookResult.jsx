@@ -28,13 +28,13 @@ export default function BookResult({ book, onStartOver }) {
 
       {/* Download buttons */}
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <button onClick={() => downloadPdf(book.title, book.author, book.chapters)}
+        <button onClick={() => downloadPdf(book.title, book.author, book.chapters).catch(() => {})}
           className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-accent)', color: 'var(--lx-accent)' }}>
           <FileText size={24} />
           <span className="text-sm font-bold">Download PDF</span>
         </button>
-        <button onClick={() => downloadEpub(book.title, book.author, book.chapters)}
+        <button onClick={() => downloadEpub(book.title, book.author, book.chapters).catch(() => {})}
           className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-accent)', color: 'var(--lx-accent)' }}>
           <Download size={24} />

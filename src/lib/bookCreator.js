@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { downloadBlob } from '@/lib/epubBuilder';
 
 // === CONTENT SAFETY ===
 export const CONTENT_SAFETY_RULES = `ABSOLUTE CONTENT SAFETY RULES (NON-NEGOTIABLE):
@@ -103,7 +104,7 @@ export function calcChapterCount(pageCount) {
   return Math.max(5, Math.min(25, Math.round(totalWords / 2500)));
 }
 
-export function downloadPdf(title, author, chapters) {
+export async function downloadPdf(title, author, chapters) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
@@ -146,7 +147,8 @@ export function downloadPdf(title, author, chapters) {
     }
   }
 
-  doc.save(`${title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+  const pdfBlob = doc.output('blob');
+  await downloadBlob(pdfBlob, `${title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
 }
 
 export function countWords(chapters) {
