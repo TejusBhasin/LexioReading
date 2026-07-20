@@ -117,7 +117,7 @@ function buildZip(files) {
   return result;
 }
 
-export function buildEpub(title, author, chapters) {
+export function buildEpub(title, author, chapters, includeToc = false) {
   const files = [];
 
   // mimetype must be first, stored without compression
@@ -135,6 +135,18 @@ export function buildEpub(title, author, chapters) {
     data: strToBytes('body{font-family:serif;line-height:1.6;margin:5%}h1{text-align:center;margin-bottom:1em}p{text-indent:1.5em;margin:0 0 0.5em}p:first-of-type{text-indent:0}'),
   });
 
+  // Optional Table of Contents page
+  if (includeToc) {
+    const tocLinks = chapters.map((ch, i) => {
+      const num = String(i + 1).padStart(3, '0');
+      return `    <p><a href="chapter${num}.xhtml">Chapter ${i + 1}: ${escapeXml(ch.title)}</a></p>`;
+    }).join('\n');
+    files.push({
+      name: 'OEBPS/toc.xhtml',
+      data: strToBytes(`<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Table of Contents</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><h1>Table of Contents</h1>\n${tocLinks}\n</body></html>`),
+    });
+  }
+
   // Chapter XHTML files
   chapters.forEach((ch, i) => {
     const num = String(i + 1).padStart(3, '0');
@@ -147,15 +159,19 @@ export function buildEpub(title, author, chapters) {
   // content.opf
   const manifest = [
     '<item id="style" href="style.css" media-type="text/css"/>',
+    ...(includeToc ? ['<item id="toc-page" href="toc.xhtml" media-type="application/xhtml+xml"/>'] : []),
     ...chapters.map((_, i) => {
       const num = String(i + 1).padStart(3, '0');
       return `<item id="chap${num}" href="chapter${num}.xhtml" media-type="application/xhtml+xml"/>`;
     }),
   ].join('\n    ');
-  const spine = chapters.map((_, i) => {
-    const num = String(i + 1).padStart(3, '0');
-    return `<itemref idref="chap${num}"/>`;
-  }).join('\n    ');
+  const spine = [
+    ...(includeToc ? ['<itemref idref="toc-page"/>'] : []),
+    ...chapters.map((_, i) => {
+      const num = String(i + 1).padStart(3, '0');
+      return `<itemref idref="chap${num}"/>`;
+    }),
+  ].join('\n    ');
   const uid = `lexio-${Date.now()}`;
 
   files.push({
@@ -204,7 +220,7 @@ export async function downloadBlob(blob, filename) {
   }, 4000);
 }
 
-export async function downloadEpub(title, author, chapters) {
-  const blob = buildEpub(title, author, chapters);
+export async function downloadEpub(title, author, chapters, includeToc = false) {
+  const blob = buildEpub(title, author, chapters, includeToc);
   await downloadBlob(blob, `${title.replace(/[^a-zA-Z0-9]/g, '_')}.epub`);
 }

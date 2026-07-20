@@ -1,0 +1,54 @@
+{
+  "name": "CreatedBook",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "genre": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "book_file_url": {
+      "type": "string",
+      "description": "URL to the JSON file containing full book chapters"
+    },
+    "chapter_count": {
+      "type": "number"
+    },
+    "word_count": {
+      "type": "number"
+    },
+    "page_count": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "user_email",
+    "title",
+    "author",
+    "book_file_url"
+  ],
+  "rls": {
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "data.user_email": "{{user.email}}"
+    },
+    "delete": {
+      "data.user_email": "{{user.email}}"
+    }
+  }
+}

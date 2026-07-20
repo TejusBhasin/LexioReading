@@ -104,12 +104,13 @@ export function calcChapterCount(pageCount) {
   return Math.max(5, Math.min(25, Math.round(totalWords / 2500)));
 }
 
-export async function downloadPdf(title, author, chapters) {
+export async function downloadPdf(title, author, chapters, includeToc = false) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const margin = 25;
   const maxW = pw - margin * 2;
+  let pageCounter = 1;
 
   // Title page
   doc.setFont('helvetica', 'bold');
@@ -120,9 +121,20 @@ export async function downloadPdf(title, author, chapters) {
   doc.setFontSize(14);
   doc.text(`by ${author}`, pw / 2, ph / 2 + 15, { align: 'center' });
 
+  // Reserve TOC page
+  let tocPageNum = 0;
+  if (includeToc) {
+    doc.addPage();
+    pageCounter++;
+    tocPageNum = pageCounter;
+  }
+
   // Chapters
+  const chapterStartPages = [];
   for (const ch of chapters) {
     doc.addPage();
+    pageCounter++;
+    chapterStartPages.push(pageCounter);
     let y = margin + 10;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
@@ -138,6 +150,7 @@ export async function downloadPdf(title, author, chapters) {
       for (const line of lines) {
         if (y > ph - margin) {
           doc.addPage();
+          pageCounter++;
           y = margin;
         }
         doc.text(line, margin, y);
@@ -145,6 +158,26 @@ export async function downloadPdf(title, author, chapters) {
       }
       y += 4;
     }
+  }
+
+  // Fill in TOC page with clickable links to chapter starts
+  if (includeToc && tocPageNum > 0) {
+    doc.setPage(tocPageNum);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('Table of Contents', pw / 2, margin + 10, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    let y = margin + 30;
+    chapters.forEach((ch, i) => {
+      const text = `Chapter ${i + 1}: ${ch.title}`;
+      const lines = doc.splitTextToSize(text, maxW - 15);
+      for (const line of lines) {
+        doc.textWithLink(line, margin, y, { pageNumber: chapterStartPages[i] });
+        y += 7;
+      }
+      y += 3;
+    });
   }
 
   const pdfBlob = doc.output('blob');

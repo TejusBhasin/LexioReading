@@ -5,13 +5,16 @@ import { getStudentRestrictions } from '@/lib/studentRestrictions';
 import { buildOutlinePrompt, buildChapterPrompt, OUTLINE_SCHEMA, calcChapterCount, countWords } from '@/lib/bookCreator';
 import BookChat from '@/components/bookcreator/BookChat';
 import BookResult from '@/components/bookcreator/BookResult';
-import { Feather, AlertTriangle, ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
+import BookLibrary from '@/components/bookcreator/BookLibrary';
+import { Feather, AlertTriangle, ArrowLeft, Sparkles, Loader2, Library, Plus } from 'lucide-react';
 
 export default function BookCreatorPage() {
   const { user } = useAuth();
+  const [view, setView] = useState('create');
   const [phase, setPhase] = useState('chat');
   const [bookSpec, setBookSpec] = useState(null);
   const [book, setBook] = useState(null);
+  const [fromLibrary, setFromLibrary] = useState(false);
   const [pageCount, setPageCount] = useState(50);
   const [useMinPages, setUseMinPages] = useState(false);
   const [authorName, setAuthorName] = useState('');
@@ -29,12 +32,6 @@ export default function BookCreatorPage() {
       setRestricted(restrs.includes('book_creator'));
       setAuthorName(profiles[0]?.username || user.email.split('@')[0]);
     }).catch(() => {}).finally(() => setChecking(false));
-
-    // Restore saved book
-    const saved = localStorage.getItem('lexio_custom_book');
-    if (saved) {
-      try { const p = JSON.parse(saved); setBook(p); setPhase('result'); } catch (e) {}
-    }
   }, [user]);
 
   async function generateBook() {
@@ -70,8 +67,26 @@ export default function BookCreatorPage() {
 
       const finalBook = { title: bookSpec.title, author: authorName || 'Anonymous', chapters: generated };
       setBook(finalBook);
-      localStorage.setItem('lexio_custom_book', JSON.stringify(finalBook));
+      setFromLibrary(false);
       setPhase('result');
+
+      // Save to database
+      try {
+        const bookJson = JSON.stringify(finalBook);
+        const file = new File([bookJson], `${finalBook.title.replace(/[^a-zA-Z0-9]/g, '_')}.json`, { type: 'application/json' });
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        await base44.entities.CreatedBook.create({
+          user_email: user.email,
+          title: finalBook.title,
+          author: finalBook.author,
+          genre: bookSpec.genre || '',
+          description: bookSpec.description || '',
+          book_file_url: file_url,
+          chapter_count: finalBook.chapters.length,
+          word_count: countWords(finalBook.chapters),
+          page_count: Math.round(countWords(finalBook.chapters) / 280),
+        });
+      } catch (e) {}
     } catch (e) {
       setError(e.message || 'Failed to generate book. Please try again.');
       setPhase('confirm');
@@ -82,8 +97,15 @@ export default function BookCreatorPage() {
     setPhase('chat');
     setBookSpec(null);
     setBook(null);
+    setFromLibrary(false);
     setError('');
-    localStorage.removeItem('lexio_custom_book');
+  }
+
+  function viewLibraryBook(bookData) {
+    setBook(bookData);
+    setFromLibrary(true);
+    setView('create');
+    setPhase('result');
   }
 
   if (checking) {
@@ -104,11 +126,30 @@ export default function BookCreatorPage() {
     );
   }
 
+  // LIBRARY VIEW
+  if (view === 'library') {
+    return (
+      <div className="h-full flex flex-col">
+        <div className="px-4 py-3 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
+          <TabButton active={false} onClick={() => setView('create')} icon={Plus} label="Create" />
+          <TabButton active={true} onClick={() => {}} icon={Library} label="My Books" />
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <BookLibrary user={user} onViewBook={viewLibraryBook} onBack={() => setView('create')} />
+        </div>
+      </div>
+    );
+  }
+
   // CHAT PHASE
   if (phase === 'chat') {
     return (
       <div className="h-full flex flex-col">
         <div className="px-4 py-3 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
+          <TabButton active={true} onClick={() => {}} icon={Plus} label="Create" />
+          <TabButton active={false} onClick={() => setView('library')} icon={Library} label="My Books" />
+        </div>
+        <div className="px-4 py-2 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
           <Feather size={18} style={{ color: 'var(--lx-accent)' }} />
           <h1 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Custom Book Creator</h1>
         </div>
@@ -175,7 +216,7 @@ export default function BookCreatorPage() {
         <button onClick={generateBook} className="lx-btn-primary w-full justify-center">
           <Sparkles size={16} /> Create My Book
         </button>
-        <p className="text-xs text-center mt-2" style={{ color: 'var(--text-muted)' }}>Text only · No images · PG-13 content filtered</p>
+        <p className="text-xs text-center mt-2" style={{ color: 'var(--text-muted)' }}>Text only · No images · PG-13 content filtered · Saved to your library</p>
       </div>
     );
   }
@@ -205,8 +246,36 @@ export default function BookCreatorPage() {
 
   // RESULT PHASE
   if (phase === 'result' && book) {
-    return <BookResult book={book} onStartOver={startOver} />;
+    return (
+      <div className="h-full flex flex-col">
+        <div className="px-4 py-3 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
+          <TabButton active={true} onClick={() => {}} icon={Plus} label="Create" />
+          <TabButton active={false} onClick={() => { setFromLibrary(false); setView('library'); }} icon={Library} label="My Books" />
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <BookResult
+            book={book}
+            onStartOver={startOver}
+            onBackToLibrary={fromLibrary ? () => { setFromLibrary(false); setView('library'); } : undefined}
+          />
+        </div>
+      </div>
+    );
   }
 
   return null;
+}
+
+function TabButton({ active, onClick, icon: Icon, label }) {
+  return (
+    <button onClick={onClick}
+      className="flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-all"
+      style={{
+        background: active ? 'var(--lx-accent)' : 'transparent',
+        color: active ? 'var(--bg-primary)' : 'var(--text-secondary)',
+        border: `1px solid ${active ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+      }}>
+      <Icon size={14} /> {label}
+    </button>
+  );
 }
