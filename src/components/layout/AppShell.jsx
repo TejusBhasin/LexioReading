@@ -26,7 +26,6 @@ const NAV_ITEMS = [
 
 const OTHER_NAV = [
 { path: '/assignments', icon: ClipboardList, label: 'Assignments' },
-{ path: '/book-creator', icon: Feather, label: 'Book Creator' },
 { path: '/goal', icon: Target, label: 'Reading Goal' },
 { path: '/quotes', icon: Quote, label: 'Quotes' },
 { path: '/challenges', icon: Trophy, label: 'Challenges' },

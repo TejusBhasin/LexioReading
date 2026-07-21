@@ -261,7 +261,7 @@ export default function TermsPrivacyPage() {
               <li>Update or correct your profile at any time</li>
               <li>Delete your account and all associated data</li>
               <li>Control visibility of your profile, library, and reviews</li>
-              <li>Connect or disconnect Google Calendar</li>
+              <li>Connect or disconnect <span onDoubleClick={() => navigate('/access')} style={{ cursor: 'default' }}>Google Calendar</span></li>
               <li>Request a data export (contact support)</li>
             </ul>
 

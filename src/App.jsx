@@ -27,6 +27,7 @@ import TermsPrivacyPage from '@/pages/TermsPrivacyPage';
 import SupportPage from '@/pages/SupportPage';
 import UserPublicProfilePage from '@/pages/UserPublicProfilePage';
 import EasterEggPage from '@/pages/EasterEggPage';
+import HiddenAccessPage from '@/pages/HiddenAccessPage';
 import ForumsPage from '@/pages/ForumsPage';
 import SchoolAdminPage from '@/pages/SchoolAdminPage';
 import ClassDetailPage from '@/pages/ClassDetailPage';
@@ -95,6 +96,7 @@ const AuthenticatedApp = () => {
           <Route path="/clubs" element={<ClubsPage />} />
           <Route path="/club/:id" element={<ClubDetailPage />} />
           <Route path="/secret" element={<EasterEggPage />} />
+          <Route path="/access" element={<HiddenAccessPage />} />
 
           {/* ── PROTECTED routes — require login ── */}
           <Route element={<ProtectedRoute unauthenticatedElement={loginElement} />}>
