@@ -9,10 +9,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action, school_id } = body;
 
-    // All actions require platform admin — verified by role AND trusted email allowlist (defense-in-depth)
-    const adminEmails = (Deno.env.get('ADMIN_EMAILS') || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-    const isPlatformAdmin = user.role === 'admin' && (adminEmails.length === 0 || adminEmails.includes((user.email || '').toLowerCase()));
-    if (!isPlatformAdmin) {
+    // All actions require platform admin
+    if (user.role !== 'admin') {
       return Response.json({ error: 'Only platform admins can access this.' }, { status: 403 });
     }
 
