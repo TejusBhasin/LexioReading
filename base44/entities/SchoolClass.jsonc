@@ -76,37 +76,16 @@
     "read": {
       "$or": [
         {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "School",
-                "field": "id",
-                "query": {
-                  "data.creator_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
-        },
-        {
           "data.teacher_email": "{{user.email}}"
         },
         {
           "data.student_emails": "{{user.email}}"
         },
         {
-          "data.school_id": {
-            "$in": [
-              {
-                "entity": "SchoolMember",
-                "field": "data.school_id",
-                "query": {
-                  "data.user_email": "{{user.email}}",
-                  "data.kicked": false
-                }
-              }
-            ]
-          }
+          "data.created_by_email": "{{user.email}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
