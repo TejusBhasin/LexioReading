@@ -92,6 +92,9 @@ export default function DashboardPage() {
             alt="Lexio"
             className="h-16 w-16 mx-auto mb-6 rounded-xl"
           />
+          <div className="mb-4 inline-block px-4 py-1.5 rounded-full text-sm font-medium" style={{ background: 'rgba(245,214,35,0.1)', border: '1px solid var(--lx-accent)', color: 'var(--lx-accent)' }}>
+            Hi Rimi Didi — Tejus
+          </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
             Your reading life,<br />
             <span className="font-serif italic" style={{ color: 'var(--lx-accent)' }}>supercharged.</span>
