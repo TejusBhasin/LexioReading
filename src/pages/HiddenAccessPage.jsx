@@ -8,7 +8,7 @@ export default function HiddenAccessPage() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (code.trim() === 'hixboh-gehkub-3hatmE') {
+    if (code.trim() === 'Lovetejus2016$$') {
       navigate('/book-creator');
     } else {
       setError(true);
