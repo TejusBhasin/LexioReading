@@ -38,7 +38,7 @@ export default function GenreSelect({ onSelect }) {
         <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>
           Pick a genre to get started. You'll refine the details in the chat next.
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
           {GENRES.map(({ id, emoji }) => (
             <button
               key={id}
@@ -56,6 +56,13 @@ export default function GenreSelect({ onSelect }) {
             </button>
           ))}
         </div>
+        <button
+          onClick={() => onSelect(null)}
+          className="w-full text-sm py-3 rounded-xl transition-all hover:opacity-80"
+          style={{ color: 'var(--text-muted)', background: 'transparent', border: '1px solid var(--lx-border)' }}
+        >
+          Skip — I'll decide in chat
+        </button>
       </div>
     </div>
   );

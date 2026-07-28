@@ -5,7 +5,9 @@ import { CHAT_SYSTEM_PROMPT, CHAT_RESPONSE_SCHEMA } from '@/lib/bookCreator';
 
 export default function BookChat({ onBookReady, genre }) {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: `Hi! I'm your Custom Book Creator AI. You've selected **${genre}** as your genre. Tell me about the book you'd like to create — what's the general idea, setting, or characters you have in mind?` }
+    { role: 'assistant', content: genre
+      ? `Hi! I'm your Custom Book Creator AI. You've selected **${genre}** as your genre. Tell me about the book you'd like to create — what's the general idea, setting, or characters you have in mind?`
+      : "Hi! I'm your Custom Book Creator AI. Tell me about the book you'd like to create — what genre are you thinking, and what's the general idea?" }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,9 +26,10 @@ export default function BookChat({ onBookReady, genre }) {
     setLoading(true);
 
     try {
+      const genreLine = genre ? `\n\nThe user has already selected the genre: ${genre}. Use this as the book's genre unless the user explicitly asks to change it.` : '';
       const history = newMessages.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n\n');
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `${CHAT_SYSTEM_PROMPT}\n\nThe user has already selected the genre: ${genre}. Use this as the book's genre unless the user explicitly asks to change it.\n\nConversation so far:\n${history}\n\nAssistant:`,
+        prompt: `${CHAT_SYSTEM_PROMPT}${genreLine}\n\nConversation so far:\n${history}\n\nAssistant:`,
         response_json_schema: CHAT_RESPONSE_SCHEMA,
       });
 

@@ -167,12 +167,14 @@ export default function BookCreatorPage() {
           <TabButton active={true} onClick={() => setPhase('genre')} icon={Plus} label="Create" />
           <TabButton active={false} onClick={() => setView('library')} icon={Library} label="My Books" />
         </div>
-        <div className="px-4 py-2 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
-          <button onClick={() => setPhase('genre')} className="flex items-center gap-2">
-            <ArrowLeft size={16} style={{ color: 'var(--text-muted)' }} />
-            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)' }}>{selectedGenre}</span>
-          </button>
-        </div>
+        {selectedGenre && (
+          <div className="px-4 py-2 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
+            <button onClick={() => setPhase('genre')} className="flex items-center gap-2">
+              <ArrowLeft size={16} style={{ color: 'var(--text-muted)' }} />
+              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)' }}>{selectedGenre}</span>
+            </button>
+          </div>
+        )}
         <div className="flex-1 min-h-0">
           <BookChat genre={selectedGenre} onBookReady={(spec) => { setBookSpec(spec); setPhase('confirm'); }} />
         </div>
