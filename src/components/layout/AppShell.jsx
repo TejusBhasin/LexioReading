@@ -66,6 +66,7 @@ const PATH_FEATURE_MAP = {
   '/reviews': 'reviews',
   '/wrapped': 'wrapped',
   '/discover': 'discover',
+  '/book-creator': 'book_creator',
 };
 
 
