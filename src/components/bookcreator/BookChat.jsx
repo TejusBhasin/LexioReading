@@ -3,11 +3,13 @@ import { Send } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { CHAT_SYSTEM_PROMPT, CHAT_RESPONSE_SCHEMA } from '@/lib/bookCreator';
 
-export default function BookChat({ onBookReady, genre }) {
+export default function BookChat({ onBookReady, genre, style }) {
+  const introParts = ["Hi! I'm your Custom Book Creator AI."];
+  if (genre) introParts.push(`You've selected **${genre}** as your genre.`);
+  if (style) introParts.push(`You've chosen a **${style}** writing style.`);
+  introParts.push("Tell me about the book you'd like to create — what's the general idea, setting, or characters you have in mind?");
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: genre
-      ? `Hi! I'm your Custom Book Creator AI. You've selected **${genre}** as your genre. Tell me about the book you'd like to create — what's the general idea, setting, or characters you have in mind?`
-      : "Hi! I'm your Custom Book Creator AI. Tell me about the book you'd like to create — what genre are you thinking, and what's the general idea?" }
+    { role: 'assistant', content: introParts.join(' ') }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,19 +19,20 @@ export default function BookChat({ onBookReady, genre }) {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading]);
 
-  async function send() {
-    if (!input.trim() || loading) return;
-    const userMsg = input.trim();
-    setInput('');
+  async function send(msgOverride) {
+    const userMsg = msgOverride || input.trim();
+    if (!userMsg || loading) return;
+    if (!msgOverride) setInput('');
     const newMessages = [...messages, { role: 'user', content: userMsg }];
     setMessages(newMessages);
     setLoading(true);
 
     try {
       const genreLine = genre ? `\n\nThe user has already selected the genre: ${genre}. Use this as the book's genre unless the user explicitly asks to change it.` : '';
+      const styleLine = style ? `\n\nThe user has already selected the writing style: ${style}. Use this as the book's writing style unless the user explicitly asks to change it.` : '';
       const history = newMessages.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n\n');
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `${CHAT_SYSTEM_PROMPT}${genreLine}\n\nConversation so far:\n${history}\n\nAssistant:`,
+        prompt: `${CHAT_SYSTEM_PROMPT}${genreLine}${styleLine}\n\nConversation so far:\n${history}\n\nAssistant:`,
         response_json_schema: CHAT_RESPONSE_SCHEMA,
       });
 
@@ -86,6 +89,11 @@ export default function BookChat({ onBookReady, genre }) {
             <Send size={16} />
           </button>
         </div>
+        <button onClick={() => send("I'd like to skip this question.")} disabled={loading}
+          className="w-full text-xs py-2 mt-2 rounded transition-all"
+          style={{ color: 'var(--text-muted)', background: 'transparent', border: '1px solid var(--lx-border)' }}>
+          Skip this question
+        </button>
       </div>
     </div>
   );

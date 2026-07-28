@@ -21,6 +21,7 @@ CONVERSATION FLOW:
 3. When you have enough detail, set "ready" to true and provide a complete book specification.
 4. Do NOT start writing the book. Only propose the specification and ask if the user wants to proceed.
 5. Keep your messages concise and conversational.
+6. If the user says they want to skip a question, accept that gracefully and move on. Never require an answer — use your creativity to fill in gaps.
 
 Respond ONLY in this JSON format:
 {"message": "Your response to the user", "ready": false, "book_spec": null}
@@ -73,6 +74,9 @@ Description: ${spec.description}
 Target audience: ${spec.target_audience || 'General'}
 Tone: ${spec.tone || 'Engaging'}
 Themes: ${(spec.themes || []).join(', ') || 'Not specified'}
+Writing style: ${spec.writing_style || 'Standard narrative prose'}
+Target Lexile level: ${spec.lexile_level || 'Not specified'}
+Age range: ${spec.age_range || 'Not specified'}
 
 Number of chapters: ${chapterCount}
 Target words per chapter: ~${wordsPerChapter}
@@ -89,6 +93,9 @@ Book: ${spec.title} (${spec.genre})
 Description: ${spec.description}
 Tone: ${spec.tone || 'Engaging'}
 Themes: ${(spec.themes || []).join(', ')}
+Writing style: ${spec.writing_style || 'Standard narrative prose'}
+Target Lexile level: ${spec.lexile_level || 'Not specified'}
+Age range: ${spec.age_range || 'Not specified'}
 
 Chapter summary: ${chapter.summary}
 ${prevEnding ? `\nPrevious chapter ended with:\n"${prevEnding}"\n` : ''}
@@ -131,7 +138,8 @@ export async function downloadPdf(title, author, chapters, includeToc = false) {
 
   // Chapters
   const chapterStartPages = [];
-  for (const ch of chapters) {
+  for (let ci = 0; ci < chapters.length; ci++) {
+    const ch = chapters[ci];
     doc.addPage();
     pageCounter++;
     chapterStartPages.push(pageCounter);
@@ -140,8 +148,16 @@ export async function downloadPdf(title, author, chapters, includeToc = false) {
     doc.setFontSize(18);
     const chLines = doc.splitTextToSize(ch.title, maxW);
     doc.text(chLines, pw / 2, y, { align: 'center' });
-    y += chLines.length * 8 + 10;
+    y += chLines.length * 8 + 6;
+    // Chapter number — links back to TOC if enabled
     doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    if (includeToc && tocPageNum > 0) {
+      doc.textWithLink(`Chapter ${ci + 1}`, pw / 2, y, { pageNumber: tocPageNum, align: 'center' });
+    } else {
+      doc.text(`Chapter ${ci + 1}`, pw / 2, y, { align: 'center' });
+    }
+    y += 12;
     doc.setFontSize(12);
 
     const paragraphs = ch.content.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);

@@ -132,7 +132,7 @@ export function buildEpub(title, author, chapters, includeToc = false) {
   // CSS
   files.push({
     name: 'OEBPS/style.css',
-    data: strToBytes('body{font-family:serif;line-height:1.6;margin:5%}h1{text-align:center;margin-bottom:1em}p{text-indent:1.5em;margin:0 0 0.5em}p:first-of-type{text-indent:0}'),
+    data: strToBytes('body{font-family:serif;line-height:1.6;margin:5%}h1{text-align:center;margin-bottom:0.3em}p{text-indent:1.5em;margin:0 0 0.5em}p:first-of-type{text-indent:0}.chapter-num{text-align:center;color:#888;font-size:0.85em;margin-bottom:1.5em;text-indent:0}.chapter-num a{color:inherit;text-decoration:none}'),
   });
 
   // Optional Table of Contents page
@@ -150,9 +150,12 @@ export function buildEpub(title, author, chapters, includeToc = false) {
   // Chapter XHTML files
   chapters.forEach((ch, i) => {
     const num = String(i + 1).padStart(3, '0');
+    const chapterNumHtml = includeToc
+      ? `<p class="chapter-num"><a href="toc.xhtml">Chapter ${i + 1}</a></p>`
+      : `<p class="chapter-num">Chapter ${i + 1}</p>`;
     files.push({
       name: `OEBPS/chapter${num}.xhtml`,
-      data: strToBytes(`<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml"><head><title>${escapeXml(ch.title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><h1>${escapeXml(ch.title)}</h1>\n${textToParagraphs(ch.content)}\n</body></html>`),
+      data: strToBytes(`<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml"><head><title>${escapeXml(ch.title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><h1>${escapeXml(ch.title)}</h1>\n${chapterNumHtml}\n${textToParagraphs(ch.content)}\n</body></html>`),
     });
   });
 

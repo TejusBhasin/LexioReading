@@ -7,6 +7,7 @@ import BookChat from '@/components/bookcreator/BookChat';
 import BookResult from '@/components/bookcreator/BookResult';
 import BookLibrary from '@/components/bookcreator/BookLibrary';
 import GenreSelect from '@/components/bookcreator/GenreSelect';
+import StyleSelect from '@/components/bookcreator/StyleSelect';
 import { Feather, AlertTriangle, ArrowLeft, Sparkles, Loader2, Library, Plus } from 'lucide-react';
 
 export default function BookCreatorPage() {
@@ -14,6 +15,9 @@ export default function BookCreatorPage() {
   const [view, setView] = useState('create');
   const [phase, setPhase] = useState('genre');
   const [selectedGenre, setSelectedGenre] = useState(null);
+  const [selectedStyle, setSelectedStyle] = useState(null);
+  const [lexileLevel, setLexileLevel] = useState('');
+  const [ageRange, setAgeRange] = useState('');
   const [bookSpec, setBookSpec] = useState(null);
   const [book, setBook] = useState(null);
   const [fromLibrary, setFromLibrary] = useState(false);
@@ -41,10 +45,11 @@ export default function BookCreatorPage() {
     setError('');
     const chapterCount = calcChapterCount(pageCount);
     const wordsPerChapter = Math.round((pageCount * 280) / chapterCount);
+    const spec = { ...bookSpec, writing_style: selectedStyle, lexile_level: lexileLevel, age_range: ageRange };
 
     try {
       const outlineResult = await base44.integrations.Core.InvokeLLM({
-        prompt: buildOutlinePrompt(bookSpec, chapterCount, wordsPerChapter),
+        prompt: buildOutlinePrompt(spec, chapterCount, wordsPerChapter),
         response_json_schema: OUTLINE_SCHEMA,
       });
       const outline = typeof outlineResult === 'string' ? JSON.parse(outlineResult) : outlineResult;
@@ -60,7 +65,7 @@ export default function BookCreatorPage() {
           ? generated[generated.length - 1].content.split('\n').filter(l => l.trim()).slice(-2).join(' ')
           : '';
         const result = await base44.integrations.Core.InvokeLLM({
-          prompt: buildChapterPrompt(bookSpec, ch, i + 1, chapters.length, wordsPerChapter, prevEnding),
+          prompt: buildChapterPrompt(spec, ch, i + 1, chapters.length, wordsPerChapter, prevEnding),
         });
         const text = typeof result === 'string' ? result : String(result);
         generated.push({ title: ch.title, content: text });
@@ -98,6 +103,9 @@ export default function BookCreatorPage() {
   function startOver() {
     setPhase('genre');
     setSelectedGenre(null);
+    setSelectedStyle(null);
+    setLexileLevel('');
+    setAgeRange('');
     setBookSpec(null);
     setBook(null);
     setFromLibrary(false);
@@ -153,7 +161,22 @@ export default function BookCreatorPage() {
           <TabButton active={false} onClick={() => setView('library')} icon={Library} label="My Books" />
         </div>
         <div className="flex-1 min-h-0">
-          <GenreSelect onSelect={(g) => { setSelectedGenre(g); setPhase('chat'); }} />
+          <GenreSelect onSelect={(g) => { setSelectedGenre(g); setPhase('style'); }} />
+        </div>
+      </div>
+    );
+  }
+
+  // STYLE PHASE
+  if (phase === 'style') {
+    return (
+      <div className="h-full flex flex-col">
+        <div className="px-4 py-3 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
+          <TabButton active={true} onClick={() => setPhase('genre')} icon={Plus} label="Create" />
+          <TabButton active={false} onClick={() => setView('library')} icon={Library} label="My Books" />
+        </div>
+        <div className="flex-1 min-h-0">
+          <StyleSelect genre={selectedGenre} onSelect={(s) => { setSelectedStyle(s); setPhase('chat'); }} />
         </div>
       </div>
     );
@@ -167,16 +190,17 @@ export default function BookCreatorPage() {
           <TabButton active={true} onClick={() => setPhase('genre')} icon={Plus} label="Create" />
           <TabButton active={false} onClick={() => setView('library')} icon={Library} label="My Books" />
         </div>
-        {selectedGenre && (
+        {(selectedGenre || selectedStyle) && (
           <div className="px-4 py-2 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
-            <button onClick={() => setPhase('genre')} className="flex items-center gap-2">
+            <button onClick={() => setPhase('style')} className="flex items-center gap-2">
               <ArrowLeft size={16} style={{ color: 'var(--text-muted)' }} />
-              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)' }}>{selectedGenre}</span>
+              {selectedGenre && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)' }}>{selectedGenre}</span>}
+              {selectedStyle && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)' }}>{selectedStyle}</span>}
             </button>
           </div>
         )}
         <div className="flex-1 min-h-0">
-          <BookChat genre={selectedGenre} onBookReady={(spec) => { setBookSpec(spec); setPhase('confirm'); }} />
+          <BookChat genre={selectedGenre} style={selectedStyle} onBookReady={(spec) => { setBookSpec(spec); setPhase('confirm'); }} />
         </div>
       </div>
     );
@@ -232,6 +256,35 @@ export default function BookCreatorPage() {
             <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
               {useMinPages ? `Book will be at least ${pageCount} pages` : `Book will be approximately ${pageCount} pages`} · ~{(pageCount * 280).toLocaleString()} words · {calcChapterCount(pageCount)} chapters
             </p>
+          </div>
+        </div>
+
+        {/* Lexile & Age Range */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div>
+            <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Target Lexile Level</label>
+            <select className="lx-input text-sm" value={lexileLevel} onChange={e => setLexileLevel(e.target.value)}>
+              <option value="">N/A</option>
+              <option value="BR-100L">BR – 100L (Early Reader)</option>
+              <option value="100L-300L">100L – 300L (Early Elementary)</option>
+              <option value="300L-500L">300L – 500L (Late Elementary)</option>
+              <option value="500L-700L">500L – 700L (Middle School)</option>
+              <option value="700L-900L">700L – 900L (Mid/High School)</option>
+              <option value="900L-1100L">900L – 1100L (High School)</option>
+              <option value="1100L-1300L">1100L – 1300L (HS/College)</option>
+              <option value="1300L+">1300L+ (College/Adult)</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Age Range</label>
+            <select className="lx-input text-sm" value={ageRange} onChange={e => setAgeRange(e.target.value)}>
+              <option value="">N/A</option>
+              <option value="5-8">Ages 5–8 (Early Reader)</option>
+              <option value="9-12">Ages 9–12 (Middle Grade)</option>
+              <option value="13-15">Ages 13–15 (Young Teen)</option>
+              <option value="16-18">Ages 16–18 (Young Adult)</option>
+              <option value="18+">Ages 18+ (Adult)</option>
+            </select>
           </div>
         </div>
 
