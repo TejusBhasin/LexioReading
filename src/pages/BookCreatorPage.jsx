@@ -6,12 +6,14 @@ import { buildOutlinePrompt, buildChapterPrompt, OUTLINE_SCHEMA, calcChapterCoun
 import BookChat from '@/components/bookcreator/BookChat';
 import BookResult from '@/components/bookcreator/BookResult';
 import BookLibrary from '@/components/bookcreator/BookLibrary';
+import GenreSelect from '@/components/bookcreator/GenreSelect';
 import { Feather, AlertTriangle, ArrowLeft, Sparkles, Loader2, Library, Plus } from 'lucide-react';
 
 export default function BookCreatorPage() {
   const { user } = useAuth();
   const [view, setView] = useState('create');
-  const [phase, setPhase] = useState('chat');
+  const [phase, setPhase] = useState('genre');
+  const [selectedGenre, setSelectedGenre] = useState(null);
   const [bookSpec, setBookSpec] = useState(null);
   const [book, setBook] = useState(null);
   const [fromLibrary, setFromLibrary] = useState(false);
@@ -94,7 +96,8 @@ export default function BookCreatorPage() {
   }
 
   function startOver() {
-    setPhase('chat');
+    setPhase('genre');
+    setSelectedGenre(null);
     setBookSpec(null);
     setBook(null);
     setFromLibrary(false);
@@ -141,20 +144,37 @@ export default function BookCreatorPage() {
     );
   }
 
-  // CHAT PHASE
-  if (phase === 'chat') {
+  // GENRE PHASE
+  if (phase === 'genre') {
     return (
       <div className="h-full flex flex-col">
         <div className="px-4 py-3 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
           <TabButton active={true} onClick={() => {}} icon={Plus} label="Create" />
           <TabButton active={false} onClick={() => setView('library')} icon={Library} label="My Books" />
         </div>
+        <div className="flex-1 min-h-0">
+          <GenreSelect onSelect={(g) => { setSelectedGenre(g); setPhase('chat'); }} />
+        </div>
+      </div>
+    );
+  }
+
+  // CHAT PHASE
+  if (phase === 'chat') {
+    return (
+      <div className="h-full flex flex-col">
+        <div className="px-4 py-3 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
+          <TabButton active={true} onClick={() => setPhase('genre')} icon={Plus} label="Create" />
+          <TabButton active={false} onClick={() => setView('library')} icon={Library} label="My Books" />
+        </div>
         <div className="px-4 py-2 border-b flex items-center gap-2 flex-shrink-0" style={{ borderColor: 'var(--lx-border)' }}>
-          <Feather size={18} style={{ color: 'var(--lx-accent)' }} />
-          <h1 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Custom Book Creator</h1>
+          <button onClick={() => setPhase('genre')} className="flex items-center gap-2">
+            <ArrowLeft size={16} style={{ color: 'var(--text-muted)' }} />
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)' }}>{selectedGenre}</span>
+          </button>
         </div>
         <div className="flex-1 min-h-0">
-          <BookChat onBookReady={(spec) => { setBookSpec(spec); setPhase('confirm'); }} />
+          <BookChat genre={selectedGenre} onBookReady={(spec) => { setBookSpec(spec); setPhase('confirm'); }} />
         </div>
       </div>
     );
