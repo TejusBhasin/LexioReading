@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
-import { getStudentRestrictions } from '@/lib/studentRestrictions';
 import { buildOutlinePrompt, buildChapterPrompt, OUTLINE_SCHEMA, calcChapterCount, countWords } from '@/lib/bookCreator';
 import BookChat from '@/components/bookcreator/BookChat';
 import BookResult from '@/components/bookcreator/BookResult';
 import BookLibrary from '@/components/bookcreator/BookLibrary';
-import { Feather, AlertTriangle, ArrowLeft, Sparkles, Loader2, Library, Plus } from 'lucide-react';
+import { Feather, ArrowLeft, Sparkles, Loader2, Library, Plus } from 'lucide-react';
 
 export default function BookCreatorPage() {
   const { user } = useAuth();
@@ -20,18 +19,14 @@ export default function BookCreatorPage() {
   const [authorName, setAuthorName] = useState('');
   const [progress, setProgress] = useState({ current: 0, total: 0, title: '' });
   const [error, setError] = useState('');
-  const [restricted, setRestricted] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     if (!user?.email) { setChecking(false); return; }
-    Promise.all([
-      getStudentRestrictions(user.email),
-      base44.entities.UserProfile.filter({ user_email: user.email }),
-    ]).then(([restrs, profiles]) => {
-      setRestricted(restrs.includes('book_creator'));
-      setAuthorName(profiles[0]?.username || user.email.split('@')[0]);
-    }).catch(() => {}).finally(() => setChecking(false));
+    base44.entities.UserProfile.filter({ user_email: user.email })
+      .then((profiles) => {
+        setAuthorName(profiles[0]?.username || user.email.split('@')[0]);
+      }).catch(() => {}).finally(() => setChecking(false));
   }, [user]);
 
   async function generateBook() {
@@ -112,16 +107,6 @@ export default function BookCreatorPage() {
     return (
       <div className="flex justify-center items-center py-20">
         <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--lx-accent)', borderTopColor: 'transparent' }} />
-      </div>
-    );
-  }
-
-  if (restricted) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-16 text-center">
-        <AlertTriangle size={40} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
-        <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Custom Book Creator is Restricted</h2>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Your school has disabled this feature. Contact your school administrator for more information.</p>
       </div>
     );
   }

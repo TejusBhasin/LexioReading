@@ -97,6 +97,7 @@ const AuthenticatedApp = () => {
           <Route path="/club/:id" element={<ClubDetailPage />} />
           <Route path="/secret" element={<EasterEggPage />} />
           <Route path="/access" element={<HiddenAccessPage />} />
+          <Route path="/book-creator" element={<BookCreatorPage />} />
 
           {/* ── PROTECTED routes — require login ── */}
           <Route element={<ProtectedRoute unauthenticatedElement={loginElement} />}>
@@ -117,7 +118,6 @@ const AuthenticatedApp = () => {
             <Route path="/challenges" element={<ChallengesPage />} />
             <Route path="/import" element={<ImportPage />} />
             <Route path="/assignments" element={<AssignmentsPage />} />
-            <Route path="/book-creator" element={<BookCreatorPage />} />
           </Route>
 
           <Route path="*" element={<PageNotFound />} />

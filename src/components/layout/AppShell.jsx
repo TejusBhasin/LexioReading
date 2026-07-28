@@ -29,7 +29,8 @@ const OTHER_NAV = [
 { path: '/goal', icon: Target, label: 'Reading Goal' },
 { path: '/quotes', icon: Quote, label: 'Quotes' },
 { path: '/challenges', icon: Trophy, label: 'Challenges' },
-{ path: '/strength', icon: Zap, label: 'Reading Strength' }];
+{ path: '/strength', icon: Zap, label: 'Reading Strength' },
+{ path: '/book-creator', icon: Feather, label: 'Book Creator' }];
 
 
 const EXTRA_NAV = [
@@ -65,7 +66,6 @@ const PATH_FEATURE_MAP = {
   '/reviews': 'reviews',
   '/wrapped': 'wrapped',
   '/discover': 'discover',
-  '/book-creator': 'book_creator',
 };
 
 
