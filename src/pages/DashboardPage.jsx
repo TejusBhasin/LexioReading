@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/AuthContext';
 import SetupTour from '@/components/onboarding/SetupTour';
 import AppFooter from '@/components/layout/AppFooter';
 import AllSchoolsView from '@/components/admin/AllSchoolsView';
+import VaultExpiryReminder from '@/components/vault/VaultExpiryReminder';
 
 const FALLBACK_QUOTE = { text: 'A reader lives a thousand lives before he dies. The man who never reads lives only one.', author: 'George R.R. Martin' };
 
@@ -132,6 +133,9 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 pb-24 md:pb-8">
+      {/* Vault card expiry reminder */}
+      <VaultExpiryReminder user={user} />
+
       {/* Quote of the Day */}
       <div className="lx-card p-4 mb-6 flex items-start gap-3">
         <Quote size={18} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--lx-accent)' }} />
