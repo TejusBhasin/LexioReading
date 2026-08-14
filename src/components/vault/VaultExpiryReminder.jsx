@@ -4,9 +4,6 @@ import { base44 } from '@/api/base44Client';
 
 const TWO_MONTHS_MS = 60 * 24 * 60 * 60 * 1000;
 
-function getSnoozeKey(cardId) { return `vault_expiry_snooze_${cardId}`; }
-function getForgetKey(cardId) { return `vault_expiry_forget_${cardId}`; }
-
 export default function VaultExpiryReminder({ user }) {
   const [allCards, setAllCards] = useState([]);
   const [activeCard, setActiveCard] = useState(null);
@@ -22,7 +19,12 @@ export default function VaultExpiryReminder({ user }) {
 
   async function loadCards() {
     try {
-      const entries = await base44.entities.VaultEntry.filter({ user_email: user.email });
+      const [entries, states] = await Promise.all([
+        base44.entities.VaultEntry.filter({ user_email: user.email }),
+        base44.entities.VaultReminderState.filter({ user_email: user.email }),
+      ]);
+      const stateMap = {};
+      states.forEach(s => { stateMap[s.card_id] = s; });
       const now = Date.now();
       const expiring = entries
         .filter(e => {
@@ -31,8 +33,9 @@ export default function VaultExpiryReminder({ user }) {
           return exp <= now + TWO_MONTHS_MS;
         })
         .filter(e => {
-          const snoozeUntil = parseInt(localStorage.getItem(getSnoozeKey(e.id)) || '0');
-          const forgetUntil = parseInt(localStorage.getItem(getForgetKey(e.id)) || '0');
+          const state = stateMap[e.id];
+          const snoozeUntil = state?.snooze_until ? new Date(state.snooze_until).getTime() : 0;
+          const forgetUntil = state?.forget_until ? new Date(state.forget_until).getTime() : 0;
           return now >= snoozeUntil && now >= forgetUntil;
         })
         .sort((a, b) => new Date(a.expiration_date) - new Date(b.expiration_date));
@@ -41,13 +44,24 @@ export default function VaultExpiryReminder({ user }) {
     } catch (e) {}
   }
 
-  function snooze(cardId, days) {
-    localStorage.setItem(getSnoozeKey(cardId), (Date.now() + days * 24 * 60 * 60 * 1000).toString());
+  async function setCardState(cardId, updates) {
+    const existing = await base44.entities.VaultReminderState.filter({ user_email: user.email, card_id: cardId });
+    if (existing[0]) {
+      await base44.entities.VaultReminderState.update(existing[0].id, updates);
+    } else {
+      await base44.entities.VaultReminderState.create({ user_email: user.email, card_id: cardId, ...updates });
+    }
+  }
+
+  async function snooze(cardId, days) {
+    const until = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    await setCardState(cardId, { snooze_until: until });
     advance(cardId);
   }
 
-  function forget(cardId) {
-    localStorage.setItem(getForgetKey(cardId), (Date.now() + 90 * 24 * 60 * 60 * 1000).toString());
+  async function forget(cardId) {
+    const until = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+    await setCardState(cardId, { forget_until: until });
     advance(cardId);
   }
 
@@ -65,6 +79,10 @@ export default function VaultExpiryReminder({ user }) {
     setRenewing(true);
     try {
       await base44.entities.VaultEntry.update(cardId, { expiration_date: newExpiry });
+      const existing = await base44.entities.VaultReminderState.filter({ user_email: user.email, card_id: cardId });
+      if (existing[0]) {
+        await base44.entities.VaultReminderState.delete(existing[0].id);
+      }
       advance(cardId);
     } catch (e) {}
     setRenewing(false);

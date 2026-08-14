@@ -1,0 +1,40 @@
+{
+  "name": "VaultReminderState",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who owns this reminder state"
+    },
+    "card_id": {
+      "type": "string",
+      "description": "ID of the VaultEntry this state tracks"
+    },
+    "snooze_until": {
+      "type": "string",
+      "description": "ISO timestamp until which the card reminder is snoozed"
+    },
+    "forget_until": {
+      "type": "string",
+      "description": "ISO timestamp until which the card reminder is forgotten"
+    }
+  },
+  "required": [
+    "user_email",
+    "card_id"
+  ],
+  "rls": {
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "data.user_email": "{{user.email}}"
+    },
+    "delete": {
+      "data.user_email": "{{user.email}}"
+    }
+  }
+}
