@@ -33,10 +33,19 @@ function TandC() {
 import { base44 } from '@/api/base44Client';
 import { GENRE_OPTIONS, MOOD_OPTIONS } from '@/lib/theme';
 import { CURRENT_TERMS_VERSION } from '@/components/onboarding/TermsReAcceptModal';
+import { SIMPLE_MODE_TABS, SIMPLE_MODE_GENRES, SIMPLE_MODE_MOODS } from '@/lib/theme';
 import DownloadAppStep from '@/components/onboarding/DownloadAppStep';
 import { getDownloadStepStatus, SKIP_EVENT_MAP } from '@/lib/platformDetect';
 
-const STEPS = ['welcome', 'genres', 'content', 'features', 'clubs', 'streak', 'schools', 'download_app', 'done'];
+const STEPS = ['welcome', 'genres', 'content', 'features', 'clubs', 'streak', 'schools', 'simple_mode', 'download_app', 'done'];
+
+const HIDEABLE_TABS_TOUR = [
+  { path: '/clubs', label: 'Clubs' }, { path: '/forums', label: 'Forums' }, { path: '/reviews', label: 'Reviews' },
+  { path: '/chat', label: 'Chat' }, { path: '/vault', label: 'Vault' }, { path: '/wrapped', label: 'Wrapped' },
+  { path: '/discover', label: 'Discover' }, { path: '/book-creator', label: 'Book Creator' },
+  { path: '/goal', label: 'Goal' }, { path: '/quotes', label: 'Quotes' }, { path: '/challenges', label: 'Challenges' },
+  { path: '/strength', label: 'Strength' },
+];
 
 const CONTENT_THEMES = [
   'Romance', 'Violence', 'Death/Loss', 'Addiction', 'War', 'Abuse', 'Mental illness'
@@ -51,6 +60,11 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
   const [schoolClasses, setSchoolClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState(null);
   const [enrolling, setEnrolling] = useState(false);
+  const [simpleModeChoice, setSimpleModeChoice] = useState('none');
+  const [customHiddenTabs, setCustomHiddenTabs] = useState([]);
+  const [customHiddenGenres, setCustomHiddenGenres] = useState([]);
+  const [customHiddenMoods, setCustomHiddenMoods] = useState([]);
+  const [skippedTour, setSkippedTour] = useState(false);
 
   function toggleGenre(g) {
     setGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
@@ -84,6 +98,10 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
   }
 
   function handleSchoolsNext() {
+    setStep(STEPS.indexOf('simple_mode'));
+  }
+
+  function handleSimpleModeNext() {
     const status = getDownloadStepStatus();
     if (status.shouldShow) {
       setStep(STEPS.indexOf('download_app'));
@@ -95,7 +113,32 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
     }
   }
 
+  function buildSimpleModePrefs() {
+    if (simpleModeChoice === 'simple') {
+      return { simple_mode: true, hidden_tabs: [...SIMPLE_MODE_TABS], hidden_genres: [...SIMPLE_MODE_GENRES], hidden_moods: [...SIMPLE_MODE_MOODS] };
+    } else if (simpleModeChoice === 'custom') {
+      return { simple_mode: false, hidden_tabs: [...customHiddenTabs], hidden_genres: [...customHiddenGenres], hidden_moods: [...customHiddenMoods] };
+    }
+    return { simple_mode: false, hidden_tabs: [], hidden_genres: [], hidden_moods: [] };
+  }
+
+  async function saveSimpleModePrefs() {
+    const simplePrefs = buildSimpleModePrefs();
+    const existingPrefs = await base44.entities.UserPreferences.filter({ user_email: user.email });
+    if (existingPrefs[0]) {
+      await base44.entities.UserPreferences.update(existingPrefs[0].id, simplePrefs);
+    } else {
+      await base44.entities.UserPreferences.create({ user_email: user.email, ...simplePrefs });
+    }
+  }
+
   async function skip() {
+    // Even on skip, the simple mode page is mandatory
+    setSkippedTour(true);
+    setStep(STEPS.indexOf('simple_mode'));
+  }
+
+  async function completeSkip() {
     setSaving(true);
     try {
       localStorage.setItem('lexio_terms_version', CURRENT_TERMS_VERSION);
@@ -107,12 +150,13 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
         onboarding_complete: true,
         onboarding_skipped: true,
       };
-      const existing = await base44.entities.UserProfile.filter({ user_email: user.email });
-      if (existing[0]) {
-        await base44.entities.UserProfile.update(existing[0].id, profileData);
+      const existingProf = await base44.entities.UserProfile.filter({ user_email: user.email });
+      if (existingProf[0]) {
+        await base44.entities.UserProfile.update(existingProf[0].id, profileData);
       } else {
         await base44.entities.UserProfile.create(profileData);
       }
+      await saveSimpleModePrefs();
       onComplete();
     } catch (e) {}
     setSaving(false);
@@ -137,14 +181,13 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
       } else {
         await base44.entities.UserProfile.create(profileData);
       }
-      // Save genre prefs
-      if (genres.length > 0) {
-        const existing = await base44.entities.UserPreferences.filter({ user_email: user.email });
-        if (existing[0]) {
-          await base44.entities.UserPreferences.update(existing[0].id, { favorite_genres: genres });
-        } else {
-          await base44.entities.UserPreferences.create({ user_email: user.email, favorite_genres: genres });
-        }
+      // Save genre prefs + simple mode prefs
+      const simplePrefs = buildSimpleModePrefs();
+      const existingPrefs = await base44.entities.UserPreferences.filter({ user_email: user.email });
+      if (existingPrefs[0]) {
+        await base44.entities.UserPreferences.update(existingPrefs[0].id, { favorite_genres: genres, ...simplePrefs });
+      } else {
+        await base44.entities.UserPreferences.create({ user_email: user.email, favorite_genres: genres, ...simplePrefs });
       }
       onComplete();
     } catch (e) {}
@@ -420,6 +463,135 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
             <div className="flex gap-2">
               <button onClick={() => setStep(STEPS.indexOf('streak'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
               <button onClick={handleSchoolsNext} className="lx-btn-primary flex-1 justify-center">Almost done!</button>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 'simple_mode' && (
+          <div>
+            <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+              🎯 Simple Mode
+            </h2>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+              Choose how Lexio works for you. You can change this anytime in your Profile preferences.
+            </p>
+            <div className="space-y-2 mb-4">
+              <button onClick={() => setSimpleModeChoice('simple')}
+                className="w-full text-left p-3 rounded-lg transition-all"
+                style={{
+                  background: simpleModeChoice === 'simple' ? 'rgba(245,214,35,0.1)' : 'var(--bg-elevated)',
+                  border: `1px solid ${simpleModeChoice === 'simple' ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+                }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
+                    style={{ background: simpleModeChoice === 'simple' ? 'var(--lx-accent)' : 'transparent', border: `2px solid ${simpleModeChoice === 'simple' ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
+                    {simpleModeChoice === 'simple' && <Check size={10} style={{ color: 'var(--bg-primary)' }} />}
+                  </div>
+                  <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Enable Simple Mode</span>
+                </div>
+                <p className="text-xs ml-6" style={{ color: 'var(--text-muted)' }}>
+                  Removes Clubs, Forums & Reviews tabs. Hides Romance, Horror, Self-Help & True Crime genres, and removes Dark & Intense, Emotional, Cozy, Escapist & Nostalgic moods. (Books in these genres remain searchable.)
+                </p>
+              </button>
+
+              <button onClick={() => setSimpleModeChoice('custom')}
+                className="w-full text-left p-3 rounded-lg transition-all"
+                style={{
+                  background: simpleModeChoice === 'custom' ? 'rgba(245,214,35,0.1)' : 'var(--bg-elevated)',
+                  border: `1px solid ${simpleModeChoice === 'custom' ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+                }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
+                    style={{ background: simpleModeChoice === 'custom' ? 'var(--lx-accent)' : 'transparent', border: `2px solid ${simpleModeChoice === 'custom' ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
+                    {simpleModeChoice === 'custom' && <Check size={10} style={{ color: 'var(--bg-primary)' }} />}
+                  </div>
+                  <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Custom Filtering</span>
+                </div>
+                <p className="text-xs ml-6" style={{ color: 'var(--text-muted)' }}>
+                  Keep all tabs but choose specific genres, moods, or tabs to hide.
+                </p>
+              </button>
+
+              <button onClick={() => setSimpleModeChoice('none')}
+                className="w-full text-left p-3 rounded-lg transition-all"
+                style={{
+                  background: simpleModeChoice === 'none' ? 'rgba(245,214,35,0.1)' : 'var(--bg-elevated)',
+                  border: `1px solid ${simpleModeChoice === 'none' ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+                }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
+                    style={{ background: simpleModeChoice === 'none' ? 'var(--lx-accent)' : 'transparent', border: `2px solid ${simpleModeChoice === 'none' ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
+                    {simpleModeChoice === 'none' && <Check size={10} style={{ color: 'var(--bg-primary)' }} />}
+                  </div>
+                  <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Keep Everything</span>
+                </div>
+                <p className="text-xs ml-6" style={{ color: 'var(--text-muted)' }}>
+                  No changes — all features, genres, and moods stay visible.
+                </p>
+              </button>
+            </div>
+
+            {simpleModeChoice === 'custom' && (
+              <div className="space-y-3 mb-4">
+                <div>
+                  <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>Hide tabs</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {HIDEABLE_TABS_TOUR.map(({ path, label }) => {
+                      const sel = customHiddenTabs.includes(path);
+                      return (
+                        <button key={path} onClick={() => setCustomHiddenTabs(prev => sel ? prev.filter(t => t !== path) : [...prev, path])}
+                          className="text-xs px-2.5 py-1 rounded transition-all"
+                          style={{ background: sel ? 'rgba(220,38,38,0.2)' : 'var(--bg-elevated)', color: sel ? '#f87171' : 'var(--text-secondary)', border: `1px solid ${sel ? '#f87171' : 'var(--lx-border)'}` }}>
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>Hide genres (not promoted, still searchable)</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SIMPLE_MODE_GENRES.map(g => {
+                      const sel = customHiddenGenres.includes(g);
+                      return (
+                        <button key={g} onClick={() => setCustomHiddenGenres(prev => sel ? prev.filter(x => x !== g) : [...prev, g])}
+                          className="text-xs px-2.5 py-1 rounded transition-all"
+                          style={{ background: sel ? 'rgba(220,38,38,0.2)' : 'var(--bg-elevated)', color: sel ? '#f87171' : 'var(--text-secondary)', border: `1px solid ${sel ? '#f87171' : 'var(--lx-border)'}` }}>
+                          {g}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>Hide reading moods</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SIMPLE_MODE_MOODS.map(m => {
+                      const sel = customHiddenMoods.includes(m);
+                      return (
+                        <button key={m} onClick={() => setCustomHiddenMoods(prev => sel ? prev.filter(x => x !== m) : [...prev, m])}
+                          className="text-xs px-2.5 py-1 rounded transition-all"
+                          style={{ background: sel ? 'rgba(220,38,38,0.2)' : 'var(--bg-elevated)', color: sel ? '#f87171' : 'var(--text-secondary)', border: `1px solid ${sel ? '#f87171' : 'var(--lx-border)'}` }}>
+                          {m}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              {skippedTour ? (
+                <button onClick={completeSkip} disabled={saving} className="lx-btn-primary flex-1 justify-center">
+                  {saving ? 'Saving...' : 'Finish Setup'}
+                </button>
+              ) : (
+                <>
+                  <button onClick={() => setStep(STEPS.indexOf('schools'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
+                  <button onClick={handleSimpleModeNext} className="lx-btn-primary flex-1 justify-center">Continue</button>
+                </>
+              )}
             </div>
           </div>
         )}

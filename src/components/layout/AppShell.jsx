@@ -348,19 +348,24 @@ export default function AppShell({ children, user }) {
     const feature = PATH_FEATURE_MAP[path];
     return feature ? restrictedFeatures.includes(feature) : false;
   };
-  const allNavItems = [...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].filter(item => !isRestricted(item.path) && (item.path !== '/assignments' || hasAssignments));
-  const visibleExtraNav = EXTRA_NAV.filter(item => !isRestricted(item.path));
-  const visibleTopBarIcons = TOP_BAR_ICON_OPTIONS.filter(item => !isRestricted(item.path));
+  const isHidden = (path) => {
+    if (prefs?.simple_mode && ['/clubs', '/forums', '/reviews'].includes(path)) return true;
+    if (prefs?.hidden_tabs?.includes(path)) return true;
+    return false;
+  };
+  const allNavItems = [...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].filter(item => !isRestricted(item.path) && !isHidden(item.path) && (item.path !== '/assignments' || hasAssignments));
+  const visibleExtraNav = EXTRA_NAV.filter(item => !isRestricted(item.path) && !isHidden(item.path));
+  const visibleTopBarIcons = TOP_BAR_ICON_OPTIONS.filter(item => !isRestricted(item.path) && !isHidden(item.path));
   const visibleBottomNav = [
     { path: '/', icon: LayoutDashboard },
     { path: '/discover', icon: Compass },
     { path: '/chat', icon: MessageSquare }
-  ].filter(({ path }) => !isRestricted(path));
+  ].filter(({ path }) => !isRestricted(path) && !isHidden(path));
   const visibleDesktopNav = [
     { path: '/', icon: LayoutDashboard, label: 'Home' },
     { path: '/discover', icon: Compass, label: 'Discover' },
     { path: '/chat', icon: MessageSquare, label: 'Chat' },
-  ].filter(({ path }) => !isRestricted(path));
+  ].filter(({ path }) => !isRestricted(path) && !isHidden(path));
 
   return (
     <div className="overflow-hidden lx-bg flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh' }}>

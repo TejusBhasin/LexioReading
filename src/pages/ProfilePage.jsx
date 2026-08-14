@@ -9,6 +9,7 @@ import JoinCreateSchool from '@/components/schools/JoinCreateSchool';
 import SchoolCodeEntry from '@/components/schools/SchoolCodeEntry';
 import SchoolClassManager from '@/components/schools/SchoolClassManager';
 import PrivacyTab from '@/components/profile/PrivacyTab';
+import SimpleModeSettings from '@/components/profile/SimpleModeSettings';
 import DeleteAccountSection from '@/components/profile/DeleteAccountSection';
 import LibrarianSettings from '@/components/profile/LibrarianSettings';
 import AppLockSettings from '@/components/profile/AppLockSettings';
@@ -384,6 +385,8 @@ export default function ProfilePage() {
               ))}
             </div>
           </div>
+
+          <SimpleModeSettings prefs={prefs} setPrefs={setPrefs} />
 
           <div className="flex items-center gap-3 flex-wrap">
             <button onClick={savePrefs} disabled={saving} className="lx-btn-primary">

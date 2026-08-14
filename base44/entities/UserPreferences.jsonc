@@ -106,6 +106,32 @@
         "type": "string"
       },
       "description": "Paths of nav items (not in bottom bar) to show as icon-only buttons in the top bar"
+    },
+    "simple_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Removes Clubs, Forums, Reviews tabs and hides certain genres/moods from promotion"
+    },
+    "hidden_tabs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Nav paths hidden from the menu (e.g. '/clubs', '/forums')"
+    },
+    "hidden_genres": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Genres hidden from promotion (still searchable)"
+    },
+    "hidden_moods": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Reading moods removed from mood options"
     }
   },
   "required": [

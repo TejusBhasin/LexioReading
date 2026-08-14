@@ -190,6 +190,26 @@ export const MOOD_OPTIONS = [
   'Action-packed', 'Cozy', 'Mind-bending', 'Inspiring', 'Escapist', 'Nostalgic'
 ];
 
+export const SIMPLE_MODE_TABS = ['/clubs', '/forums', '/reviews'];
+export const SIMPLE_MODE_GENRES = ['Romance', 'Horror', 'Self-Help', 'True Crime'];
+export const SIMPLE_MODE_MOODS = ['Dark & Intense', 'Emotional', 'Cozy', 'Escapist', 'Nostalgic'];
+
+export const ALL_HIDEABLE_TABS = [
+  { path: '/clubs', label: 'Clubs' },
+  { path: '/forums', label: 'Forums' },
+  { path: '/reviews', label: 'Reviews' },
+  { path: '/chat', label: 'Chat' },
+  { path: '/vault', label: 'Vault' },
+  { path: '/wrapped', label: 'Wrapped' },
+  { path: '/discover', label: 'Discover' },
+  { path: '/book-creator', label: 'Book Creator' },
+  { path: '/goal', label: 'Reading Goal' },
+  { path: '/quotes', label: 'Quotes' },
+  { path: '/challenges', label: 'Challenges' },
+  { path: '/strength', label: 'Reading Strength' },
+  { path: '/reading-log', label: 'Reading Log' },
+];
+
 export const SAMPLE_BOOKS = [
   {
     id: 'demo-1',
