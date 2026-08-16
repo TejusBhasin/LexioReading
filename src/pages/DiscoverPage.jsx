@@ -7,6 +7,7 @@ import BookGrid from '@/components/books/BookGrid';
 import { useAuth } from '@/lib/AuthContext';
 import NetflixRow from '@/components/discover/NetflixRow';
 import LoadMoreRecommendations from '@/components/discover/LoadMoreRecommendations';
+import CantFindBookPrompt from '@/components/discover/CantFindBookPrompt';
 
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Historical', 'Thriller', 'Non-Fiction'];
 
@@ -254,6 +255,7 @@ export default function DiscoverPage() {
               Try checking the spelling, or use fewer words. You can also search by author name.
             </p>
             <button onClick={() => { setSearchQuery(''); setSearchResults([]); setHasSearched(false); }} className="lx-btn-ghost text-sm">Clear Search</button>
+            <CantFindBookPrompt />
           </div>
         </section>
       )}
@@ -269,6 +271,7 @@ export default function DiscoverPage() {
             </button>
           </div>
           <BookGrid books={searchResults} onSave={saveBook} savedIds={savedIds} />
+          <CantFindBookPrompt />
         </section>
       )}
 

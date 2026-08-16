@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Star, Sparkles, RefreshCw, PenSquare, Share2, Trash2, Clock, X } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Sparkles, RefreshCw, PenSquare, Share2, Trash2, Clock, X, BookPlus } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getBookById, searchBooks } from '@/lib/googleBooks';
 import { useAuth } from '@/lib/AuthContext';
@@ -24,6 +24,7 @@ export default function BookDetailPage() {
   const { id } = useParams();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const isManual = id?.startsWith('manual_');
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -48,7 +49,7 @@ export default function BookDetailPage() {
 
   useEffect(() => {
     loadBook();
-    loadReviews();
+    if (!isManual) loadReviews();
     if (user?.email) { loadLibraryEntry(); loadUserProfile(); }
   }, [id, user]);
 
@@ -75,18 +76,38 @@ export default function BookDetailPage() {
   async function loadBook() {
     setLoading(true);
     try {
-      const b = await getBookById(id);
-      if (b && b.title) {
-        setBook(b);
-        generateAISummary(b);
-        // Track this click for trending (fire-and-forget)
-        if (user?.email) {
-          base44.entities.BookClick.create({
-            book_id: id,
-            book_title: b.title,
-            book_author: b.author,
-            book_cover: b.cover_image || '',
-          }).catch(() => {});
+      if (isManual) {
+        if (!user?.email) return;
+        const entries = await base44.entities.UserLibrary.filter({ user_email: user.email, book_id: id });
+        const entry = entries[0];
+        if (entry) {
+          setBook({
+            title: entry.book_title,
+            author: entry.book_author,
+            cover_image: entry.book_cover,
+            page_count: entry.page_count,
+            description: '',
+            categories: [],
+            google_books_id: id,
+            id,
+          });
+        } else {
+          setBook(null);
+        }
+      } else {
+        const b = await getBookById(id);
+        if (b && b.title) {
+          setBook(b);
+          generateAISummary(b);
+          // Track this click for trending (fire-and-forget)
+          if (user?.email) {
+            base44.entities.BookClick.create({
+              book_id: id,
+              book_title: b.title,
+              book_author: b.author,
+              book_cover: b.cover_image || '',
+            }).catch(() => {});
+          }
         }
       }
     } catch (e) {
@@ -501,7 +522,18 @@ Return a JSON object with a "books" array, each item having "title" and "author"
         </div>
       </div>
 
+      {/* Manual book notice */}
+      {isManual && (
+        <div className="mb-10 p-4 rounded-lg flex items-center gap-2" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-border)' }}>
+          <BookPlus size={15} style={{ color: 'var(--lx-accent)' }} className="flex-shrink-0" />
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            This is a manually added book. It can be tracked on your lists but reviews and discussions aren't available.
+          </p>
+        </div>
+      )}
+
       {/* AI Summary */}
+      {!isManual && (
       <div className="mb-10 p-6 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={16} style={{ color: 'var(--lx-accent)' }} />
@@ -522,6 +554,7 @@ Return a JSON object with a "books" array, each item having "title" and "author"
           </p>
         )}
       </div>
+      )}
 
       {/* Personal Notes */}
       {isAuthenticated && libraryEntry?.id && (
@@ -543,6 +576,7 @@ Return a JSON object with a "books" array, each item having "title" and "author"
       )}
 
       {/* Reviews */}
+      {!isManual && (
       <div className="mb-10">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
@@ -569,13 +603,17 @@ Return a JSON object with a "books" array, each item having "title" and "author"
           </div>
         )}
       </div>
+      )}
 
       {/* Discussion */}
+      {!isManual && (
       <div className="mb-10">
         <DiscussionForum bookId={id} bookTitle={book?.title} />
       </div>
+      )}
 
       {/* More like this */}
+      {!isManual && (
       <div>
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
@@ -604,6 +642,7 @@ Return a JSON object with a "books" array, each item having "title" and "author"
           </div>
         )}
       </div>
+      )}
 
       {showUsernameModal && user && (
         <UsernameSetupModal

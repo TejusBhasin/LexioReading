@@ -36,6 +36,10 @@
     "current_page": {
       "type": "number"
     },
+    "page_count": {
+      "type": "number",
+      "description": "Total page count (used for manually added books)"
+    },
     "tags": {
       "type": "array",
       "items": {
