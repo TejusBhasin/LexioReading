@@ -39,7 +39,6 @@ import ChallengesPage from '@/pages/ChallengesPage';
 import ImportPage from '@/pages/ImportPage';
 import AssignmentsPage from '@/pages/AssignmentsPage';
 import BookCreatorPage from '@/pages/BookCreatorPage';
-import WelcomePage from '@/pages/WelcomePage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
 // Auth pages
@@ -154,7 +153,6 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/welcome" element={<WelcomePage />} />
             {/* ── Landing page — redirect to home (same not-logged-in view) ── */}
             <Route path="/landing" element={<Navigate to="/" replace />} />
             {/* ── Everything else goes through AuthenticatedApp ── */}
