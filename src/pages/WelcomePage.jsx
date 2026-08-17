@@ -45,11 +45,16 @@ export default function WelcomePage() {
           Let's find your next great read. Set up your reading profile and start discovering books tailored to you.
         </p>
 
-        {/* Quick actions */}
-        <div className="space-y-3 mb-8">
-          <Link to="/" className="lx-btn-primary w-full justify-center text-sm">
-            <Sparkles size={14} /> Start Reading
+        {/* Main CTA — the big yellow button */}
+        <div className="mb-5">
+          <Link to="/" className="lx-btn-primary w-full justify-center text-lg py-4"
+            style={{ fontSize: '1.05rem', padding: '1rem 1.5rem' }}>
+            <Sparkles size={20} /> Go to Dashboard
           </Link>
+        </div>
+
+        {/* Secondary actions */}
+        <div className="space-y-3 mb-8">
           <Link to="/discover" className="lx-btn-ghost w-full justify-center text-sm">
             <Compass size={14} /> Discover Books
           </Link>
