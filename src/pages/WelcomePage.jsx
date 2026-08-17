@@ -47,8 +47,13 @@ export default function WelcomePage() {
 
         {/* Main CTA — the big yellow button */}
         <div className="mb-5">
-          <Link to="/" className="lx-btn-primary w-full justify-center text-lg py-4"
-            style={{ fontSize: '1.05rem', padding: '1rem 1.5rem' }}>
+          <Link to="/" className="w-full justify-center inline-flex items-center gap-2 font-bold rounded-lg"
+            style={{
+              fontSize: '1.05rem',
+              padding: '1rem 1.5rem',
+              background: '#f5d623',
+              color: '#0a0a0a',
+            }}>
             <Sparkles size={20} /> Go to Dashboard
           </Link>
         </div>
