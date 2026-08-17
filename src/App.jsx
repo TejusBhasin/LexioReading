@@ -99,7 +99,6 @@ const AuthenticatedApp = () => {
           <Route path="/secret" element={<EasterEggPage />} />
           <Route path="/access" element={<HiddenAccessPage />} />
           <Route path="/book-creator" element={<BookCreatorPage />} />
-          <Route path="/welcome" element={<WelcomePage />} />
 
           {/* ── PROTECTED routes — require login ── */}
           <Route element={<ProtectedRoute unauthenticatedElement={loginElement} />}>
@@ -155,6 +154,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/welcome" element={<WelcomePage />} />
             {/* ── Landing page — redirect to home (same not-logged-in view) ── */}
             <Route path="/landing" element={<Navigate to="/" replace />} />
             {/* ── Everything else goes through AuthenticatedApp ── */}
