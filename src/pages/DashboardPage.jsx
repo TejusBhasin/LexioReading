@@ -6,7 +6,6 @@ import { useAuth } from '@/lib/AuthContext';
 
 import SetupTour from '@/components/onboarding/SetupTour';
 import AppFooter from '@/components/layout/AppFooter';
-import AllSchoolsView from '@/components/admin/AllSchoolsView';
 import VaultExpiryReminder from '@/components/vault/VaultExpiryReminder';
 
 const FALLBACK_QUOTE = { text: 'A reader lives a thousand lives before he dies. The man who never reads lives only one.', author: 'George R.R. Martin' };
@@ -281,13 +280,6 @@ export default function DashboardPage() {
           <p className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Your library is empty</p>
           <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Start by discovering books and adding them to your list.</p>
           <Link to="/discover" className="lx-btn-primary text-sm">Discover Books</Link>
-        </div>
-      )}
-
-      {/* All Schools — Admin only */}
-      {user?.role === 'admin' && (
-        <div className="mb-8">
-          <AllSchoolsView />
         </div>
       )}
 
