@@ -39,6 +39,7 @@ import ChallengesPage from '@/pages/ChallengesPage';
 import ImportPage from '@/pages/ImportPage';
 import AssignmentsPage from '@/pages/AssignmentsPage';
 import BookCreatorPage from '@/pages/BookCreatorPage';
+import WelcomePage from '@/pages/WelcomePage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
 
 // Auth pages
@@ -98,6 +99,7 @@ const AuthenticatedApp = () => {
           <Route path="/secret" element={<EasterEggPage />} />
           <Route path="/access" element={<HiddenAccessPage />} />
           <Route path="/book-creator" element={<BookCreatorPage />} />
+          <Route path="/welcome" element={<WelcomePage />} />
 
           {/* ── PROTECTED routes — require login ── */}
           <Route element={<ProtectedRoute unauthenticatedElement={loginElement} />}>
