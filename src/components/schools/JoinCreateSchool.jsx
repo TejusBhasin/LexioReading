@@ -54,26 +54,18 @@ export default function JoinCreateSchool({ user }) {
     setSaving(true);
     setError('');
     try {
-      const schools = await base44.entities.School.filter({ join_code: joinCode.trim().toUpperCase() });
-      if (!schools[0]) { setError('Invalid join code.'); setSaving(false); return; }
-      const s = schools[0];
-      // Check not already member
-      const existing = await base44.entities.SchoolMember.filter({ school_id: s.id, user_email: user.email });
-      if (existing[0] && !existing[0].kicked) { setError('You are already in this school.'); setSaving(false); return; }
-      const m = await base44.entities.SchoolMember.create({
-        school_id: s.id,
-        school_name: s.name,
-        user_email: user.email,
-        username: user.full_name || user.email,
-        role: 'member',
-        joined_date: new Date().toISOString(),
-        kicked: false,
-      });
-      await base44.entities.School.update(s.id, { member_count: (s.member_count || 1) + 1 });
-      setSchoolMember(m);
-      setSchool(s);
-      setMode(null);
-    } catch (e) { setError('Failed to join. Try again.'); }
+      const res = await base44.functions.invoke('joinSchool', { join_code: joinCode.trim().toUpperCase() });
+      const data = res.data;
+      if (data?.school) {
+        setSchoolMember(data.member || null);
+        setSchool(data.school);
+        setMode(null);
+      } else {
+        setError(data?.error || 'Failed to join.');
+      }
+    } catch (e) {
+      setError(e?.response?.data?.error || 'Failed to join. Try again.');
+    }
     setSaving(false);
   }
 

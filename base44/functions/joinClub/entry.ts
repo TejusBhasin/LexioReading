@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { sendPushToEmails } from '../../shared/push.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -32,6 +33,14 @@ Deno.serve(async (req) => {
       member_emails: [...(club.member_emails || []), user.email],
       member_count: (club.member_count || 0) + 1,
     });
+
+    await sendPushToEmails(
+      base44,
+      [user.email],
+      `Welcome to ${club.name}!`,
+      'You joined the club. Tap to start reading together.',
+      `/club/${club_id}`
+    );
 
     return Response.json({ success: true, club: updated });
   } catch (error) {

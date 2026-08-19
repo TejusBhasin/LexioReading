@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
+import { sendPushToEmails } from '../../shared/push.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -51,6 +52,14 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.School.update(matchingSchool.id, {
       member_count: (matchingSchool.member_count || 1) + 1,
     });
+
+    await sendPushToEmails(
+      base44,
+      [user.email],
+      `Welcome to ${matchingSchool.name}!`,
+      "You've been automatically joined to your school. Tap to view your school hub.",
+      '/school-admin'
+    );
 
     return Response.json({
       joined: true,
