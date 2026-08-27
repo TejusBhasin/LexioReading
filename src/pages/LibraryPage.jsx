@@ -5,6 +5,7 @@ import LxSelect from '@/components/ui/LxSelect';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import LibraryShareButton from '@/components/library/LibraryShareButton';
+import { getVocab } from '@/lib/vocab';
 
 const STATUSES = [
   { key: 'all', label: 'All Books' },
@@ -31,6 +32,15 @@ export default function LibraryPage() {
   const [editNote, setEditNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
+  const [contentMode, setContentMode] = useState('books');
+  const v = getVocab(contentMode);
+  const statuses = [
+    { key: 'all', label: 'All' },
+    { key: 'reading', label: v.reading === 'watching' ? 'Watching' : 'Reading' },
+    { key: 'want_to_read', label: v.wantToRead },
+    { key: 'finished', label: v.finished === 'watched' ? 'Watched' : 'Finished' },
+    { key: 'dropped', label: 'Dropped' },
+  ];
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -40,12 +50,14 @@ export default function LibraryPage() {
   async function loadLibrary() {
     setLoading(true);
     try {
-      const [lib, profiles] = await Promise.all([
+      const [lib, profiles, prefs] = await Promise.all([
         base44.entities.UserLibrary.filter({ user_email: user.email }, '-created_date', 100),
         base44.entities.UserProfile.filter({ user_email: user.email }),
+        base44.entities.UserPreferences.filter({ user_email: user.email }),
       ]);
       setBooks(lib);
       if (profiles[0]) setUserProfile(profiles[0]);
+      if (prefs[0]) setContentMode(prefs[0].content_mode || 'books');
     } catch (e) {
       setBooks([]);
     } finally {
@@ -99,6 +111,7 @@ export default function LibraryPage() {
   }
 
   const filtered = (activeStatus === 'all' ? books : books.filter(b => b.status === activeStatus)).filter(b => mediaFilter === 'all' ? true : (b.media_type || 'book') === mediaFilter);
+  const statusLabels = { want_to_read: v.wantToRead, reading: v.reading === 'watching' ? 'Watching' : 'Reading', finished: v.finished === 'watched' ? 'Watched' : 'Finished', dropped: 'Dropped' };
 
   const stats = {
     total: books.length,
@@ -111,12 +124,12 @@ export default function LibraryPage() {
     <div className="max-w-6xl mx-auto px-4 py-8 pb-24 md:pb-8">
       <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
         <h1 className="font-display text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          My Library
+          My {v.library}
         </h1>
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-            <span><strong style={{ color: 'var(--lx-accent)' }}>{stats.finished}</strong> finished</span>
-            <span><strong style={{ color: 'var(--text-primary)' }}>{stats.reading}</strong> reading</span>
+            <span><strong style={{ color: 'var(--lx-accent)' }}>{stats.finished}</strong> {v.finished}</span>
+            <span><strong style={{ color: 'var(--text-primary)' }}>{stats.reading}</strong> {v.reading}</span>
             <span><strong style={{ color: 'var(--text-secondary)' }}>{stats.want}</strong> queued</span>
           </div>
           <LibraryShareButton username={userProfile?.username} isPublic={userProfile?.is_public !== false} />
@@ -147,7 +160,7 @@ export default function LibraryPage() {
 
       {/* Status Tabs */}
       <div className="flex gap-1 mb-8 overflow-x-auto pb-1 scrollbar-hide">
-        {STATUSES.map(({ key, label }) => (
+        {statuses.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setActiveStatus(key)}
@@ -178,10 +191,10 @@ export default function LibraryPage() {
         <div className="text-center py-16">
           <BookOpen size={32} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
           <p style={{ color: 'var(--text-muted)' }}>
-            {activeStatus === 'all' ? 'Your library is empty. Start discovering books!' : `No ${STATUS_LABELS[activeStatus]?.toLowerCase() || ''} books yet.`}
+            {activeStatus === 'all' ? `Your ${v.library.toLowerCase()} is empty. Start discovering ${v.nounPlural}!` : `No ${statusLabels[activeStatus]?.toLowerCase() || ''} ${v.nounPlural} yet.`}
           </p>
           <Link to="/discover" className="inline-block mt-4 lx-btn-primary text-sm">
-            Discover Books
+            Discover {v.Books}
           </Link>
         </div>
       ) : (
@@ -218,8 +231,8 @@ export default function LibraryPage() {
                   {/* Status Select */}
                   <LxSelect
                     value={book.status}
-                    onChange={v => updateStatus(book.id, v)}
-                    options={STATUSES.filter(s => s.key !== 'all').map(s => ({ value: s.key, label: s.label }))}
+                    onChange={vv => updateStatus(book.id, vv)}
+                    options={statuses.filter(s => s.key !== 'all').map(s => ({ value: s.key, label: s.label }))}
                     compact
                   />
                 </div>

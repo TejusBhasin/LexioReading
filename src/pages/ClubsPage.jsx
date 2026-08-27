@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { searchBooks } from '@/lib/googleBooks';
+import { searchMovies } from '@/lib/tmdb';
 import { getIsolationFilter } from '@/lib/schoolIsolation';
 
 export default function ClubsPage() {
@@ -12,8 +13,9 @@ export default function ClubsPage() {
   const [myClubs, setMyClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '', genres: [], club_type: 'discussion', is_visible: true, join_code: '', allow_chat: true, tracking_fields: [], club_focus: 'book' });
+  const [form, setForm] = useState({ name: '', description: '', genres: [], club_type: 'discussion', is_visible: true, join_code: '', allow_chat: true, tracking_fields: [], club_focus: 'book', current_pick_type: 'book' });
   const [creating, setCreating] = useState(false);
+  const [mediaFocus, setMediaFocus] = useState('book');
   const [search, setSearch] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -48,8 +50,15 @@ export default function ClubsPage() {
   async function searchForBook() {
     if (!bookSearch.trim()) return;
     setBookSearching(true);
-    const results = await searchBooks(bookSearch, 6).catch(() => []);
-    setBookSearchResults(results.filter(b => b.cover_image));
+    try {
+      if (mediaFocus === 'movie') {
+        const results = await searchMovies(bookSearch, 6).catch(() => []);
+        setBookSearchResults(results.filter(b => b.cover_image).map(m => ({ google_books_id: m.tmdb_id, id: m.tmdb_id, title: m.title, cover_image: m.cover_image, author: m.director || '' })));
+      } else {
+        const results = await searchBooks(bookSearch, 6).catch(() => []);
+        setBookSearchResults(results.filter(b => b.cover_image));
+      }
+    } catch (e) { setBookSearchResults([]); }
     setBookSearching(false);
   }
 
@@ -58,11 +67,12 @@ export default function ClubsPage() {
     setCreating(true);
     try {
       const code = !form.is_visible ? 'CLUB' + Math.random().toString(36).slice(2, 8).toUpperCase() : '';
-      const club = await base44.entities.ReadingClub.create({ ...form, join_code: code, creator_email: user.email, member_count: 1, member_emails: [user.email], current_book_id: selectedBook.google_books_id || selectedBook.id, current_book_title: selectedBook.title });
+      const club = await base44.entities.ReadingClub.create({ ...form, current_pick_type: mediaFocus, join_code: code, creator_email: user.email, member_count: 1, member_emails: [user.email], current_book_id: selectedBook.google_books_id || selectedBook.id, current_book_title: selectedBook.title, cover_image: selectedBook.cover_image });
       setMyClubs(prev => [club, ...prev]);
       if (form.is_visible) setClubs(prev => [club, ...prev]);
       setShowCreate(false);
-      setForm({ name: '', description: '', genres: [], club_type: 'discussion', is_visible: true, join_code: '', allow_chat: true, tracking_fields: [], club_focus: 'book' });
+      setForm({ name: '', description: '', genres: [], club_type: 'discussion', is_visible: true, join_code: '', allow_chat: true, tracking_fields: [], club_focus: 'book', current_pick_type: 'book' });
+      setMediaFocus('book');
       setSelectedBook(null); setBookSearch(''); setBookSearchResults([]);
     } catch (e) {}
     setCreating(false);
@@ -165,11 +175,15 @@ export default function ClubsPage() {
             <div className="flex items-center justify-between mb-5"><h2 className="font-display text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Create Reading Club</h2><button onClick={() => setShowCreate(false)}><X size={18} style={{ color: 'var(--text-muted)' }} /></button></div>
             <div className="space-y-3">
               <div>
+                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Based on</label>
+                <div className="flex gap-2">{['book', 'movie'].map(m => <button key={m} onClick={() => { setMediaFocus(m); setSelectedBook(null); setBookSearchResults([]); }} className="flex-1 py-2 rounded text-sm font-medium" style={{ background: mediaFocus === m ? 'var(--lx-accent)' : 'var(--bg-elevated)', color: mediaFocus === m ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${mediaFocus === m ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>{m === 'book' ? '📖 Book / Series' : '🎬 Movie / Series'}</button>)}</div>
+              </div>
+              <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Club Focus</label>
                 <div className="flex gap-2">{['book', 'series'].map(f => <button key={f} onClick={() => setForm(ff => ({ ...ff, club_focus: f }))} className="flex-1 py-2 rounded text-sm font-medium capitalize" style={{ background: form.club_focus === f ? 'var(--lx-accent)' : 'var(--bg-elevated)', color: form.club_focus === f ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${form.club_focus === f ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>{f === 'book' ? '📖 Single Book' : '📚 Series'}</button>)}</div>
               </div>
               <div>
-                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>{form.club_focus === 'series' ? 'Search for Series (select 1st book) *' : 'Search for Book *'}</label>
+                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>{mediaFocus === 'movie' ? (form.club_focus === 'series' ? 'Search for Movie Series (select 1st film) *' : 'Search for Movie *') : (form.club_focus === 'series' ? 'Search for Series (select 1st book) *' : 'Search for Book *')}</label>
                 {selectedBook ? (
                   <div className="flex items-center gap-3 p-2 rounded" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--lx-accent)' }}>
                     {selectedBook.cover_image && <img src={selectedBook.cover_image} alt="" className="w-8 h-11 object-cover rounded flex-shrink-0" />}
@@ -187,7 +201,7 @@ export default function ClubsPage() {
               <div><label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Description</label><textarea className="lx-input resize-none" rows={2} placeholder="What's this club about?" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
               <div><label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Club Type</label><select className="lx-input" value={form.club_type} onChange={e => setForm(f => ({ ...f, club_type: e.target.value }))} style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', cursor: 'pointer' }}><option value="discussion">Discussion</option><option value="collaborative">Collaborative</option><option value="administrative">Administrative</option><option value="logging">Logging</option></select></div>
               <div className="flex items-center justify-between p-2 rounded" style={{ background: 'var(--bg-elevated)' }}><span className="text-xs" style={{ color: 'var(--text-primary)' }}>Visible to all</span><button onClick={() => setForm(f => ({ ...f, is_visible: !f.is_visible }))} className="flex items-center gap-1 text-xs px-2 py-1 rounded" style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)' }}>{form.is_visible ? <Eye size={12} /> : <EyeOff size={12} />}</button></div>
-              {!selectedBook && <p className="text-xs" style={{ color: '#f87171' }}>⚠ Select a book to create a club.</p>}
+              {!selectedBook && <p className="text-xs" style={{ color: '#f87171' }}>⚠ Select a {mediaFocus === 'movie' ? 'movie' : 'book'} to create a club.</p>}
               <button onClick={createClub} disabled={creating || !form.name.trim() || !selectedBook} className="lx-btn-primary w-full justify-center text-sm">{creating ? 'Creating...' : 'Create Club'}</button>
             </div>
           </div>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Sparkles, Search, TrendingUp } from 'lucide-react';
+import { Sparkles, Search, TrendingUp, BookOpen, Film } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { searchBooks, FALLBACK_TRENDING } from '@/lib/googleBooks';
 import BookGrid from '@/components/books/BookGrid';
@@ -52,6 +52,9 @@ export default function DiscoverPage() {
   const [userPrefs, setUserPrefs] = useState(null);
   const [netflixSeeds, setNetflixSeeds] = useState([]);
   const [contentMode, setContentMode] = useState('books');
+  const [viewMode, setViewMode] = useState('both');
+  const [contentRatio, setContentRatio] = useState(50);
+  const ratioTimer = useRef(null);
   const [trendingMovies, setTrendingMovies] = useState([]);
   const [topRatedMovies, setTopRatedMovies] = useState([]);
   const [movieResults, setMovieResults] = useState([]);
@@ -64,6 +67,7 @@ export default function DiscoverPage() {
           setShowPopular(p[0].show_popular !== false);
           setUserPrefs(p[0]);
           setContentMode(p[0].content_mode || 'books');
+          setContentRatio(p[0].content_ratio != null ? p[0].content_ratio : 50);
           if ((p[0].content_mode || 'books') !== 'books') {
             getTrendingMovies().then(setTrendingMovies).catch(() => {});
             getTopRatedMovies().then(setTopRatedMovies).catch(() => {});
@@ -219,6 +223,20 @@ export default function DiscoverPage() {
     } catch (e) {}
   }
 
+  function saveRatio(value) {
+    clearTimeout(ratioTimer.current);
+    ratioTimer.current = setTimeout(async () => {
+      try {
+        if (userPrefs?.id) {
+          await base44.entities.UserPreferences.update(userPrefs.id, { content_ratio: value });
+        } else if (user?.email) {
+          const np = await base44.entities.UserPreferences.create({ user_email: user.email, content_ratio: value });
+          setUserPrefs(np);
+        }
+      } catch (e) {}
+    }, 600);
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 pb-24 md:pb-8">
       {/* Hero */}
@@ -332,13 +350,36 @@ export default function DiscoverPage() {
         </section>
       )}
 
+      {/* Books↔Movies controls (books+movies mode only) */}
+      {contentMode === 'books_movies' && (
+        <div className="mb-8 lx-card p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex gap-1">
+            {[['books', 'Books', BookOpen], ['both', 'Both', Film], ['movies', 'Movies', Film]].map(([val, label, Ic]) => (
+              <button key={val} onClick={() => setViewMode(val)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-all"
+                style={{ background: viewMode === val ? 'var(--lx-accent)' : 'var(--bg-elevated)', color: viewMode === val ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${viewMode === val ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
+                <Ic size={12} /> {label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 flex-1">
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Books</span>
+            <input type="range" min={0} max={100} value={contentRatio}
+              onChange={(e) => { const val = Number(e.target.value); setContentRatio(val); saveRatio(val); }}
+              className="flex-1" style={{ accentColor: 'var(--lx-accent)' }} />
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Movies</span>
+            <span className="text-xs font-mono w-12 text-right" style={{ color: 'var(--text-secondary)' }}>{contentRatio}/100</span>
+          </div>
+        </div>
+      )}
+
       {/* Netflix-style "Because you liked" rows */}
-      {isAuthenticated && contentMode !== 'movies' && netflixSeeds.length > 0 && netflixSeeds.map((seed, i) => (
+      {isAuthenticated && contentMode !== 'movies' && viewMode !== 'movies' && netflixSeeds.length > 0 && netflixSeeds.map((seed, i) => (
         <NetflixRow key={seed.title + i} seed={seed} onSave={saveBook} savedIds={savedIds} />
       ))}
 
       {/* For You */}
-      {isAuthenticated && contentMode !== 'movies' && (
+      {isAuthenticated && contentMode !== 'movies' && viewMode !== 'movies' && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <Sparkles size={18} style={{ color: 'var(--lx-accent)' }} />
@@ -350,7 +391,7 @@ export default function DiscoverPage() {
       )}
 
       {/* Trending */}
-      {showPopular && contentMode !== 'movies' && (
+      {showPopular && contentMode !== 'movies' && viewMode !== 'movies' && (
         <section>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -382,7 +423,7 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {contentMode !== 'books' && trendingMovies.length > 0 && (
+      {contentMode !== 'books' && viewMode !== 'books' && trendingMovies.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>
@@ -392,7 +433,7 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {contentMode !== 'books' && topRatedMovies.length > 0 && (
+      {contentMode !== 'books' && viewMode !== 'books' && topRatedMovies.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>
@@ -402,7 +443,7 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {contentMode !== 'books' && isAuthenticated && (
+      {contentMode !== 'books' && viewMode !== 'books' && isAuthenticated && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>

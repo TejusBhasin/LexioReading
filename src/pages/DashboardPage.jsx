@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/AuthContext';
 import SetupTour from '@/components/onboarding/SetupTour';
 import AppFooter from '@/components/layout/AppFooter';
 import VaultExpiryReminder from '@/components/vault/VaultExpiryReminder';
+import { getVocab } from '@/lib/vocab';
 
 const FALLBACK_QUOTE = { text: 'A reader lives a thousand lives before he dies. The man who never reads lives only one.', author: 'George R.R. Martin' };
 
@@ -33,6 +34,8 @@ export default function DashboardPage() {
   const [library, setLibrary] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dailyQuote, setDailyQuote] = useState(getCachedQuote() || FALLBACK_QUOTE);
+  const [contentMode, setContentMode] = useState('books');
+  const v = getVocab(contentMode);
 
   useEffect(() => {
     // Fetch a fresh quote from the web each day
@@ -64,6 +67,7 @@ export default function DashboardPage() {
         .then(setLibrary)
         .catch(() => {})
         .finally(() => setLoading(false));
+      base44.entities.UserPreferences.filter({ user_email: user.email }).then(p => { if (p[0]) setContentMode(p[0].content_mode || 'books'); }).catch(() => {});
     } else {
       setLoading(false);
     }
@@ -154,7 +158,7 @@ export default function DashboardPage() {
           <h1 className="font-display text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
             Welcome back, {user?.full_name?.split(' ')[0] || 'Reader'} 👋
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Here's your reading overview</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Here's your {v.reading} overview</p>
         </div>
         <button onClick={() => setShowTourPrompt(true)} title="Retake the setup tour"
           className="lx-btn-ghost text-xs py-1.5 px-2 flex items-center gap-1 flex-shrink-0">
@@ -165,10 +169,10 @@ export default function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         {[
-          { label: 'Total Books', value: stats.total, icon: BookOpen, href: '/library' },
-          { label: 'Finished', value: stats.finished, icon: CheckCircle, href: '/library' },
-          { label: 'Reading Now', value: stats.reading, icon: Clock, href: '/library' },
-          { label: 'Want to Read', value: stats.want, icon: Bookmark, href: '/library' },
+          { label: v.totalBooks, value: stats.total, icon: BookOpen, href: '/library' },
+          { label: v.finished, value: stats.finished, icon: CheckCircle, href: '/library' },
+          { label: v.readingNow, value: stats.reading, icon: Clock, href: '/library' },
+          { label: v.wantToRead, value: stats.want, icon: Bookmark, href: '/library' },
         ].map(({ label, value, icon: Icon, href }) => (
           <Link key={label} to={href} className="lx-card p-4 flex flex-col items-start gap-2 hover:border-[var(--lx-accent)] transition-colors group">
             <Icon size={16} style={{ color: 'var(--lx-accent)' }} />
@@ -217,7 +221,7 @@ export default function DashboardPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              <Clock size={16} style={{ color: 'var(--lx-accent)' }} /> Currently Reading
+              <Clock size={16} style={{ color: 'var(--lx-accent)' }} /> {v.currentlyReading}
             </h2>
             <Link to="/library" className="text-xs font-medium" style={{ color: 'var(--lx-accent)' }}>View all →</Link>
           </div>
@@ -245,7 +249,7 @@ export default function DashboardPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              <CheckCircle size={16} style={{ color: 'var(--lx-accent)' }} /> Recently Finished
+              <CheckCircle size={16} style={{ color: 'var(--lx-accent)' }} /> {v.recentlyFinished}
             </h2>
             <Link to="/library" className="text-xs font-medium" style={{ color: 'var(--lx-accent)' }}>View all →</Link>
           </div>
@@ -277,9 +281,9 @@ export default function DashboardPage() {
       {!loading && library.length === 0 && (
         <div className="lx-card p-8 text-center">
           <BookOpen size={32} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
-          <p className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Your library is empty</p>
-          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Start by discovering books and adding them to your list.</p>
-          <Link to="/discover" className="lx-btn-primary text-sm">Discover Books</Link>
+          <p className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Your {v.library.toLowerCase()} is empty</p>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Start by discovering {v.nounPlural} and adding them to your list.</p>
+          <Link to="/discover" className="lx-btn-primary text-sm">Discover {v.Books}</Link>
         </div>
       )}
 

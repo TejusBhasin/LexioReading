@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { getMovieDetails } from '@/lib/tmdb';
 import ReviewCard from '@/components/reviews/ReviewCard';
+import MovieWatchlistControls from '@/components/movies/MovieWatchlistControls';
 
 export default function MovieDetailPage() {
   const { user, isAuthenticated } = useAuth();
@@ -43,29 +44,6 @@ export default function MovieDetailPage() {
         .catch(() => setReviews([]));
     }
   }, [movieId]);
-
-  async function toggleLibrary() {
-    if (!user) {
-      window.location.href = '/login';
-      return;
-    }
-    if (libEntry) {
-      await base44.entities.UserLibrary.delete(libEntry.id);
-      setLibEntry(null);
-    } else {
-      const created = await base44.entities.UserLibrary.create({
-        user_email: user.email,
-        book_id: movieId,
-        book_title: movie.title,
-        book_author: movie.director || '',
-        book_cover: movie.cover_image,
-        media_type: 'movie',
-        status: 'want_to_read',
-        date_added: new Date().toISOString(),
-      });
-      setLibEntry(created);
-    }
-  }
 
   async function submitReview() {
     if (!user) { window.location.href = '/login'; return; }
@@ -178,9 +156,7 @@ export default function MovieDetailPage() {
             </div>
           )}
 
-          <button onClick={toggleLibrary} className="lx-btn-primary text-sm mt-1">
-            {libEntry ? <><BookmarkCheck size={14} /> In Watchlist</> : <><Plus size={14} /> Add to Watchlist</>}
-          </button>
+          <MovieWatchlistControls user={user} movie={movie} movieId={movieId} libEntry={libEntry} onChanged={setLibEntry} />
         </div>
       </div>
 

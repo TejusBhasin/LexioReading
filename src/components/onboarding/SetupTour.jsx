@@ -54,6 +54,7 @@ const CONTENT_THEMES = [
 export default function SetupTour({ user, userProfile, onComplete, forceComplete = false, autoJoinedSchool = null }) {
   const [step, setStep] = useState(0);
   const [genres, setGenres] = useState([]);
+  const [movieGenres, setMovieGenres] = useState([]);
   const [blacklisted, setBlacklisted] = useState([]);
   const [tcAgreed, setTcAgreed] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -66,6 +67,9 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
 
   function toggleGenre(g) {
     setGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
+  }
+  function toggleMovieGenre(g) {
+    setMovieGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
   }
   function toggleTheme(t) {
     setBlacklisted(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
@@ -157,9 +161,9 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
       const simplePrefs = buildSimpleModePrefs();
       const existingPrefs = await base44.entities.UserPreferences.filter({ user_email: user.email });
       if (existingPrefs[0]) {
-        await base44.entities.UserPreferences.update(existingPrefs[0].id, { favorite_genres: genres, content_mode: contentMode, ...simplePrefs });
+        await base44.entities.UserPreferences.update(existingPrefs[0].id, { favorite_genres: genres, favorite_movie_genres: movieGenres, content_mode: contentMode, ...simplePrefs });
       } else {
-        await base44.entities.UserPreferences.create({ user_email: user.email, favorite_genres: genres, content_mode: contentMode, ...simplePrefs });
+        await base44.entities.UserPreferences.create({ user_email: user.email, favorite_genres: genres, favorite_movie_genres: movieGenres, content_mode: contentMode, ...simplePrefs });
       }
       onComplete();
     } catch (e) {}
@@ -220,7 +224,7 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
         {currentStep === 'genres' && (
           <div>
             <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-              What do you love reading?
+              📚 What you're reading
             </h2>
             <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Pick at least 2 genres.</p>
             <div className="flex flex-wrap gap-1.5 mb-5">
@@ -233,6 +237,24 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
                       background: sel ? 'var(--lx-accent)' : 'var(--bg-elevated)',
                       color: sel ? 'var(--bg-primary)' : 'var(--text-secondary)',
                       border: `1px solid ${sel ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+                    }}>
+                    {sel && <Check size={11} className="inline mr-1" />}{g}
+                  </button>
+                );
+              })}
+            </div>
+            <h3 className="font-display text-sm font-bold mt-2 mb-1" style={{ color: 'var(--text-primary)' }}>🎬 What you're watching</h3>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Pick any movie genres you enjoy (optional).</p>
+            <div className="flex flex-wrap gap-1.5 mb-5">
+              {GENRE_OPTIONS.map(g => {
+                const sel = movieGenres.includes(g);
+                return (
+                  <button key={g} onClick={() => toggleMovieGenre(g)}
+                    className="text-sm px-3 py-1.5 rounded transition-all"
+                    style={{
+                      background: sel ? 'rgba(229,9,20,0.15)' : 'var(--bg-elevated)',
+                      color: sel ? '#e50914' : 'var(--text-secondary)',
+                      border: `1px solid ${sel ? '#e50914' : 'var(--lx-border)'}`,
                     }}>
                     {sel && <Check size={11} className="inline mr-1" />}{g}
                   </button>

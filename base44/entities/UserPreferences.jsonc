@@ -11,6 +11,13 @@
         "type": "string"
       }
     },
+    "favorite_movie_genres": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Movie genres the user enjoys watching"
+    },
     "disliked_genres": {
       "type": "array",
       "items": {
@@ -142,6 +149,13 @@
       ],
       "default": "books",
       "description": "Which media types the user sees across Lexio: books only, both books and movies, or movies only"
+    },
+    "content_ratio": {
+      "type": "number",
+      "default": 50,
+      "minimum": 0,
+      "maximum": 100,
+      "description": "In books+movies mode, the percentage (0-100) of content that is books vs movies. 100 = all books, 0 = all movies. Schools cannot override this."
     }
   },
   "required": [
