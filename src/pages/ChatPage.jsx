@@ -77,10 +77,10 @@ export default function ChatPage() {
       <div className="max-w-6xl mx-auto px-4 py-16 text-center">
         <Sparkles size={40} className="mx-auto mb-4" style={{ color: 'var(--lx-accent)' }} />
         <h2 className="font-display text-2xl font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
-          AI Book Chat
+          AI Chat
         </h2>
         <p className="mb-4 max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
-          Ask anything about books. Get personalized recommendations through natural conversation.
+          Ask anything about books or movies. Get personalized recommendations through natural conversation.
         </p>
         <div className="max-w-2xl mx-auto mb-8 rounded-lg overflow-hidden" style={{ border: '1px solid var(--lx-border)' }}>
           <ChatInterface user={null} />
@@ -116,7 +116,7 @@ export default function ChatPage() {
             <button onClick={() => setShowSessions(true)} className="flex items-center justify-center rounded" style={{ color: 'var(--text-secondary)', minWidth: 36, minHeight: 36 }}>
               <Menu size={20} />
             </button>
-            <h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>AI Book Chat</h2>
+            <h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>AI Chat</h2>
           </div>
           <button onClick={newChat} className="lx-btn-primary text-xs py-1.5 px-3">
             <Plus size={13} /> New
@@ -142,7 +142,7 @@ export default function ChatPage() {
             <h3 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               Start a conversation
             </h3>
-            <p style={{ color: 'var(--text-muted)' }}>Ask me anything about books.</p>
+            <p style={{ color: 'var(--text-muted)' }}>Ask me anything about books or movies.</p>
             <button onClick={newChat} className="lx-btn-primary">
               New Chat <Plus size={14} />
             </button>

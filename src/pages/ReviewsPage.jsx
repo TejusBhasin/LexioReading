@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Search, Sparkles, BookOpen, TrendingUp, Trash2, Flag, Ban, Lock } from 'lucide-react';
+import { Star, Search, Sparkles, BookOpen, TrendingUp, Trash2, Flag, Ban, Lock, Play } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
@@ -190,7 +190,7 @@ function ReviewItem({ review, user, isOwner, onDelete }) {
       </div>
       <div className="flex items-start gap-4">
         {/* Book cover or icon */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 relative">
           {review.book_cover ? (
             <img src={review.book_cover} alt={review.book_title} className="w-12 h-16 object-cover rounded" />
           ) : (
@@ -198,13 +198,18 @@ function ReviewItem({ review, user, isOwner, onDelete }) {
               <BookOpen size={16} style={{ color: 'var(--lx-accent)' }} />
             </div>
           )}
+          {(review.media_type || 'book') === 'movie' && (
+            <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: '#e50914' }}>
+              <Play size={8} fill="white" style={{ color: 'white', marginLeft: 1 }} />
+            </span>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <div>
               {review.book_id ? (
-                <Link to={`/book/${review.book_id}`} className="font-bold text-sm hover:underline" style={{ color: 'var(--text-primary)' }}>
+                <Link to={(review.media_type || 'book') === 'movie' ? `/movie/${review.book_id}` : `/book/${review.book_id}`} className="font-bold text-sm hover:underline" style={{ color: 'var(--text-primary)' }}>
                   {review.book_title || 'Unknown Book'}
                 </Link>
               ) : (

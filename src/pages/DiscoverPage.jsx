@@ -8,8 +8,9 @@ import { useAuth } from '@/lib/AuthContext';
 import NetflixRow from '@/components/discover/NetflixRow';
 import LoadMoreRecommendations from '@/components/discover/LoadMoreRecommendations';
 import CantFindBookPrompt from '@/components/discover/CantFindBookPrompt';
-import { searchMovies, getTrendingMovies } from '@/lib/tmdb';
+import { searchMovies, getTrendingMovies, getTopRatedMovies } from '@/lib/tmdb';
 import MovieGrid from '@/components/movies/MovieGrid';
+import MovieRecommendations from '@/components/movies/MovieRecommendations';
 
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Historical', 'Thriller', 'Non-Fiction'];
 
@@ -52,6 +53,7 @@ export default function DiscoverPage() {
   const [netflixSeeds, setNetflixSeeds] = useState([]);
   const [contentMode, setContentMode] = useState('books');
   const [trendingMovies, setTrendingMovies] = useState([]);
+  const [topRatedMovies, setTopRatedMovies] = useState([]);
   const [movieResults, setMovieResults] = useState([]);
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function DiscoverPage() {
           setContentMode(p[0].content_mode || 'books');
           if ((p[0].content_mode || 'books') !== 'books') {
             getTrendingMovies().then(setTrendingMovies).catch(() => {});
+            getTopRatedMovies().then(setTopRatedMovies).catch(() => {});
           }
           // Build Netflix seeds from AI recommendation seeds + finished books
           const seeds = (p[0].ai_recommendation_seeds || []).slice(0, 3).map(title => ({ title }));
@@ -386,6 +389,26 @@ export default function DiscoverPage() {
             <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Trending Movies</h2>
           </div>
           <MovieGrid movies={trendingMovies} onSave={saveMovie} savedIds={savedIds} />
+        </section>
+      )}
+
+      {contentMode !== 'books' && topRatedMovies.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Top Rated Movies</h2>
+          </div>
+          <MovieGrid movies={topRatedMovies} onSave={saveMovie} savedIds={savedIds} />
+        </section>
+      )}
+
+      {contentMode !== 'books' && isAuthenticated && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Movies For You</h2>
+          </div>
+          <MovieRecommendations userPrefs={userPrefs} onSave={saveMovie} savedIds={savedIds} />
         </section>
       )}
     </div>

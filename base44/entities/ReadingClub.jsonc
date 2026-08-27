@@ -24,6 +24,15 @@
     "current_book_title": {
       "type": "string"
     },
+    "current_pick_type": {
+      "type": "string",
+      "enum": [
+        "book",
+        "movie"
+      ],
+      "default": "book",
+      "description": "Whether the club's current pick is a book or a movie"
+    },
     "member_count": {
       "type": "number",
       "default": 1

@@ -14,10 +14,11 @@ const DEMO_RESPONSES = [
 ];
 
 const SUGGESTIONS = [
-'Recommend something like Harry Potter but darker',
-'I want a fast-paced thriller',
-'Something emotional that made people cry',
-'Underrated sci-fi from the last 5 years',
+  'Recommend something like Harry Potter but darker',
+  'I want a fast-paced thriller',
+  'Recommend a sci-fi movie like Interstellar',
+  'Something emotional that made people cry',
+  'Underrated sci-fi from the last 5 years',
 ];
 
 export default function ChatInterface({ user, sessionId: initialSessionId, onNewSession }) {
@@ -40,7 +41,7 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
     } else {
       setMessages([{
         role: 'assistant',
-        content: "Hi! I'm your AI book companion. Ask me anything — 'I want something like Harry Potter but darker' or 'recommend a fast-paced thriller'. What are you in the mood for?"
+        content: "Hi! I'm your Lexio AI companion for books and movies. Ask me anything — 'I want something like Harry Potter but darker', 'recommend a fast-paced thriller', or 'a sci-fi movie like Interstellar'. What are you in the mood for?"
       }]);
     }
   }, [user, sessionId]);
@@ -59,13 +60,18 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
         base44.entities.ForumPost.filter({ author_email: user.email }, '-created_date', 3),
       ]);
       const p = prefs[0] || {};
-      const finished = lib.filter(b => b.status === 'finished').map(b => b.book_title).slice(0, 8);
-      const reading = lib.filter(b => b.status === 'reading').map(b => b.book_title).slice(0, 3);
-      const wantToRead = lib.filter(b => b.status === 'want_to_read').map(b => b.book_title).slice(0, 5);
+      const books = lib.filter(b => (b.media_type || 'book') === 'book');
+      const movies = lib.filter(b => b.media_type === 'movie');
+      const finished = books.filter(b => b.status === 'finished').map(b => b.book_title).slice(0, 8);
+      const reading = books.filter(b => b.status === 'reading').map(b => b.book_title).slice(0, 3);
+      const wantToRead = books.filter(b => b.status === 'want_to_read').map(b => b.book_title).slice(0, 5);
+      const watchedMovies = movies.filter(b => b.status === 'finished').map(b => b.book_title).slice(0, 8);
+      const watchingMovies = movies.filter(b => b.status === 'reading').map(b => b.book_title).slice(0, 3);
       const clubNames = clubs.map(c => c.club_id).slice(0, 5);
       const recentReviews = reviews.map(r => `${r.book_title} (${r.rating}/5)`).slice(0, 5);
       const recentPosts = posts.map(p => p.title).slice(0, 3);
       setUserContext({
+        contentMode: p.content_mode || 'books',
         genres: (p.favorite_genres || []).join(', ') || 'not set',
         moods: (p.moods || []).join(', ') || 'not set',
         pacing: p.pacing || 'any',
@@ -76,6 +82,8 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
         finished,
         reading,
         wantToRead,
+        watchedMovies,
+        watchingMovies,
         clubCount: clubs.length,
         recentReviews,
         recentPosts,
@@ -93,7 +101,7 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
       if (msgs.length > 0) {
         setMessages(msgs);
       } else {
-        setMessages([{ role: 'assistant', content: "Hi! I'm your AI book companion. What are you in the mood to read?" }]);
+        setMessages([{ role: 'assistant', content: "Hi! I'm your Lexio AI companion for books and movies. What are you in the mood to read or watch?" }]);
       }
     } catch (e) {
       setMessages([{ role: 'assistant', content: "Hello! What book are you looking for today?" }]);
@@ -140,21 +148,24 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
       const recentMessages = messages.slice(-10).map(m => `${m.role}: ${m.content}`).join('\n');
 
       const contextStr = userContext ? `
-USER READING PROFILE (personalize everything based on this):
+USER PROFILE (personalize everything based on this):
+- Content mode: ${userContext.contentMode} (books only, movies only, or both)
 - Favorite genres: ${userContext.genres}
 - Reading moods: ${userContext.moods}
 - Pacing: ${userContext.pacing} | Difficulty: ${userContext.difficulty}
 - Dislikes: ${userContext.dislikes} | Disliked genres: ${userContext.dislikedGenres}
 - Favorite books: ${userContext.favoriteBooks}
 - Currently reading: ${userContext.reading.join(', ') || 'none'}
-- Recently finished: ${userContext.finished.join(', ') || 'none'}
+- Recently finished books: ${userContext.finished.join(', ') || 'none'}
 - Want to read: ${userContext.wantToRead.join(', ') || 'none'}
+- Watched movies: ${userContext.watchedMovies.join(', ') || 'none'}
+- Currently watching: ${userContext.watchingMovies.join(', ') || 'none'}
 - Book clubs joined: ${userContext.clubCount || 0}
 - Recent reviews: ${userContext.recentReviews.join(', ') || 'none'}
 - Recent forum posts: ${userContext.recentPosts.join(', ') || 'none'}` : '';
 
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are Lexio, a friendly AI assistant for the Lexio reading app. You help users with ANYTHING related to books and reading — recommendations, book clubs, reviews, tracking reading, finding books similar to ones they loved, discussing themes, authors, genres, reading challenges, and more.
+        prompt: `You are Lexio, a friendly AI assistant for the Lexio reading & movie companion app. You help users with ANYTHING related to books AND movies — recommendations, clubs, reviews, tracking reading/watching, finding books or films similar to ones they loved, discussing themes, authors, directors, genres, and more. Adapt to the user's content mode (books only, movies only, or both) shown in their profile.
 ${contextStr}
 
 Previous conversation:
@@ -163,15 +174,15 @@ ${recentMessages}
 User message: "${text}"
 
 Your rules:
-1. You are a BOOK RECOMMENDATION assistant. You help users discover books, discuss genres and authors, and find their next read.
+1. You are a BOOK & MOVIE recommendation assistant. You help users discover books and movies, discuss genres, authors, and directors, and find their next read or watch.
 2. ANTI-CHEATING — CRITICAL: NEVER provide plot summaries, chapter summaries, detailed plot recaps, or tell the user "what happens" in a book. Many users are students with assigned reading — helping them avoid reading is strictly forbidden.
 3. If a user asks for a summary, recap, "tell me what happens", "explain the plot", "give me the cliff notes", or anything that sounds like they want to avoid reading the book, politely decline: "I can't provide book summaries — that would ruin the reading experience! I can tell you about the genre, who'd enjoy it, or recommend similar books instead."
-4. NEVER reveal spoilers, twists, endings, character deaths, or specific plot events for any book.
-5. You MAY discuss: high-level themes (without revealing plot), genre, writing style, target audience, similar books, author background, series reading order, and whether a book matches someone's taste.
-6. If the user asks about something completely unrelated to reading or books (e.g. math homework, coding, cooking), kindly redirect them back to books. Never be rude.
-7. When recommending books, reference their profile above and explain WHY it matches.
-8. Format book recommendations as: **Title** by Author — brief reason.
-9. Keep responses under 300 words unless listing many books.`,
+4. NEVER reveal spoilers, twists, endings, character deaths, or specific plot events for any book or movie.
+5. You MAY discuss: high-level themes (without revealing plot), genre, writing style, target audience, similar books or films, author/director background, series reading order, and whether a book or movie matches someone's taste.
+6. If the user asks about something completely unrelated to reading, books, or movies (e.g. math homework, coding, cooking), kindly redirect them back to books or movies. Never be rude.
+7. When recommending, reference their profile above and explain WHY it matches.
+8. Format recommendations as: **Title** by Author/Director — brief reason. For movies, note the director if known.
+9. Keep responses under 300 words unless listing many titles.`,
         model: 'claude_sonnet_4_6'
       });
 
@@ -258,7 +269,7 @@ Your rules:
         )}
         <div className="flex gap-2">
           <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
-            placeholder="Ask for book recommendations..."
+            placeholder="Ask for book or movie recommendations..."
             className="lx-input flex-1" />
           <button onClick={sendMessage} disabled={!input.trim() || loading} className="lx-btn-primary px-4"
             style={{ opacity: !input.trim() || loading ? 0.5 : 1 }}>

@@ -37,6 +37,7 @@ export default function ClubDetailPage() {
         setClub(c);
         setSettingsForm({
           name: c.name, description: c.description || '', current_book_title: c.current_book_title || '',
+          current_pick_type: c.current_pick_type || 'book',
           is_visible: c.is_visible !== false, allow_chat: c.allow_chat !== false,
           banner_image: c.banner_image || '',           reading_goal: c.reading_goal || null, pinned_announcement: c.pinned_announcement || '',
         });
@@ -184,7 +185,7 @@ export default function ClubDetailPage() {
               {club.current_book_title && (
                 <div>
                   <h3 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Currently Reading</h3>
-                  <Link to={`/book/${club.current_book_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                  <Link to={(club.current_pick_type || 'book') === 'movie' ? `/movie/${club.current_book_id}` : `/book/${club.current_book_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                     <BookOpen size={28} style={{ color: 'var(--lx-accent)' }} />
                     <div>
                       <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{club.current_book_title}</p>
@@ -244,6 +245,18 @@ export default function ClubDetailPage() {
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Current Book Title</label>
                 <input className="lx-input text-sm" placeholder="e.g. Dune" value={settingsForm.current_book_title || ''} onChange={e => setSettingsForm(f => ({ ...f, current_book_title: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Current Pick Type</label>
+                <div className="flex gap-2">
+                  {['book','movie'].map(t => (
+                    <button key={t} onClick={() => setSettingsForm(f => ({ ...f, current_pick_type: t }))}
+                      className="flex-1 px-3 py-2 rounded text-sm transition-all"
+                      style={{ background: settingsForm.current_pick_type === t ? 'var(--lx-accent)' : 'var(--bg-elevated)', color: settingsForm.current_pick_type === t ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${settingsForm.current_pick_type === t ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
+                      {t === 'book' ? '📚 Book' : '🎬 Movie'}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>Reading Goal (books/month)</label>

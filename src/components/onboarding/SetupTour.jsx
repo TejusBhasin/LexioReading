@@ -57,9 +57,6 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
   const [blacklisted, setBlacklisted] = useState([]);
   const [tcAgreed, setTcAgreed] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [schoolClasses, setSchoolClasses] = useState([]);
-  const [selectedClassId, setSelectedClassId] = useState(null);
-  const [enrolling, setEnrolling] = useState(false);
   const [simpleModeChoice, setSimpleModeChoice] = useState('none');
   const [contentMode, setContentMode] = useState('books_movies');
   const [customHiddenTabs, setCustomHiddenTabs] = useState([]);
@@ -74,33 +71,7 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
     setBlacklisted(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
   }
 
-  async function loadSchoolClasses() {
-    try {
-      let schoolId = autoJoinedSchool?.id;
-      if (!schoolId) {
-        const memberships = await base44.entities.SchoolMember.filter({ user_email: user.email, kicked: false });
-        const activeMember = memberships.find(m => !m.dual_mode_enabled || m.currently_school_mode);
-        if (activeMember) schoolId = activeMember.school_id;
-      }
-      if (schoolId) {
-        const classes = await base44.entities.SchoolClass.filter({ school_id: schoolId });
-        setSchoolClasses(classes);
-      }
-    } catch (e) {}
-  }
 
-  async function enrollInClass() {
-    if (!selectedClassId) return;
-    setEnrolling(true);
-    try {
-      await base44.functions.invoke('manageClassEnrollment', { action: 'enroll', class_id: selectedClassId });
-    } catch (e) {}
-    setEnrolling(false);
-  }
-
-  function handleSchoolsNext() {
-    setStep(STEPS.indexOf('simple_mode'));
-  }
 
   function handleSimpleModeNext() {
     const status = getDownloadStepStatus();
@@ -194,12 +165,6 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
     } catch (e) {}
     setSaving(false);
   }
-
-  useEffect(() => {
-    if (STEPS[step] === 'schools' && user?.email) {
-      loadSchoolClasses();
-    }
-  }, [step, user]);
 
   const currentStep = STEPS[step];
 
@@ -402,71 +367,6 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
           </div>
         )}
 
-
-        {currentStep === 'schools' && (
-          <div>
-            <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-              🎓 Schools
-            </h2>
-            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Lexio supports school environments for teachers and classrooms.</p>
-            {autoJoinedSchool && (
-              <div className="mb-4 p-3 rounded-lg flex items-start gap-2" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)' }}>
-                <Check size={14} className="flex-shrink-0 mt-0.5" style={{ color: '#10b981' }} />
-                <p className="text-xs" style={{ color: '#10b981' }}>
-                  <strong>You've been automatically joined to {autoJoinedSchool.name}!</strong> Your school admin can manage your reading experience. You can access school features from your profile.
-                </p>
-              </div>
-            )}
-            {schoolClasses.length > 0 && (
-              <div className="mb-5">
-                <p className="text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Select Your Class</p>
-                <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Choose your class to join. You can change it later from your profile.</p>
-                <div className="space-y-1.5">
-                  {schoolClasses.map(cls => (
-                    <button key={cls.id} onClick={() => setSelectedClassId(cls.id)}
-                      className="w-full flex items-center justify-between px-3 py-2 rounded text-sm transition-all"
-                      style={{
-                        background: selectedClassId === cls.id ? 'var(--lx-accent)' : 'var(--bg-elevated)',
-                        color: selectedClassId === cls.id ? 'var(--bg-primary)' : 'var(--text-secondary)',
-                        border: `1px solid ${selectedClassId === cls.id ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
-                      }}>
-                      <span>{cls.class_name}</span>
-                      {cls.subject && <span className="text-xs opacity-70">{cls.subject}</span>}
-                    </button>
-                  ))}
-                </div>
-                {selectedClassId && (
-                  <button onClick={enrollInClass} disabled={enrolling}
-                    className="lx-btn-primary w-full justify-center text-sm mt-3">
-                    {enrolling ? 'Joining...' : 'Join This Class'}
-                  </button>
-                )}
-              </div>
-            )}
-            <div className="space-y-1 mb-5 max-h-60 overflow-y-auto">
-              {[
-                { emoji: '🏫', title: 'Join a School', desc: 'Use a join code from your teacher. Note: school membership is permanent — you cannot leave once joined.' },
-                { emoji: '➕', title: 'Create a School', desc: 'Teachers can create a school and invite students using a join code.' },
-                { emoji: '🎨', title: 'School Themes', desc: 'Schools can apply a mandatory color theme to all members\' Lexio experience.' },
-                { emoji: '🔐', title: 'Feature Control', desc: 'School admins can restrict specific features (forums, vault, chat, etc.) for members.' },
-                { emoji: '📊', title: 'Admin Dashboard', desc: 'School admins see detailed reading stats — sessions, books, time spent — for every member.' },
-                { emoji: '↩️', title: 'Removing Members', desc: 'Admins can remove students, instantly returning them to normal Lexio mode. All data (logs, library) stays intact.' },
-              ].map(({ emoji, title, desc }) => (
-                <div key={title} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
-                  <span className="text-xl flex-shrink-0">{emoji}</span>
-                  <div>
-                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{title}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setStep(STEPS.indexOf('streak'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
-              <button onClick={handleSchoolsNext} className="lx-btn-primary flex-1 justify-center">Almost done!</button>
-            </div>
-          </div>
-        )}
 
         {currentStep === 'movie_mode' && (
           <div>
