@@ -20,6 +20,15 @@
     "book_cover": {
       "type": "string"
     },
+    "media_type": {
+      "type": "string",
+      "enum": [
+        "book",
+        "movie"
+      ],
+      "default": "book",
+      "description": "Whether this review is for a book or a movie"
+    },
     "rating": {
       "type": "number"
     },

@@ -11,6 +11,7 @@ import TermsReAcceptModal, { CURRENT_TERMS_VERSION } from '@/components/onboardi
 import BanScreen from '@/components/safety/BanScreen.jsx';
 import AppLockScreen from '@/components/safety/AppLockScreen.jsx';
 import LibrarianChat from '@/components/librarian/LibrarianChat.jsx';
+import MovieModePopup from '@/components/onboarding/MovieModePopup.jsx';
 
 const NAV_ITEMS = [
 { path: '/', icon: LayoutDashboard, label: 'Home' },
@@ -88,6 +89,7 @@ export default function AppShell({ children, user }) {
   const [restrictedFeatures, setRestrictedFeatures] = useState([]);
   const [hasAssignments, setHasAssignments] = useState(false);
   const [autoJoinedSchool, setAutoJoinedSchool] = useState(null);
+  const [showMovieModePopup, setShowMovieModePopup] = useState(false);
   const menuRef = useRef(null);
 
   // Pull-to-refresh state
@@ -245,6 +247,9 @@ export default function AppShell({ children, user }) {
         // If multiple profiles exist, prefer the one with a username (or oldest)
         const profile = p.find(x => x.username) || p[0];
         setUserProfile(profile);
+        if (profile.onboarding_complete && !profile.movie_mode_prompted) {
+          setShowMovieModePopup(true);
+        }
         // Check if terms version needs re-acceptance (use localStorage as fast cache)
         const localVersion = localStorage.getItem('lexio_terms_version');
         const profileVersion = profile.tc_version;
@@ -372,6 +377,9 @@ export default function AppShell({ children, user }) {
       {isBanned && <BanScreen reason={banReason} />}
       {needsTermsAccept && !isBanned && user &&
       <TermsReAcceptModal user={user} onAccepted={handleTermsAccepted} />
+      }
+      {showMovieModePopup && userProfile && user &&
+      <MovieModePopup user={user} profile={userProfile} onDone={() => { setShowMovieModePopup(false); loadUserProfile(); }} />
       }
       {(showTour || forceTour) && user &&
       <SetupTour

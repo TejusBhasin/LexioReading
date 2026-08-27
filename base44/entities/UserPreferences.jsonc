@@ -132,6 +132,16 @@
         "type": "string"
       },
       "description": "Reading moods removed from mood options"
+    },
+    "content_mode": {
+      "type": "string",
+      "enum": [
+        "books",
+        "books_movies",
+        "movies"
+      ],
+      "default": "books",
+      "description": "Which media types the user sees across Lexio: books only, both books and movies, or movies only"
     }
   },
   "required": [

@@ -10,6 +10,7 @@ import SchoolCodeEntry from '@/components/schools/SchoolCodeEntry';
 import SchoolClassManager from '@/components/schools/SchoolClassManager';
 import PrivacyTab from '@/components/profile/PrivacyTab';
 import SimpleModeSettings from '@/components/profile/SimpleModeSettings';
+import MovieModeSettings from '@/components/profile/MovieModeSettings';
 import DeleteAccountSection from '@/components/profile/DeleteAccountSection';
 import LibrarianSettings from '@/components/profile/LibrarianSettings';
 import AppLockSettings from '@/components/profile/AppLockSettings';
@@ -283,6 +284,7 @@ export default function ProfilePage() {
       {/* PREFERENCES */}
       {tab === 'preferences' && prefs && (
         <div className="space-y-8">
+          <MovieModeSettings prefs={prefs} onUpdated={setPrefs} />
           <div>
             <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Favorite Genres</h3>
             <div className="flex flex-wrap gap-2">

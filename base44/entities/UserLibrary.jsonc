@@ -17,6 +17,15 @@
     "book_cover": {
       "type": "string"
     },
+    "media_type": {
+      "type": "string",
+      "enum": [
+        "book",
+        "movie"
+      ],
+      "default": "book",
+      "description": "Whether this library entry is a book or a movie"
+    },
     "status": {
       "type": "string",
       "enum": [

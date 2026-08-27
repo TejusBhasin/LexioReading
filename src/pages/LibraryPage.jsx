@@ -27,6 +27,7 @@ export default function LibraryPage() {
   const [books, setBooks] = useState([]);
   const [activeStatus, setActiveStatus] = useState('all');
   const [editingId, setEditingId] = useState(null);
+  const [mediaFilter, setMediaFilter] = useState('all');
   const [editNote, setEditNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
@@ -97,7 +98,7 @@ export default function LibraryPage() {
     );
   }
 
-  const filtered = activeStatus === 'all' ? books : books.filter(b => b.status === activeStatus);
+  const filtered = (activeStatus === 'all' ? books : books.filter(b => b.status === activeStatus)).filter(b => mediaFilter === 'all' ? true : (b.media_type || 'book') === mediaFilter);
 
   const stats = {
     total: books.length,
@@ -120,6 +121,28 @@ export default function LibraryPage() {
           </div>
           <LibraryShareButton username={userProfile?.username} isPublic={userProfile?.is_public !== false} />
         </div>
+      </div>
+
+      {/* Media Filter */}
+      <div className="flex gap-1 mb-4">
+        {[
+          { key: 'all', label: 'All' },
+          { key: 'book', label: 'Books' },
+          { key: 'movie', label: 'Movies' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setMediaFilter(key)}
+            className="px-3 py-1.5 rounded text-xs font-medium transition-all"
+            style={{
+              background: mediaFilter === key ? 'var(--lx-accent)' : 'var(--bg-card)',
+              color: mediaFilter === key ? 'var(--bg-primary)' : 'var(--text-secondary)',
+              border: `1px solid ${mediaFilter === key ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Status Tabs */}
@@ -169,7 +192,7 @@ export default function LibraryPage() {
               className="lx-card flex gap-3 p-3"
             >
               {/* Cover */}
-              <Link to={`/book/${book.book_id}`} className="flex-shrink-0">
+              <Link to={(book.media_type || 'book') === 'movie' ? `/movie/${book.book_id}` : `/book/${book.book_id}`} className="flex-shrink-0 relative">
                 {book.book_cover ? (
                   <img src={book.book_cover} alt={book.book_title} className="w-12 h-16 object-cover rounded" />
                 ) : (
@@ -184,7 +207,7 @@ export default function LibraryPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <Link to={`/book/${book.book_id}`}>
+                    <Link to={(book.media_type || 'book') === 'movie' ? `/movie/${book.book_id}` : `/book/${book.book_id}`}>
                       <h3 className="font-semibold text-sm truncate hover:underline" style={{ color: 'var(--text-primary)' }}>
                         {book.book_title}
                       </h3>

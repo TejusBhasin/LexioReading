@@ -8,6 +8,8 @@ import { useAuth } from '@/lib/AuthContext';
 import NetflixRow from '@/components/discover/NetflixRow';
 import LoadMoreRecommendations from '@/components/discover/LoadMoreRecommendations';
 import CantFindBookPrompt from '@/components/discover/CantFindBookPrompt';
+import { searchMovies, getTrendingMovies } from '@/lib/tmdb';
+import MovieGrid from '@/components/movies/MovieGrid';
 
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Historical', 'Thriller', 'Non-Fiction'];
 
@@ -48,6 +50,9 @@ export default function DiscoverPage() {
   const [trendingEmpty, setTrendingEmpty] = useState(false);
   const [userPrefs, setUserPrefs] = useState(null);
   const [netflixSeeds, setNetflixSeeds] = useState([]);
+  const [contentMode, setContentMode] = useState('books');
+  const [trendingMovies, setTrendingMovies] = useState([]);
+  const [movieResults, setMovieResults] = useState([]);
 
   useEffect(() => {
     if (user?.email) {
@@ -56,6 +61,10 @@ export default function DiscoverPage() {
         if (p[0]) {
           setShowPopular(p[0].show_popular !== false);
           setUserPrefs(p[0]);
+          setContentMode(p[0].content_mode || 'books');
+          if ((p[0].content_mode || 'books') !== 'books') {
+            getTrendingMovies().then(setTrendingMovies).catch(() => {});
+          }
           // Build Netflix seeds from AI recommendation seeds + finished books
           const seeds = (p[0].ai_recommendation_seeds || []).slice(0, 3).map(title => ({ title }));
           setNetflixSeeds(seeds);
@@ -143,10 +152,21 @@ export default function DiscoverPage() {
     setSearchError('');
     setHasSearched(true);
     try {
-      const results = await searchBooks(searchQuery, 12);
-      setSearchResults(results);
+      if (contentMode !== 'movies') {
+        const results = await searchBooks(searchQuery, 12);
+        setSearchResults(results);
+      } else {
+        setSearchResults([]);
+      }
+      if (contentMode !== 'books') {
+        const movies = await searchMovies(searchQuery, 12);
+        setMovieResults(movies);
+      } else {
+        setMovieResults([]);
+      }
     } catch (e) {
       setSearchResults([]);
+      setMovieResults([]);
       setSearchError(e.message || 'Search failed. Please try again.');
     } finally {
       setSearching(false);
@@ -171,6 +191,28 @@ export default function DiscoverPage() {
         date_added: new Date().toISOString(),
       });
       setSavedIds(prev => [...prev, bookId]);
+    } catch (e) {}
+  }
+
+  async function saveMovie(movie) {
+    if (!user) {
+      window.location.href = '/signup';
+      return;
+    }
+    const movieId = movie.tmdb_id || movie.id;
+    if (savedIds.includes(movieId)) return;
+    try {
+      await base44.entities.UserLibrary.create({
+        user_email: user.email,
+        book_id: movieId,
+        book_title: movie.title,
+        book_author: movie.director || '',
+        book_cover: movie.cover_image,
+        media_type: 'movie',
+        status: 'want_to_read',
+        date_added: new Date().toISOString(),
+      });
+      setSavedIds(prev => [...prev, movieId]);
     } catch (e) {}
   }
 
@@ -254,7 +296,7 @@ export default function DiscoverPage() {
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
               Try checking the spelling, or use fewer words. You can also search by author name.
             </p>
-            <button onClick={() => { setSearchQuery(''); setSearchResults([]); setHasSearched(false); }} className="lx-btn-ghost text-sm">Clear Search</button>
+            <button onClick={() => { setSearchQuery(''); setSearchResults([]); setMovieResults([]); setHasSearched(false); }} className="lx-btn-ghost text-sm">Clear Search</button>
             <CantFindBookPrompt />
           </div>
         </section>
@@ -266,7 +308,7 @@ export default function DiscoverPage() {
             <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               Results for "{searchQuery}"
             </h2>
-            <button onClick={() => { setSearchResults([]); setHasSearched(false); }} className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            <button onClick={() => { setSearchResults([]); setMovieResults([]); setHasSearched(false); }} className="text-sm" style={{ color: 'var(--text-muted)' }}>
               Clear
             </button>
           </div>
@@ -275,13 +317,25 @@ export default function DiscoverPage() {
         </section>
       )}
 
+      {!searching && movieResults.length > 0 && (
+        <section className="mb-12">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIE</span>
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              Movies for "{searchQuery}"
+            </h2>
+          </div>
+          <MovieGrid movies={movieResults} onSave={saveMovie} savedIds={savedIds} />
+        </section>
+      )}
+
       {/* Netflix-style "Because you liked" rows */}
-      {isAuthenticated && netflixSeeds.length > 0 && netflixSeeds.map((seed, i) => (
+      {isAuthenticated && contentMode !== 'movies' && netflixSeeds.length > 0 && netflixSeeds.map((seed, i) => (
         <NetflixRow key={seed.title + i} seed={seed} onSave={saveBook} savedIds={savedIds} />
       ))}
 
       {/* For You */}
-      {isAuthenticated && (
+      {isAuthenticated && contentMode !== 'movies' && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <Sparkles size={18} style={{ color: 'var(--lx-accent)' }} />
@@ -293,7 +347,7 @@ export default function DiscoverPage() {
       )}
 
       {/* Trending */}
-      {showPopular && (
+      {showPopular && contentMode !== 'movies' && (
         <section>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -322,6 +376,16 @@ export default function DiscoverPage() {
               savedIds={savedIds}
             />
           )}
+        </section>
+      )}
+
+      {contentMode !== 'books' && trendingMovies.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Trending Movies</h2>
+          </div>
+          <MovieGrid movies={trendingMovies} onSave={saveMovie} savedIds={savedIds} />
         </section>
       )}
     </div>
