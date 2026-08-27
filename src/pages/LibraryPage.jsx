@@ -202,7 +202,7 @@ export default function LibraryPage() {
           {filtered.map(book => (
             <div
               key={book.id}
-              className="lx-card flex gap-3 p-3"
+              className="lx-card flex gap-3 p-3 overflow-hidden"
             >
               {/* Cover */}
               <Link to={(book.media_type || 'book') === 'movie' ? `/movie/${book.book_id}` : `/book/${book.book_id}`} className="flex-shrink-0 relative">
@@ -219,22 +219,24 @@ export default function LibraryPage() {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <Link to={(book.media_type || 'book') === 'movie' ? `/movie/${book.book_id}` : `/book/${book.book_id}`}>
                       <h3 className="font-semibold text-sm truncate hover:underline" style={{ color: 'var(--text-primary)' }}>
                         {book.book_title}
                       </h3>
                     </Link>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{book.book_author}</p>
+                    <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{book.book_author}</p>
                   </div>
 
                   {/* Status Select */}
-                  <LxSelect
-                    value={book.status}
-                    onChange={vv => updateStatus(book.id, vv)}
-                    options={statuses.filter(s => s.key !== 'all').map(s => ({ value: s.key, label: s.label }))}
-                    compact
-                  />
+                  <div className="flex-shrink-0">
+                    <LxSelect
+                      value={book.status}
+                      onChange={vv => updateStatus(book.id, vv)}
+                      options={statuses.filter(s => s.key !== 'all').map(s => ({ value: s.key, label: s.label }))}
+                      compact
+                    />
+                  </div>
                 </div>
 
                 {/* Rating */}

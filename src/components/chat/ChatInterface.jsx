@@ -21,6 +21,12 @@ const SUGGESTIONS = [
   'Underrated sci-fi from the last 5 years',
 ];
 
+function greetingFor(mode) {
+  if (mode === 'movies') return "Hi! I'm your Lexio movie companion. What are you in the mood to watch?";
+  if (mode === 'books_movies') return "Hi! I'm your Lexio reading and movies companion. What are you in the mood to read or watch?";
+  return "Hi! I'm your Lexio reading companion. What are you in the mood to read?";
+}
+
 export default function ChatInterface({ user, sessionId: initialSessionId, onNewSession }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -35,13 +41,21 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
     if (user?.email) loadUserContext();
   }, [user]);
 
+  // Update the greeting once we know the user's content mode (if no message sent yet)
+  useEffect(() => {
+    if (userContext && messages.length === 1 && messages[0].role === 'assistant' && !messages.some(m => m.role === 'user')) {
+      const g = greetingFor(userContext.contentMode);
+      setMessages(prev => (prev[0]?.content === g ? prev : [{ role: 'assistant', content: g }]));
+    }
+  }, [userContext]);
+
   useEffect(() => {
     if (user?.email && sessionId) {
       loadHistory();
     } else {
       setMessages([{
         role: 'assistant',
-        content: "Hi! I'm your Lexio AI companion for books and movies. Ask me anything — 'I want something like Harry Potter but darker', 'recommend a fast-paced thriller', or 'a sci-fi movie like Interstellar'. What are you in the mood for?"
+        content: greetingFor(userContext?.contentMode)
       }]);
     }
   }, [user, sessionId]);
@@ -101,10 +115,10 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
       if (msgs.length > 0) {
         setMessages(msgs);
       } else {
-        setMessages([{ role: 'assistant', content: "Hi! I'm your Lexio AI companion for books and movies. What are you in the mood to read or watch?" }]);
+        setMessages([{ role: 'assistant', content: greetingFor(userContext?.contentMode) }]);
       }
     } catch (e) {
-      setMessages([{ role: 'assistant', content: "Hello! What book are you looking for today?" }]);
+      setMessages([{ role: 'assistant', content: greetingFor(userContext?.contentMode) }]);
     }
   }
 

@@ -356,8 +356,11 @@ export default function AppShell({ children, user }) {
   const isHidden = (path) => {
     if (prefs?.simple_mode && ['/clubs', '/forums', '/reviews'].includes(path)) return true;
     if (prefs?.hidden_tabs?.includes(path)) return true;
+    if (prefs?.content_mode === 'movies' && ['/book-creator', '/goal', '/quotes', '/challenges', '/strength', '/reading-log'].includes(path)) return true;
     return false;
   };
+  const moviesOnly = prefs?.content_mode === 'movies';
+  const labelFor = (path, label) => (moviesOnly && path === '/library') ? 'Watchlist' : label;
   const allNavItems = [...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].filter(item => !isRestricted(item.path) && !isHidden(item.path) && (item.path !== '/assignments' || hasAssignments));
   const visibleExtraNav = EXTRA_NAV.filter(item => !isRestricted(item.path) && !isHidden(item.path));
   const visibleTopBarIcons = TOP_BAR_ICON_OPTIONS.filter(item => !isRestricted(item.path) && !isHidden(item.path));
@@ -407,7 +410,7 @@ export default function AppShell({ children, user }) {
             {visibleTopBarIcons.filter(opt => prefs?.top_bar_icons?.includes(opt.path)).map(({ path, icon: NavIcon, label }) => {
               const active = location.pathname === path;
               return (
-                <Link key={path} to={path} title={label}
+                <Link key={path} to={path} title={labelFor(path, label)}
                   className="flex items-center justify-center rounded transition-colors"
                   style={{ color: active ? 'var(--lx-accent)' : 'var(--text-secondary)', minWidth: 36, minHeight: 36, background: active ? 'var(--bg-elevated)' : 'transparent' }}>
                   <NavIcon size={16} />
@@ -451,7 +454,7 @@ export default function AppShell({ children, user }) {
                     <Link key={path} to={path}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:opacity-80"
                       style={{ color: location.pathname === path ? 'var(--lx-accent)' : 'var(--text-secondary)' }}>
-                      <OIcon size={14} /> {label}
+                      <OIcon size={14} /> {labelFor(path, label)}
                     </Link>
                   )}
                   </div>
@@ -476,7 +479,7 @@ export default function AppShell({ children, user }) {
             {user ?
             <div className="hidden md:flex items-center gap-2">
                 {visibleExtraNav.map(({ path, icon: EIcon, label }) =>
-              <Link key={path} to={path} title={label}
+              <Link key={path} to={path} title={labelFor(path, label)}
               className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-all"
               style={{ color: 'var(--text-muted)' }}>
                     <EIcon size={14} />
@@ -507,7 +510,7 @@ export default function AppShell({ children, user }) {
               className="flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium transition-all"
               style={{ color: active ? 'var(--lx-accent)' : 'var(--text-primary)', background: active ? 'var(--bg-elevated)' : 'transparent' }}>
                   <MIcon size={17} />
-                  {label}
+                  {labelFor(path, label)}
                 </Link>);
 
           })}
@@ -612,7 +615,7 @@ export default function AppShell({ children, user }) {
                   border: `1px solid ${active ? 'var(--lx-accent)' : 'var(--lx-border)'}`
                 }}>
                     <MIcon size={22} />
-                    <span className="text-xs font-medium text-center">{label}</span>
+                    <span className="text-xs font-medium text-center">{labelFor(path, label)}</span>
                   </Link>);
 
             })}

@@ -69,7 +69,7 @@ export default function MovieWatchlistControls({ user, movie, movieId, libEntry,
             <Plus size={14} /> Add to Watchlist
           </button>
         ) : (
-          <div className="lx-card p-3 space-y-3">
+          <div className="lx-card p-3 space-y-3 overflow-hidden">
             <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>What's your status?</p>
             <div className="flex gap-1.5 flex-wrap">
               {MOVIE_STATUSES.filter((s) => s.value !== 'dropped').map((s) => (
@@ -90,9 +90,9 @@ export default function MovieWatchlistControls({ user, movie, movieId, libEntry,
                 ))}
               </div>
             )}
-            <div className="flex gap-2">
-              <button onClick={add} disabled={busy} className="lx-btn-primary text-sm flex-1 justify-center">{busy ? 'Adding...' : 'Add to Watchlist'}</button>
-              <button onClick={() => setAdding(false)} className="lx-btn-ghost text-sm">Cancel</button>
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={add} disabled={busy} className="lx-btn-primary text-sm flex-1 justify-center min-w-0">{busy ? 'Adding...' : 'Add to Watchlist'}</button>
+              <button onClick={() => setAdding(false)} className="lx-btn-ghost text-sm flex-shrink-0">Cancel</button>
             </div>
           </div>
         )}
@@ -101,7 +101,7 @@ export default function MovieWatchlistControls({ user, movie, movieId, libEntry,
   }
 
   return (
-    <div className="lx-card p-3 space-y-2 mt-2">
+    <div className="lx-card p-3 space-y-2 mt-2 overflow-hidden">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--lx-accent)' }}>
           <BookmarkCheck size={13} /> In Watchlist

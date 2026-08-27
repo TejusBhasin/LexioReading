@@ -37,11 +37,11 @@ export default function LxSelect({ value, onChange, options, compact, className,
   }, [isMobile, open]);
 
   const btnClass = compact
-    ? 'flex items-center gap-1 text-xs px-2 rounded border transition-all'
+    ? 'flex items-center gap-1 text-xs px-2 rounded border transition-all overflow-hidden'
     : 'lx-input flex items-center justify-between gap-2 text-sm';
 
   const btnStyle = compact
-    ? { background: 'var(--bg-elevated)', color: 'var(--text-secondary)', borderColor: 'var(--lx-border)', minHeight: 44 }
+    ? { background: 'var(--bg-elevated)', color: 'var(--text-secondary)', borderColor: 'var(--lx-border)', minHeight: 44, maxWidth: 160 }
     : { minHeight: 44 };
 
   return (
@@ -53,7 +53,7 @@ export default function LxSelect({ value, onChange, options, compact, className,
           className={btnClass}
           style={{ ...btnStyle, userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}
         >
-          <span className="truncate">{current?.label || value}</span>
+          <span className="truncate min-w-0 flex-1">{current?.label || value}</span>
           <ChevronDown
             size={compact ? 10 : 14}
             className={`flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
