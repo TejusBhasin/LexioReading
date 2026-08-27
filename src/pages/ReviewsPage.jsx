@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import ReportContentModal from '@/components/safety/ReportContentModal';
 import BlockUserModal from '@/components/safety/BlockUserModal';
 import { getIsolationFilter } from '@/lib/schoolIsolation';
+import { getVocab } from '@/lib/vocab';
 
 export default function ReviewsPage() {
   const { user } = useAuth();
@@ -16,10 +17,15 @@ export default function ReviewsPage() {
   const [tab, setTab] = useState('recent');
   const [blockedEmails, setBlockedEmails] = useState([]);
   const [isolation, setIsolation] = useState(null);
+  const [contentMode, setContentMode] = useState('books');
+  const v = getVocab(contentMode);
 
   useEffect(() => {
     loadReviews();
-    if (user?.email) loadBlockedUsers();
+    if (user?.email) {
+      loadBlockedUsers();
+      base44.entities.UserPreferences.filter({ user_email: user.email }).then(p => { if (p[0]) setContentMode(p[0].content_mode || 'books'); }).catch(() => {});
+    }
   }, [user]);
 
   async function loadBlockedUsers() {
@@ -71,7 +77,7 @@ export default function ReviewsPage() {
           <Star size={24} style={{ color: 'var(--lx-accent)' }} />
           Community Reviews
         </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Discover what readers are saying</p>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Discover what {v.reading === 'watching' ? 'viewers' : v.reading === 'reading & watching' ? 'readers & viewers' : 'readers'} are saying</p>
       </div>
 
       {isolation && (
@@ -100,7 +106,7 @@ export default function ReviewsPage() {
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
         <input
           className="lx-input pl-9"
-          placeholder="Search by book, reviewer, or content..."
+          placeholder={`Search by ${v.book}, reviewer, or content...`}
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -151,7 +157,7 @@ export default function ReviewsPage() {
           <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
             {tab === 'mine' ? 'Find a book and share your thoughts!' : 'Be the first to leave a review.'}
           </p>
-          <Link to="/discover" className="lx-btn-primary text-sm">Discover Books</Link>
+          <Link to="/discover" className="lx-btn-primary text-sm">Discover {v.Books}</Link>
         </div>
       )}
 

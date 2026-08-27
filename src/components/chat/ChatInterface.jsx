@@ -146,6 +146,7 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
       await base44.entities.ChatMessage.create({ user_email: user.email, role: 'user', content: text, session_id: sessionId });
 
       const recentMessages = messages.slice(-10).map(m => `${m.role}: ${m.content}`).join('\n');
+      const companion = userContext?.contentMode === 'movies' ? 'movie' : userContext?.contentMode === 'books_movies' ? 'reading and movies' : 'reading';
 
       const contextStr = userContext ? `
 USER PROFILE (personalize everything based on this):
@@ -165,7 +166,7 @@ USER PROFILE (personalize everything based on this):
 - Recent forum posts: ${userContext.recentPosts.join(', ') || 'none'}` : '';
 
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are Lexio, a friendly AI assistant for the Lexio reading & movie companion app. You help users with ANYTHING related to books AND movies — recommendations, clubs, reviews, tracking reading/watching, finding books or films similar to ones they loved, discussing themes, authors, directors, genres, and more. Adapt to the user's content mode (books only, movies only, or both) shown in their profile.
+        prompt: `You are Lexio, a friendly AI assistant for the Lexio ${companion} companion app. You help users with ANYTHING related to books AND movies — recommendations, clubs, reviews, tracking reading/watching, finding books or films similar to ones they loved, discussing themes, authors, directors, genres, and more. Adapt to the user's content mode (books only, movies only, or both) shown in their profile.
 ${contextStr}
 
 Previous conversation:

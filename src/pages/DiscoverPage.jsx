@@ -11,6 +11,7 @@ import CantFindBookPrompt from '@/components/discover/CantFindBookPrompt';
 import { searchMovies, getTrendingMovies, getTopRatedMovies } from '@/lib/tmdb';
 import MovieGrid from '@/components/movies/MovieGrid';
 import MovieRecommendations from '@/components/movies/MovieRecommendations';
+import { getVocab } from '@/lib/vocab';
 
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Historical', 'Thriller', 'Non-Fiction'];
 
@@ -52,6 +53,7 @@ export default function DiscoverPage() {
   const [userPrefs, setUserPrefs] = useState(null);
   const [netflixSeeds, setNetflixSeeds] = useState([]);
   const [contentMode, setContentMode] = useState('books');
+  const v = getVocab(contentMode);
   const [viewMode, setViewMode] = useState('both');
   const [contentRatio, setContentRatio] = useState(50);
   const ratioTimer = useRef(null);
@@ -251,7 +253,7 @@ export default function DiscoverPage() {
             <span style={{ color: 'var(--lx-accent)' }}>obsession.</span>
           </h1>
           <p className="text-lg mb-6 max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
-            AI-powered book discovery that learns your taste. Create an account for personalized recommendations.
+            AI-powered {v.nounPlural} discovery that learns your taste. Create an account for personalized recommendations.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link to="/signup" className="lx-btn-primary py-3 px-6 text-base">
@@ -270,7 +272,7 @@ export default function DiscoverPage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
           <input
             className="lx-input pl-10"
-            placeholder="Search by title, author, or keyword..."
+            placeholder={v.searchPlaceholder}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
@@ -307,18 +309,18 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {!searching && !searchError && hasSearched && searchResults.length === 0 && (
+      {!searching && !searchError && hasSearched && searchResults.length === 0 && movieResults.length === 0 && (
         <section className="mb-12">
           <div className="lx-card p-8 text-center">
             <Search size={28} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
             <h2 className="font-display text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
-              No results for "{searchQuery}"
+              {v.noResults} for "{searchQuery}"
             </h2>
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
               Try checking the spelling, or use fewer words. You can also search by author name.
             </p>
             <button onClick={() => { setSearchQuery(''); setSearchResults([]); setMovieResults([]); setHasSearched(false); }} className="lx-btn-ghost text-sm">Clear Search</button>
-            <CantFindBookPrompt />
+            <CantFindBookPrompt contentMode={contentMode} />
           </div>
         </section>
       )}
@@ -334,7 +336,7 @@ export default function DiscoverPage() {
             </button>
           </div>
           <BookGrid books={searchResults} onSave={saveBook} savedIds={savedIds} />
-          <CantFindBookPrompt />
+          <CantFindBookPrompt contentMode={contentMode} />
         </section>
       )}
 

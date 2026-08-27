@@ -97,7 +97,7 @@ export default function DashboardPage() {
             className="h-16 w-16 mx-auto mb-6 rounded-xl"
           />
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-            Your reading life,<br />
+            Your {v.reading} life,<br />
             <span className="font-serif italic" style={{ color: 'var(--lx-accent)' }}>supercharged.</span>
           </h1>
           <p className="text-lg mb-8 max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
@@ -197,7 +197,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
         {[
           { icon: Compass, title: 'Discover', desc: 'Search & explore new titles', href: '/discover', cta: 'Browse' },
-          { icon: MessageSquare, title: 'Book Chat', desc: 'AI reading companion', href: '/chat', cta: 'Open Chat' },
+          { icon: MessageSquare, title: 'Book Chat', desc: `AI ${v.companion}`, href: '/chat', cta: 'Open Chat' },
           { icon: PenLine, title: 'Reading Log', desc: 'Track sessions & reflections', href: '/reading-log', cta: 'Log Now' },
           { icon: Users, title: 'Clubs', desc: 'Join reading communities', href: '/clubs', cta: 'Browse' },
           { icon: Lock, title: 'Vault', desc: 'Secure library cards', href: '/vault', cta: 'Open' },
