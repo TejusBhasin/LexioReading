@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, Search, TrendingUp, BookOpen, Film } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -8,9 +8,11 @@ import { useAuth } from '@/lib/AuthContext';
 import NetflixRow from '@/components/discover/NetflixRow';
 import LoadMoreRecommendations from '@/components/discover/LoadMoreRecommendations';
 import CantFindBookPrompt from '@/components/discover/CantFindBookPrompt';
-import { searchMovies, getTrendingMovies, getTopRatedMovies } from '@/lib/tmdb';
+import { searchMovies, getTrendingMovies, getTopRatedMovies, getMovieRecommendations } from '@/lib/tmdb';
 import MovieGrid from '@/components/movies/MovieGrid';
 import MovieRecommendations from '@/components/movies/MovieRecommendations';
+import BookCard from '@/components/books/BookCard';
+import MovieCard from '@/components/movies/MovieCard';
 import { getVocab } from '@/lib/vocab';
 
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Historical', 'Thriller', 'Non-Fiction'];
@@ -34,6 +36,23 @@ const FOR_YOU_QUERIES = [
 ];
 
 
+
+function interleave(books, movies, ratio) {
+  if (!books.length && !movies.length) return [];
+  const target = Math.max(0, Math.min(1, ratio / 100));
+  const res = [];
+  let bi = 0, mi = 0;
+  const total = books.length + movies.length;
+  for (let i = 0; i < total; i++) {
+    const bookDef = bi < books.length ? target - (bi / (i || 1)) : -2;
+    const movieDef = mi < movies.length ? (1 - target) - (mi / (i || 1)) : -2;
+    const pickBook = mi >= movies.length ? true : (bi >= books.length ? false : bookDef >= movieDef);
+    if (pickBook && bi < books.length) res.push({ type: 'book', data: books[bi++] });
+    else if (mi < movies.length) res.push({ type: 'movie', data: movies[mi++] });
+    else if (bi < books.length) res.push({ type: 'book', data: books[bi++] });
+  }
+  return res;
+}
 
 export default function DiscoverPage() {
   const { user, isAuthenticated } = useAuth();
@@ -60,6 +79,8 @@ export default function DiscoverPage() {
   const [trendingMovies, setTrendingMovies] = useState([]);
   const [topRatedMovies, setTopRatedMovies] = useState([]);
   const [movieResults, setMovieResults] = useState([]);
+  const [searchFilter, setSearchFilter] = useState('all');
+  const [forYouMovies, setForYouMovies] = useState([]);
 
   useEffect(() => {
     if (user?.email) {
@@ -73,6 +94,7 @@ export default function DiscoverPage() {
           if ((p[0].content_mode || 'books') !== 'books') {
             getTrendingMovies().then(setTrendingMovies).catch(() => {});
             getTopRatedMovies().then(setTopRatedMovies).catch(() => {});
+            getMovieRecommendations(p[0]).then(setForYouMovies).catch(() => {});
           }
           // Build Netflix seeds from AI recommendation seeds + finished books
           const seeds = (p[0].ai_recommendation_seeds || []).slice(0, 3).map(title => ({ title }));
@@ -160,6 +182,7 @@ export default function DiscoverPage() {
     setSearching(true);
     setSearchError('');
     setHasSearched(true);
+    setSearchFilter('all');
     try {
       if (contentMode !== 'movies') {
         const results = await searchBooks(searchQuery, 12);
@@ -238,6 +261,12 @@ export default function DiscoverPage() {
       } catch (e) {}
     }, 600);
   }
+
+  const showBookResults = searchResults.length > 0 && (searchFilter === 'all' || searchFilter === 'book');
+  const showMovieResults = movieResults.length > 0 && (searchFilter === 'all' || searchFilter === 'movie');
+  const topBooks = searchResults.slice(0, 2);
+  const topMovies = movieResults.slice(0, 2);
+  const forYouMixed = useMemo(() => interleave(forYouBooks, forYouMovies, contentRatio), [forYouBooks, forYouMovies, contentRatio]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 pb-24 md:pb-8">
@@ -325,30 +354,59 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {!searching && searchResults.length > 0 && (
+      {!searching && !searchError && hasSearched && (searchResults.length > 0 || movieResults.length > 0) && (
         <section className="mb-12">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
             <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               Results for "{searchQuery}"
             </h2>
-            <button onClick={() => { setSearchResults([]); setMovieResults([]); setHasSearched(false); }} className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Clear
-            </button>
+            <div className="flex items-center gap-2">
+              {contentMode === 'books_movies' && (
+                <div className="flex gap-1">
+                  {[['all', 'All'], ['book', 'Books'], ['movie', 'Movies']].map(([val, label]) => (
+                    <button key={val} onClick={() => setSearchFilter(val)}
+                      className="px-3 py-1.5 rounded text-xs font-medium transition-all"
+                      style={{ background: searchFilter === val ? 'var(--lx-accent)' : 'var(--bg-elevated)', color: searchFilter === val ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${searchFilter === val ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button onClick={() => { setSearchResults([]); setMovieResults([]); setHasSearched(false); setSearchQuery(''); setSearchFilter('all'); }} className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Clear
+              </button>
+            </div>
           </div>
-          <BookGrid books={searchResults} onSave={saveBook} savedIds={savedIds} />
-          <CantFindBookPrompt contentMode={contentMode} />
-        </section>
-      )}
 
-      {!searching && movieResults.length > 0 && (
-        <section className="mb-12">
-          <div className="flex items-center gap-2 mb-5">
-            <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIE</span>
-            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              Movies for "{searchQuery}"
-            </h2>
-          </div>
-          <MovieGrid movies={movieResults} onSave={saveMovie} savedIds={savedIds} />
+          {contentMode === 'books_movies' && searchFilter === 'all' && (topBooks.length + topMovies.length) > 0 && (
+            <div className="mb-6">
+              <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>Top Results</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                {topBooks.map((b, i) => (
+                  <BookCard key={`tb${i}`} book={b} onSave={saveBook} isSaved={savedIds.includes(b.google_books_id || b.id)} />
+                ))}
+                {topMovies.map((m, i) => (
+                  <MovieCard key={`tm${i}`} movie={m} onSave={saveMovie} isSaved={savedIds.includes(m.tmdb_id || m.id)} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showBookResults && (
+            <div className="mb-6">
+              {contentMode === 'books_movies' && <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>📚 Books</p>}
+              <BookGrid books={searchResults} onSave={saveBook} savedIds={savedIds} />
+            </div>
+          )}
+
+          {showMovieResults && (
+            <div className="mb-6">
+              {contentMode === 'books_movies' && <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>🎬 Movies</p>}
+              <MovieGrid movies={movieResults} onSave={saveMovie} savedIds={savedIds} />
+            </div>
+          )}
+
+          <CantFindBookPrompt contentMode={contentMode} />
         </section>
       )}
 
@@ -381,13 +439,37 @@ export default function DiscoverPage() {
       ))}
 
       {/* For You */}
-      {isAuthenticated && contentMode !== 'movies' && viewMode !== 'movies' && (
+      {isAuthenticated && (contentMode === 'books' || (contentMode === 'books_movies' && viewMode === 'books')) && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <Sparkles size={18} style={{ color: 'var(--lx-accent)' }} />
             <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>For You</h2>
           </div>
           <BookGrid books={forYouBooks} onSave={saveBook} savedIds={savedIds} />
+          <LoadMoreRecommendations userPrefs={userPrefs} onSave={saveBook} savedIds={savedIds} />
+        </section>
+      )}
+
+      {isAuthenticated && contentMode === 'books_movies' && viewMode === 'both' && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-5">
+            <Sparkles size={18} style={{ color: 'var(--lx-accent)' }} />
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>For You</h2>
+          </div>
+          {forYouMixed.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+              {forYouMixed.map((item, idx) => item.type === 'book'
+                ? <BookCard key={`fb${idx}`} book={item.data} onSave={saveBook} isSaved={savedIds.includes(item.data.google_books_id || item.data.id)} />
+                : <MovieCard key={`fm${idx}`} movie={item.data} onSave={saveMovie} isSaved={savedIds.includes(item.data.tmdb_id || item.data.id)} />
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className="rounded animate-pulse" style={{ aspectRatio: '2/3', background: 'var(--bg-card)' }} />
+              ))}
+            </div>
+          )}
           <LoadMoreRecommendations userPrefs={userPrefs} onSave={saveBook} savedIds={savedIds} />
         </section>
       )}
@@ -445,7 +527,7 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {contentMode !== 'books' && viewMode !== 'books' && isAuthenticated && (
+      {isAuthenticated && (contentMode === 'movies' || (contentMode === 'books_movies' && viewMode === 'movies')) && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>
