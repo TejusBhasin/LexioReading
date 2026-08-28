@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Play, Star, Plus, BookmarkCheck, Clock, Film, X } from 'lucide-react';
+import { Play, Star, Plus, BookmarkCheck, Clock, Film, X, PenSquare } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { getMovieDetails } from '@/lib/tmdb';
@@ -17,6 +17,8 @@ export default function MovieDetailPage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, content: '', has_spoilers: false });
   const [submitting, setSubmitting] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [noteSaved, setNoteSaved] = useState(false);
 
   useEffect(() => {
     if (!movieId) return;
@@ -32,7 +34,7 @@ export default function MovieDetailPage() {
   useEffect(() => {
     if (user?.email && movieId) {
       base44.entities.UserLibrary.filter({ user_email: user.email, book_id: movieId, media_type: 'movie' })
-        .then((r) => setLibEntry(r[0] || null))
+        .then((r) => { setLibEntry(r[0] || null); if (r[0]) setNotes(r[0].notes || ''); })
         .catch(() => {});
     }
   }, [user, movieId]);
@@ -68,6 +70,24 @@ export default function MovieDetailPage() {
       setShowReviewForm(false);
     } catch (e) {}
     setSubmitting(false);
+  }
+
+  async function saveNotes() {
+    if (!user) { window.location.href = '/login'; return; }
+    try {
+      if (libEntry?.id) {
+        await base44.entities.UserLibrary.update(libEntry.id, { notes });
+      } else {
+        const entry = await base44.entities.UserLibrary.create({
+          user_email: user.email, book_id: movieId, book_title: movie.title,
+          book_author: movie.director || '', book_cover: movie.cover_image,
+          media_type: 'movie', status: 'want_to_read', notes, date_added: new Date().toISOString(),
+        });
+        setLibEntry(entry);
+      }
+      setNoteSaved(true);
+      setTimeout(() => setNoteSaved(false), 2000);
+    } catch (e) {}
   }
 
   if (loading) {
@@ -165,6 +185,24 @@ export default function MovieDetailPage() {
         <div className="mb-6">
           <h2 className="font-display text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Overview</h2>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{movie.description}</p>
+        </div>
+      )}
+
+      {isAuthenticated && (
+        <div className="mb-6 p-4 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
+          <h2 className="font-display text-lg font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <PenSquare size={16} style={{ color: 'var(--lx-accent)' }} /> My Notes
+          </h2>
+          <textarea
+            className="lx-input resize-none text-sm"
+            rows={3}
+            placeholder="Private notes or thoughts about this movie..."
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+          />
+          <button onClick={saveNotes} className="lx-btn-ghost text-xs py-1.5 mt-2">
+            {noteSaved ? '✓ Saved' : 'Save Notes'}
+          </button>
         </div>
       )}
 

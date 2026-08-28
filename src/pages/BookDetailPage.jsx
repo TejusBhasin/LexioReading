@@ -307,13 +307,25 @@ Return a JSON object with a "books" array, each item having "title" and "author"
   }
 
   async function saveNotes() {
-    if (!libraryEntry?.id) return;
-    await base44.entities.UserLibrary.update(libraryEntry.id, {
-      notes,
-      current_page: currentPage ? parseInt(currentPage) : null,
-    });
-    setNoteSaved(true);
-    setTimeout(() => setNoteSaved(false), 2000);
+    if (!user) { navigate('/login'); return; }
+    try {
+      if (libraryEntry?.id) {
+        await base44.entities.UserLibrary.update(libraryEntry.id, {
+          notes,
+          current_page: currentPage ? parseInt(currentPage) : null,
+        });
+      } else {
+        const entry = await base44.entities.UserLibrary.create({
+          user_email: user.email, book_id: id, book_title: book.title, book_author: book.author,
+          book_cover: book.cover_image, status: 'want_to_read', notes,
+          current_page: currentPage ? parseInt(currentPage) : null, date_added: new Date().toISOString(),
+        });
+        setLibraryEntry(entry);
+        setSavedIds(prev => [...prev, id]);
+      }
+      setNoteSaved(true);
+      setTimeout(() => setNoteSaved(false), 2000);
+    } catch (e) {}
   }
 
   function shareBook() {
@@ -557,7 +569,7 @@ Return a JSON object with a "books" array, each item having "title" and "author"
       )}
 
       {/* Personal Notes */}
-      {isAuthenticated && libraryEntry?.id && (
+      {isAuthenticated && (
         <div className="mb-10 p-6 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--lx-border)' }}>
           <h2 className="font-display text-lg font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             <PenSquare size={16} style={{ color: 'var(--lx-accent)' }} /> My Notes

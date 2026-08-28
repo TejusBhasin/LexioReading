@@ -37,7 +37,7 @@ import { SIMPLE_MODE_TABS, SIMPLE_MODE_GENRES, SIMPLE_MODE_MOODS } from '@/lib/t
 import DownloadAppStep from '@/components/onboarding/DownloadAppStep';
 import { getDownloadStepStatus, SKIP_EVENT_MAP } from '@/lib/platformDetect';
 
-const STEPS = ['welcome', 'genres', 'content', 'features', 'clubs', 'streak', 'movie_mode', 'simple_mode', 'download_app', 'done'];
+const STEPS = ['welcome', 'content_mode', 'genres', 'content', 'features', 'clubs', 'streak', 'simple_mode', 'download_app', 'done'];
 
 const HIDEABLE_TABS_TOUR = [
   { path: '/clubs', label: 'Clubs' }, { path: '/forums', label: 'Forums' }, { path: '/reviews', label: 'Reviews' },
@@ -109,9 +109,9 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
   }
 
   async function skip() {
-    // Even on skip, movie mode + simple mode pages are mandatory
+    // Even on skip, content mode + simple mode pages are mandatory
     setSkippedTour(true);
-    setStep(STEPS.indexOf('movie_mode'));
+    setStep(STEPS.indexOf('content_mode'));
   }
 
   async function completeSkip() {
@@ -170,6 +170,9 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
     setSaving(false);
   }
 
+  const booksRequired = contentMode !== 'movies';
+  const moviesRequired = contentMode !== 'books';
+  const genresOk = (!booksRequired || genres.length >= 2) && (!moviesRequired || movieGenres.length >= 2);
   const currentStep = STEPS[step];
 
   return (
@@ -201,8 +204,13 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
               </button>
               I agree to the Terms &amp; Conditions and Privacy Policy
             </label>
-            <button onClick={() => setStep(1)} disabled={!tcAgreed} className="lx-btn-primary w-full justify-center">
+            <button onClick={() => setStep(STEPS.indexOf('content_mode'))} disabled={!tcAgreed} className="lx-btn-primary w-full justify-center">
               Get Started &rarr;
+            </button>
+            <button onClick={() => { setContentMode('movies'); setStep(STEPS.indexOf('genres')); }} disabled={!tcAgreed}
+              className="w-full mt-2 text-xs py-2 rounded transition-all flex items-center justify-center gap-1"
+              style={{ color: '#e50914', background: 'rgba(229,9,20,0.1)', border: '1px solid rgba(229,9,20,0.3)' }}>
+              🎬 Quick Start — Movies Only
             </button>
             {!forceComplete && (
               <div className="mt-3">
@@ -224,46 +232,60 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
         {currentStep === 'genres' && (
           <div>
             <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-              📚 What you're reading
+              {contentMode === 'movies' ? "🎬 What you're watching" : contentMode === 'books_movies' ? '📚 Reading & 🎬 Watching' : "📚 What you're reading"}
             </h2>
-            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Pick at least 2 genres.</p>
-            <div className="flex flex-wrap gap-1.5 mb-5">
-              {GENRE_OPTIONS.map(g => {
-                const sel = genres.includes(g);
-                return (
-                  <button key={g} onClick={() => toggleGenre(g)}
-                    className="text-sm px-3 py-1.5 rounded transition-all"
-                    style={{
-                      background: sel ? 'var(--lx-accent)' : 'var(--bg-elevated)',
-                      color: sel ? 'var(--bg-primary)' : 'var(--text-secondary)',
-                      border: `1px solid ${sel ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
-                    }}>
-                    {sel && <Check size={11} className="inline mr-1" />}{g}
-                  </button>
-                );
-              })}
-            </div>
-            <h3 className="font-display text-sm font-bold mt-2 mb-1" style={{ color: 'var(--text-primary)' }}>🎬 What you're watching</h3>
-            <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Pick any movie genres you enjoy (optional).</p>
-            <div className="flex flex-wrap gap-1.5 mb-5">
-              {GENRE_OPTIONS.map(g => {
-                const sel = movieGenres.includes(g);
-                return (
-                  <button key={g} onClick={() => toggleMovieGenre(g)}
-                    className="text-sm px-3 py-1.5 rounded transition-all"
-                    style={{
-                      background: sel ? 'rgba(229,9,20,0.15)' : 'var(--bg-elevated)',
-                      color: sel ? '#e50914' : 'var(--text-secondary)',
-                      border: `1px solid ${sel ? '#e50914' : 'var(--lx-border)'}`,
-                    }}>
-                    {sel && <Check size={11} className="inline mr-1" />}{g}
-                  </button>
-                );
-              })}
-            </div>
+            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>
+              {contentMode === 'movies' ? 'Pick at least 2 movie genres.' : 'Pick at least 2 genres for each.'}
+            </p>
+
+            {contentMode !== 'movies' && (
+              <>
+                <h3 className="font-display text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>📚 Books</h3>
+                <div className="flex flex-wrap gap-1.5 mb-5">
+                  {GENRE_OPTIONS.map(g => {
+                    const sel = genres.includes(g);
+                    return (
+                      <button key={g} onClick={() => toggleGenre(g)}
+                        className="text-sm px-3 py-1.5 rounded transition-all"
+                        style={{
+                          background: sel ? 'var(--lx-accent)' : 'var(--bg-elevated)',
+                          color: sel ? 'var(--bg-primary)' : 'var(--text-secondary)',
+                          border: `1px solid ${sel ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
+                        }}>
+                        {sel && <Check size={11} className="inline mr-1" />}{g}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {contentMode !== 'books' && (
+              <>
+                <h3 className="font-display text-sm font-bold mt-2 mb-1" style={{ color: 'var(--text-primary)' }}>🎬 Movies</h3>
+                <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Pick at least 2 movie genres you enjoy.</p>
+                <div className="flex flex-wrap gap-1.5 mb-5">
+                  {GENRE_OPTIONS.map(g => {
+                    const sel = movieGenres.includes(g);
+                    return (
+                      <button key={g} onClick={() => toggleMovieGenre(g)}
+                        className="text-sm px-3 py-1.5 rounded transition-all"
+                        style={{
+                          background: sel ? 'rgba(229,9,20,0.15)' : 'var(--bg-elevated)',
+                          color: sel ? '#e50914' : 'var(--text-secondary)',
+                          border: `1px solid ${sel ? '#e50914' : 'var(--lx-border)'}`,
+                        }}>
+                        {sel && <Check size={11} className="inline mr-1" />}{g}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
             <div className="flex gap-2">
-              <button onClick={() => setStep(0)} className="lx-btn-ghost flex-1 justify-center">Back</button>
-              <button onClick={() => setStep(2)} disabled={genres.length < 2} className="lx-btn-primary flex-1 justify-center">
+              <button onClick={() => setStep(STEPS.indexOf('content_mode'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
+              <button onClick={() => setStep(STEPS.indexOf('content'))} disabled={!genresOk} className="lx-btn-primary flex-1 justify-center">
                 Continue
               </button>
             </div>
@@ -291,8 +313,8 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
               })}
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setStep(1)} className="lx-btn-ghost flex-1 justify-center">Back</button>
-              <button onClick={() => setStep(3)} className="lx-btn-primary flex-1 justify-center">Continue</button>
+              <button onClick={() => setStep(STEPS.indexOf('genres'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
+              <button onClick={() => setStep(STEPS.indexOf('features'))} className="lx-btn-primary flex-1 justify-center">Continue</button>
             </div>
           </div>
         )}
@@ -384,13 +406,13 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
             </div>
             <div className="flex gap-2">
               <button onClick={() => setStep(STEPS.indexOf('clubs'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
-              <button onClick={() => setStep(STEPS.indexOf('movie_mode'))} className="lx-btn-primary flex-1 justify-center">Next</button>
+              <button onClick={() => setStep(STEPS.indexOf('simple_mode'))} className="lx-btn-primary flex-1 justify-center">Next</button>
             </div>
           </div>
         )}
 
 
-        {currentStep === 'movie_mode' && (
+        {currentStep === 'content_mode' && (
           <div>
             <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
               🎬 Movies in Lexio
@@ -422,8 +444,8 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
               ))}
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setStep(STEPS.indexOf('streak'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
-              <button onClick={() => setStep(STEPS.indexOf('simple_mode'))} className="lx-btn-primary flex-1 justify-center">Continue</button>
+              <button onClick={() => setStep(0)} className="lx-btn-ghost flex-1 justify-center">Back</button>
+              <button onClick={() => setStep(STEPS.indexOf('genres'))} className="lx-btn-primary flex-1 justify-center">Continue</button>
             </div>
           </div>
         )}
@@ -549,7 +571,7 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
                 </button>
               ) : (
                 <>
-                  <button onClick={() => setStep(STEPS.indexOf('movie_mode'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
+                  <button onClick={() => setStep(STEPS.indexOf('streak'))} className="lx-btn-ghost flex-1 justify-center">Back</button>
                   <button onClick={handleSimpleModeNext} className="lx-btn-primary flex-1 justify-center">Continue</button>
                 </>
               )}
@@ -560,7 +582,7 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
         {currentStep === 'download_app' && (
           <DownloadAppStep
             onContinue={() => setStep(STEPS.indexOf('done'))}
-            onBack={() => setStep(STEPS.indexOf('schools'))}
+            onBack={() => setStep(STEPS.indexOf('simple_mode'))}
           />
         )}
 
