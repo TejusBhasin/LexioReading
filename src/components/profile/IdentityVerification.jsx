@@ -43,15 +43,19 @@ export default function IdentityVerification({ user, userProfile, onUpdated }) {
     setCancelling(false);
   }
 
-  // Poll for status updates while a verification is pending.
+  // Poll Didit directly for the decision (not just the webhook) so the badge
+  // appears reliably after the redirect lands back on the profile.
   useEffect(() => {
     if (verified || !['pending', 'in_progress', 'awaiting_user', 'in_review'].includes(status)) return;
-    const id = setInterval(async () => {
+    const tick = async () => {
       try {
+        await base44.functions.invoke('checkDiditSessionStatus', {});
         const p = await base44.entities.UserProfile.filter({ user_email: user.email });
         if (p[0]) onUpdated(p[0]);
       } catch (e) {}
-    }, 10000);
+    };
+    tick();
+    const id = setInterval(tick, 5000);
     return () => clearInterval(id);
   }, [status, verified, user]);
 
