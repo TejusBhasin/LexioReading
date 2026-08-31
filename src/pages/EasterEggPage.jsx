@@ -114,6 +114,12 @@ Be creative, hilarious, and surprising. Think "Pride and Prejudice and Zombies" 
       }} />
 
       <div className="max-w-3xl mx-auto relative" style={{ zIndex: 2 }}>
+        {/* Credits */}
+        <div className="mb-6 text-center">
+          <div className="text-xs tracking-widest" style={{ color: faintGreen }}>CREDITS</div>
+          <div className="text-sm mt-1" style={{ color: dimGreen }}>Alex Colon, Professional Sigma Guy</div>
+        </div>
+
         {/* Boot sequence */}
         <div className="mb-8 text-xs" style={{ color: faintGreen }}>
           <div>{'>'} INITIALIZING LEXIO_CORE...</div>
