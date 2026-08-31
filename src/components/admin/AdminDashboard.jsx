@@ -7,6 +7,7 @@ import SchoolRequestsTab from '@/components/admin/SchoolRequestsTab';
 import AdminAccessGate from '@/components/admin/AdminAccessGate';
 import SchoolCreationCodesTab from '@/components/admin/SchoolCreationCodesTab';
 import AllSchoolsView from '@/components/admin/AllSchoolsView';
+import VerificationKeysTab from '@/components/admin/VerificationKeysTab';
 
 const ADMIN_TABS = [
   { id: 'ai', label: '🤖 Admin AI' },
@@ -15,6 +16,7 @@ const ADMIN_TABS = [
   { id: 'school_management', label: '🏫 School Management' },
   { id: 'school_requests', label: '🏫 School Requests' },
   { id: 'school_codes', label: '🔑 School Codes' },
+  { id: 'verify_keys', label: '🪪 Verification Keys' },
   { id: 'broadcasts', label: '📢 Broadcasts' },
   { id: 'notify', label: '📨 Direct Notify' },
   { id: 'patterns', label: '🚫 Blocked Patterns' },
@@ -520,6 +522,7 @@ export default function AdminDashboard({ user }) {
       {tab === 'school_codes' && <SchoolCreationCodesTab />}
       {tab === 'broadcasts' && <BroadcastsTab adminEmail={user?.email} />}
       {tab === 'notify' && <DirectNotifyTab />}
+      {tab === 'verify_keys' && <VerificationKeysTab />}
       {tab === 'contacts' && <ContactRequestsTab />}
     </div>
     </AdminAccessGate>

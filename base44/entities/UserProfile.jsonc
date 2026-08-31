@@ -35,6 +35,9 @@
       "type": "boolean",
       "default": false
     },
+    "display_name": {
+      "type": "string"
+    },
     "tc_agreed": {
       "type": "boolean",
       "default": false
@@ -89,6 +92,39 @@
     "app_lock_pin": {
       "type": "string",
       "description": "PIN required to unlock the app"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user passed Didit identity verification and earns a blue badge"
+    },
+    "verified_real_name": {
+      "type": "string",
+      "description": "Real name submitted at verification start; displayed instead of username once verified"
+    },
+    "verified_at": {
+      "type": "string",
+      "description": "ISO timestamp when verification was approved"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "pending",
+        "in_progress",
+        "awaiting_user",
+        "in_review",
+        "approved",
+        "declined",
+        "resubmitted",
+        "abandoned",
+        "expired"
+      ],
+      "default": "not_started"
+    },
+    "didit_session_id": {
+      "type": "string",
+      "description": "Didit session id returned when the verification session was created"
     }
   },
   "required": [

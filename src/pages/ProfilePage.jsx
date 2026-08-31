@@ -14,6 +14,8 @@ import MovieModeSettings from '@/components/profile/MovieModeSettings';
 import DeleteAccountSection from '@/components/profile/DeleteAccountSection';
 import LibrarianSettings from '@/components/profile/LibrarianSettings';
 import AppLockSettings from '@/components/profile/AppLockSettings';
+import IdentityVerification from '@/components/profile/IdentityVerification';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 import AppStoreBadge from '@/components/onboarding/AppStoreBadge';
 import AppFooter from '@/components/layout/AppFooter';
 
@@ -232,8 +234,9 @@ export default function ProfilePage() {
             {user?.full_name?.[0] || user?.email?.[0] || '?'}
           </div>
           <div className="min-w-0">
-            <h1 className="font-display text-xl font-bold truncate" style={{ color: 'var(--text-primary)' }}>
-              {user?.full_name || 'Reader'}
+            <h1 className="font-display text-xl font-bold truncate flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+              {userProfileData?.is_verified ? (userProfileData.verified_real_name || user?.full_name || 'Reader') : (user?.full_name || 'Reader')}
+              {userProfileData?.is_verified && <VerifiedBadge size={16} />}
             </h1>
             <p className="text-sm truncate" style={{ color: 'var(--text-muted)' }}>{user?.email}</p>
           </div>
@@ -738,6 +741,13 @@ export default function ProfilePage() {
       {/* Security / App Lock */}
       {tab === 'security' && user && (
         <AppLockSettings user={user} userProfile={userProfileData} onUpdate={reloadProfile} />
+      )}
+
+      {/* Identity Verification */}
+      {user && (
+        <div className="mt-8">
+          <IdentityVerification user={user} userProfile={userProfileData} onUpdated={setUserProfileData} />
+        </div>
       )}
 
       {/* Delete Account */}

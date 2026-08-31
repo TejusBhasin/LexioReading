@@ -17,6 +17,8 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
     setSubmitting(true);
     setError('');
     try {
+      const profs = await base44.entities.UserProfile.filter({ user_email: userEmail });
+      const author = profs[0];
       const review = await base44.entities.Review.create({
         user_email: userEmail,
         username,
@@ -29,6 +31,8 @@ export default function WriteReviewModal({ book, username, userEmail, onClose, o
         has_spoilers: hasSpoilers,
         is_public: isPublic,
         approved: true,
+        author_verified: !!author?.is_verified,
+        author_display_name: author?.is_verified ? (author.verified_real_name || '') : '',
       });
       // Award points — don't let a points failure block the review
       awardPoints(userEmail, 'review', username).catch(() => {});

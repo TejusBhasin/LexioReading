@@ -4,6 +4,7 @@ import { User, BookOpen, Star, UserPlus, UserCheck, MessageSquare, Heart, BookMa
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import ReviewCard from '@/components/reviews/ReviewCard';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 const TABS = ['Library', 'Reviews', 'Posts', 'Comments'];
 
@@ -106,8 +107,13 @@ export default function UserPublicProfilePage() {
               {profile.username?.[0]?.toUpperCase()}
             </div>
             <div>
-              <h1 className="font-display text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>@{profile.username}</h1>
-              {profile.show_real_name && profile.display_name && (
+              <h1 className="font-display text-2xl font-bold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                {profile.is_verified ? (profile.verified_real_name || profile.username || 'Verified User') : `@${profile.username}`}
+                {profile.is_verified && <VerifiedBadge size={18} />}
+              </h1>
+              {profile.is_verified ? (
+                <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>Verified identity</p>
+              ) : profile.show_real_name && profile.display_name && (
                 <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{profile.display_name}</p>
               )}
               {profile.show_email && (

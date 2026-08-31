@@ -57,6 +57,15 @@
     "helpful_count": {
       "type": "number",
       "default": 0
+    },
+    "author_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Snapshot of the author's verified status at review time, for showing the badge"
+    },
+    "author_display_name": {
+      "type": "string",
+      "description": "Snapshot of the author's verified real name at review time, shown instead of username when verified"
     }
   },
   "required": [

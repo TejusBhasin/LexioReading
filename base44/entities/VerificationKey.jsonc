@@ -1,0 +1,54 @@
+{
+  "name": "VerificationKey",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "30-character verification key (uppercase letters, digits, and symbols) usable once"
+    },
+    "created_by_email": {
+      "type": "string"
+    },
+    "used_by_email": {
+      "type": "string",
+      "description": "Email of the user who consumed this key"
+    },
+    "used_at": {
+      "type": "string",
+      "description": "ISO timestamp when the key was consumed"
+    },
+    "is_used": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key",
+    "created_by_email"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

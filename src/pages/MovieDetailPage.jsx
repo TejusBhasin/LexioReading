@@ -52,6 +52,8 @@ export default function MovieDetailPage() {
     if (!reviewForm.content.trim()) return;
     setSubmitting(true);
     try {
+      const profs = await base44.entities.UserProfile.filter({ user_email: user.email });
+      const author = profs[0];
       const created = await base44.entities.Review.create({
         user_email: user.email,
         username: user.full_name || user.email.split('@')[0],
@@ -64,6 +66,8 @@ export default function MovieDetailPage() {
         content: reviewForm.content.trim(),
         has_spoilers: reviewForm.has_spoilers,
         is_public: true,
+        author_verified: !!author?.is_verified,
+        author_display_name: author?.is_verified ? (author.verified_real_name || '') : '',
       });
       setReviews((prev) => [created, ...prev]);
       setReviewForm({ rating: 5, content: '', has_spoilers: false });

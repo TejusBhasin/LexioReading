@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star, AlertTriangle, Eye, Flag, Ban } from 'lucide-react';
 import ReportContentModal from '@/components/safety/ReportContentModal';
 import BlockUserModal from '@/components/safety/BlockUserModal';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 export default function ReviewCard({ review, user }) {
   const [spoilerRevealed, setSpoilerRevealed] = useState(false);
@@ -18,7 +19,12 @@ export default function ReviewCard({ review, user }) {
             style={{ background: 'var(--lx-accent)', color: 'var(--bg-primary)' }}>
             {displayName?.[0]?.toUpperCase() || '?'}
           </div>
-          {review.username ? (
+          {review.author_verified ? (
+            <span className="text-sm font-medium flex items-center gap-1" style={{ color: 'var(--text-primary)' }}>
+              {review.author_display_name || displayName}
+              <VerifiedBadge size={13} />
+            </span>
+          ) : review.username ? (
             <Link to={`/u/${review.username}`} className="text-sm font-medium hover:underline" style={{ color: 'var(--text-primary)' }}>
               @{review.username}
             </Link>
