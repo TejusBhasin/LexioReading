@@ -19,7 +19,7 @@ export default function useVerifiedAuthors() {
       (profiles || []).forEach((p) => {
         if (p.is_verified) {
           m[p.user_email] = {
-            username: (p.verified_real_name || p.username || '').replace(/ /g, '_'),
+            username: (p.verified_real_name || p.username || '').replace(/ /g, '_').toLowerCase(),
           };
         }
       });

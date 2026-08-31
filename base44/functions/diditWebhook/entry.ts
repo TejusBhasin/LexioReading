@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
+import { syncUsername } from '../../shared/syncUsername.ts';
 
 // Didit V2 canonicalisation: whole-number floats -> ints, then recursive lexicographic key sort.
 function shortenFloats(v) {
@@ -70,7 +71,7 @@ export default async function(req) {
         let patch = {};
         switch (parsed.status) {
           case 'Approved':
-            patch = { is_verified: true, verification_status: 'approved', verified_at: new Date().toISOString(), username: (profiles[0].verified_real_name || profiles[0].username || '').replace(/ /g, '_') };
+            patch = { is_verified: true, verification_status: 'approved', verified_at: new Date().toISOString(), username: (profiles[0].verified_real_name || profiles[0].username || '').replace(/ /g, '_').toLowerCase() };
             break;
           case 'Declined':
             patch = { is_verified: false, verification_status: 'declined' };
@@ -101,6 +102,9 @@ export default async function(req) {
         }
         if (Object.keys(patch).length) {
           await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, patch);
+          if (patch.username) {
+            await syncUsername(base44, vendorData, patch.username);
+          }
         }
       }
     }

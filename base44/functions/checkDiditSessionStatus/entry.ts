@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
+import { syncUsername } from '../../shared/syncUsername.ts';
 
 // Polls Didit directly for the current user's session decision and mirrors it
 // onto their UserProfile. This makes the blue checkmark appear reliably after
@@ -47,10 +48,13 @@ export default async function (req) {
     const session = await res.json();
     const decision = STATUS_MAP[session.status] ? { ...STATUS_MAP[session.status] } : null;
     if (decision && session.status === 'Approved') {
-      decision.username = (profile.verified_real_name || profile.username || '').replace(/ /g, '_');
+      decision.username = (profile.verified_real_name || profile.username || '').replace(/ /g, '_').toLowerCase();
     }
     if (decision) {
       await base44.asServiceRole.entities.UserProfile.update(profile.id, decision);
+      if (decision.username) {
+        await syncUsername(base44, user.email, decision.username);
+      }
     }
 
     return Response.json({
