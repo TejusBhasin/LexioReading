@@ -70,7 +70,7 @@ export default async function(req) {
         let patch = {};
         switch (parsed.status) {
           case 'Approved':
-            patch = { is_verified: true, verification_status: 'approved', verified_at: new Date().toISOString() };
+            patch = { is_verified: true, verification_status: 'approved', verified_at: new Date().toISOString(), username: (profiles[0].verified_real_name || profiles[0].username || '').replace(/ /g, '_') };
             break;
           case 'Declined':
             patch = { is_verified: false, verification_status: 'declined' };

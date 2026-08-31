@@ -5,6 +5,8 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import ReportContentModal from '@/components/safety/ReportContentModal';
 import BlockUserModal from '@/components/safety/BlockUserModal';
+import AuthorTag from '@/components/ui/AuthorTag';
+import useVerifiedAuthors from '@/hooks/useVerifiedAuthors';
 
 function VoteButtons({ item, user, onVote, size = 'normal' }) {
   const myVote = user ? (item.voted_by || []).find(v => v.startsWith(user.email + ':')) : null;
@@ -26,7 +28,7 @@ function VoteButtons({ item, user, onVote, size = 'normal' }) {
   );
 }
 
-function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth = 0 }) {
+function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth = 0, verifiedMap }) {
   const replies = allComments.filter(c => c.parent_id === comment.id);
   const [replying, setReplying] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -35,7 +37,7 @@ function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth
     <div style={{ marginLeft: depth > 0 ? `${Math.min(depth, 3) * 20}px` : '0' }}>
       <div className="py-3" style={{ borderBottom: depth === 0 ? '1px solid var(--lx-border)' : 'none' }}>
         <div className="flex items-center gap-2 mb-1.5">
-          <Link to={`/u/${comment.author_username}`} onClick={e => e.stopPropagation()} className="text-xs font-bold hover:underline" style={{ color: 'var(--lx-accent)' }}>u/{comment.author_username}</Link>
+          <AuthorTag email={comment.author_email} username={comment.author_username} verifiedMap={verifiedMap} prefix="u/" className="text-xs font-bold hover:underline" style={{ color: 'var(--lx-accent)' }} />
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(comment.created_date).toLocaleDateString()}</span>
         </div>
         <p className="text-sm mb-2" style={{ color: 'var(--text-primary)' }}>{comment.content}</p>
@@ -82,7 +84,7 @@ function CommentItem({ comment, user, allComments, onVoteComment, onReply, depth
       </div>
       {replies.map(r => (
         <CommentItem key={r.id} comment={r} user={user} allComments={allComments}
-          onVoteComment={onVoteComment} onReply={onReply} depth={depth + 1} />
+          onVoteComment={onVoteComment} onReply={onReply} depth={depth + 1} verifiedMap={verifiedMap} />
       ))}
     </div>
   );
@@ -120,6 +122,7 @@ export default function PostDetailModal({ post, user, userProfile, onClose, onVo
   const [posting, setPosting] = useState(false);
   const [showPostReport, setShowPostReport] = useState(false);
   const [showPostBlock, setShowPostBlock] = useState(false);
+  const verifiedMap = useVerifiedAuthors();
 
   useEffect(() => { loadComments(); }, [post.id]);
 
@@ -174,7 +177,7 @@ export default function PostDetailModal({ post, user, userProfile, onClose, onVo
           <div className="flex-1 pr-4">
             <h2 className="font-display text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>{post.title}</h2>
             <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-              <Link to={`/u/${post.author_username}`} onClick={e => e.stopPropagation()} className="hover:underline" style={{ color: 'var(--lx-accent)' }}>u/{post.author_username}</Link>
+              <AuthorTag email={post.author_email} username={post.author_username} verifiedMap={verifiedMap} prefix="u/" className="hover:underline" style={{ color: 'var(--lx-accent)' }} />
               <span>·</span>
               <span>{new Date(post.created_date).toLocaleDateString()}</span>
             </div>
@@ -225,7 +228,7 @@ export default function PostDetailModal({ post, user, userProfile, onClose, onVo
             ) : (
               topLevelComments.map(c => (
                 <CommentItem key={c.id} comment={c} user={user} allComments={comments}
-                  onVoteComment={handleVoteComment} onReply={loadComments} />
+                  onVoteComment={handleVoteComment} onReply={loadComments} verifiedMap={verifiedMap} />
               ))
             )}
           </div>

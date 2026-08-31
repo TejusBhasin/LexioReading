@@ -5,6 +5,8 @@ import ReactMarkdown from 'react-markdown';
 import { base44 } from '@/api/base44Client';
 import ReportContentModal from '@/components/safety/ReportContentModal';
 import BlockUserModal from '@/components/safety/BlockUserModal';
+import AuthorTag from '@/components/ui/AuthorTag';
+import useVerifiedAuthors from '@/hooks/useVerifiedAuthors';
 
 const REACTIONS = [
   { key: 'likes', icon: ThumbsUp, color: '#3b82f6', label: 'Like' },
@@ -18,6 +20,7 @@ function PostReplies({ post, user, myUsername, isAdmin }) {
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const verifiedMap = useVerifiedAuthors();
 
   useEffect(() => {
     base44.entities.ClubPostReply.filter({ post_id: post.id }, 'created_date', 50)
@@ -43,7 +46,7 @@ function PostReplies({ post, user, myUsername, isAdmin }) {
 
   return (
     <div className="mt-3 border-t pt-3 space-y-3" style={{ borderColor: 'var(--lx-border)' }}>
-      {replies.map(r => <ReplyItem key={r.id} r={r} user={user} canDelete={isAdmin || r.user_email === user?.email} onDelete={() => deleteReply(r)} />)}
+      {replies.map(r => <ReplyItem key={r.id} r={r} user={user} canDelete={isAdmin || r.user_email === user?.email} onDelete={() => deleteReply(r)} verifiedMap={verifiedMap} />)}
       {user && (
         <div className="flex gap-2 items-center mt-2">
           <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ background: 'var(--lx-accent)', color: 'var(--bg-primary)' }}>{(myUsername || 'R')[0]?.toUpperCase()}</div>
@@ -55,7 +58,7 @@ function PostReplies({ post, user, myUsername, isAdmin }) {
   );
 }
 
-function ReplyItem({ r, user, canDelete, onDelete }) {
+function ReplyItem({ r, user, canDelete, onDelete, verifiedMap }) {
   const [showReport, setShowReport] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
   return (
@@ -63,7 +66,7 @@ function ReplyItem({ r, user, canDelete, onDelete }) {
       <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)', border: '1px solid var(--lx-border)' }}>{(r.username || 'R')[0]?.toUpperCase()}</div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          {r.username ? <Link to={`/u/${r.username}`} className="text-xs font-bold hover:underline" style={{ color: 'var(--text-primary)' }}>@{r.username}</Link> : <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Reader</span>}
+          {r.username ? <AuthorTag email={r.user_email} username={r.username} verifiedMap={verifiedMap} prefix="@" className="text-xs font-bold hover:underline" style={{ color: 'var(--text-primary)' }} /> : <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Reader</span>}
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(r.created_date).toLocaleDateString()}</span>
           {user && r.user_email !== user.email && (<><button onClick={() => setShowReport(true)} className="text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }}><Flag size={9} /></button><button onClick={() => setShowBlock(true)} className="text-xs hover:opacity-80" style={{ color: 'var(--text-muted)' }}><Ban size={9} /></button></>)}
         </div>
@@ -84,6 +87,7 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
   const [username, setUsername] = useState('');
   const [openReplies, setOpenReplies] = useState({});
   const [sortBy, setSortBy] = useState('newest');
+  const verifiedMap = useVerifiedAuthors();
 
   useEffect(() => { loadPosts(); loadUsername(); }, [club.id]);
 
@@ -189,7 +193,7 @@ export default function DiscussionFeed({ club, user, isAdmin }) {
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0" style={{ background: 'var(--bg-elevated)', color: 'var(--lx-accent)', border: '1px solid var(--lx-border)' }}>{(post.username || 'R')[0]?.toUpperCase()}</div>
                   <div>
-                    {post.username ? <Link to={`/u/${post.username}`} className="text-sm font-bold hover:underline" style={{ color: 'var(--text-primary)' }}>@{post.username}</Link> : <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Reader</p>}
+                    {post.username ? <AuthorTag email={post.user_email} username={post.username} verifiedMap={verifiedMap} prefix="@" className="text-sm font-bold hover:underline" style={{ color: 'var(--text-primary)' }} /> : <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Reader</p>}
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(post.created_date).toLocaleDateString()}</p>
                   </div>
                   {post.pinned && <Pin size={12} style={{ color: 'var(--lx-accent)' }} />}

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageSquare, ArrowLeft, Send, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import AuthorTag from '@/components/ui/AuthorTag';
+import useVerifiedAuthors from '@/hooks/useVerifiedAuthors';
 
 function formatTime(date) {
   const d = new Date(date);
@@ -22,6 +24,7 @@ export default function BookClubChains({ club, schedule, user }) {
   const [sending, setSending] = useState(false);
   const [myUsername, setMyUsername] = useState('');
   const bottomRef = useRef(null);
+  const verifiedMap = useVerifiedAuthors();
 
   useEffect(() => {
     if (schedule?.id) loadChains();
@@ -147,8 +150,8 @@ export default function BookClubChains({ club, schedule, user }) {
             const isMe = msg.user_email === user?.email;
             return (
               <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} group`}>
-                {!isMe && msg.username && (
-                  <Link to={`/u/${msg.username}`} className="text-xs mb-0.5 px-1 hover:underline" style={{ color: 'var(--text-muted)' }}>@{msg.username}</Link>
+                {!isMe && (msg.username || verifiedMap[msg.user_email]) && (
+                  <AuthorTag email={msg.user_email} username={msg.username} verifiedMap={verifiedMap} prefix="@" className="text-xs mb-0.5 px-1 hover:underline" style={{ color: 'var(--text-muted)' }} />
                 )}
                 <div className="flex items-end gap-1.5 max-w-[80%]">
                   {isMe && (

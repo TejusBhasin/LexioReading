@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowUp, ArrowDown, MessageCircle, Image, Flag, Ban } from 'lucide-react';
 import ReportContentModal from '@/components/safety/ReportContentModal';
 import BlockUserModal from '@/components/safety/BlockUserModal';
+import AuthorTag from '@/components/ui/AuthorTag';
+import useVerifiedAuthors from '@/hooks/useVerifiedAuthors';
 
 export default function ForumPostCard({ post, user, onVote, onClick }) {
   const [showReport, setShowReport] = useState(false);
@@ -10,6 +12,7 @@ export default function ForumPostCard({ post, user, onVote, onClick }) {
   const myVote = user ? (post.voted_by || []).find(v => v.startsWith(user.email + ':')) : null;
   const voted = myVote ? myVote.split(':')[1] : null;
   const score = (post.upvotes || 0) - (post.downvotes || 0);
+  const verifiedMap = useVerifiedAuthors();
 
   return (
     <div
@@ -42,7 +45,7 @@ export default function ForumPostCard({ post, user, onVote, onClick }) {
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-            <Link to={`/u/${post.author_username}`} onClick={e => e.stopPropagation()} className="font-bold hover:underline" style={{ color: 'var(--lx-accent)' }}>u/{post.author_username}</Link>
+            <AuthorTag email={post.author_email} username={post.author_username} verifiedMap={verifiedMap} prefix="u/" className="font-bold hover:underline" style={{ color: 'var(--lx-accent)' }} />
             <span>·</span>
             <span>{new Date(post.created_date).toLocaleDateString()}</span>
             {post.image_url && <><span>·</span><span className="flex items-center gap-0.5"><Image size={11} /> img</span></>}

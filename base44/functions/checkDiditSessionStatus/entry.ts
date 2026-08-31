@@ -45,7 +45,10 @@ export default async function (req) {
     }
 
     const session = await res.json();
-    const decision = STATUS_MAP[session.status];
+    const decision = STATUS_MAP[session.status] ? { ...STATUS_MAP[session.status] } : null;
+    if (decision && session.status === 'Approved') {
+      decision.username = (profile.verified_real_name || profile.username || '').replace(/ /g, '_');
+    }
     if (decision) {
       await base44.asServiceRole.entities.UserProfile.update(profile.id, decision);
     }
