@@ -20,9 +20,28 @@ export default function IdentityVerification({ user, userProfile, onUpdated }) {
   const [keyInput, setKeyInput] = useState('');
   const [realName, setRealName] = useState('');
   const [starting, setStarting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState('');
   const status = userProfile?.verification_status || 'not_started';
   const verified = !!userProfile?.is_verified;
+
+  async function cancelAndForfeit() {
+    setCancelling(true);
+    try {
+      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+      const p = profiles[0];
+      if (p) {
+        const updated = await base44.entities.UserProfile.update(p.id, {
+          verification_status: 'abandoned',
+          didit_session_id: '',
+        });
+        onUpdated(updated);
+      }
+    } catch (e) {
+      setError('Could not cancel verification. Try again.');
+    }
+    setCancelling(false);
+  }
 
   // Poll for status updates while a verification is pending.
   useEffect(() => {
@@ -92,9 +111,16 @@ export default function IdentityVerification({ user, userProfile, onUpdated }) {
       </p>
 
       {showStatus && (
-        <div className="flex items-start gap-2 p-3 rounded-lg text-sm" style={{ background: status === 'declined' ? 'rgba(248,113,113,0.1)' : 'var(--bg-elevated)', color: status === 'declined' ? '#f87171' : 'var(--text-secondary)' }}>
-          {status === 'declined' ? <AlertCircle size={14} className="mt-0.5 flex-shrink-0" /> : <Loader2 size={14} className="mt-0.5 flex-shrink-0 animate-spin" />}
-          <span>{STATUS_LABELS[status]}</span>
+        <div className="space-y-2">
+          <div className="flex items-start gap-2 p-3 rounded-lg text-sm" style={{ background: status === 'declined' ? 'rgba(248,113,113,0.1)' : 'var(--bg-elevated)', color: status === 'declined' ? '#f87171' : 'var(--text-secondary)' }}>
+            {status === 'declined' ? <AlertCircle size={14} className="mt-0.5 flex-shrink-0" /> : <Loader2 size={14} className="mt-0.5 flex-shrink-0 animate-spin" />}
+            <span>{STATUS_LABELS[status]}</span>
+          </div>
+          {['pending', 'in_progress', 'awaiting_user', 'in_review'].includes(status) && (
+            <button onClick={cancelAndForfeit} disabled={cancelling} className="lx-btn-ghost text-xs w-full justify-center" style={{ color: '#f87171', borderColor: 'rgba(248,113,113,0.4)' }}>
+              {cancelling ? 'Cancelling...' : 'Cancel & Forfeit Key'}
+            </button>
+          )}
         </div>
       )}
 
