@@ -99,7 +99,7 @@ export default function UserPublicProfilePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8">
       {/* Profile Header */}
-      <div className="lx-card p-6 mb-6">
+      <div className="lx-card p-6 mb-6" style={{ borderColor: 'var(--border-color)' }}>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold flex-shrink-0"

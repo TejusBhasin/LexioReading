@@ -23,7 +23,7 @@ export default async function (req) {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: user.email });
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: user.email.toLowerCase() });
     const profile = profiles[0];
     if (!profile || !profile.didit_session_id) {
       return Response.json({ status: profile?.verification_status || 'not_started', verified: !!profile?.is_verified });
@@ -53,7 +53,7 @@ export default async function (req) {
     if (decision) {
       await base44.asServiceRole.entities.UserProfile.update(profile.id, decision);
       if (decision.username) {
-        await syncUsername(base44, user.email, decision.username);
+        await syncUsername(base44, user.email.toLowerCase(), decision.username);
       }
     }
 

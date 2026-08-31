@@ -66,7 +66,7 @@ export default async function(req) {
     const base44 = createClientFromRequest(req);
     const vendorData = parsed.vendor_data;
     if (vendorData) {
-      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: vendorData });
+      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: vendorData.toLowerCase() });
       if (profiles[0]) {
         let patch = {};
         switch (parsed.status) {
@@ -103,7 +103,7 @@ export default async function(req) {
         if (Object.keys(patch).length) {
           await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, patch);
           if (patch.username) {
-            await syncUsername(base44, vendorData, patch.username);
+            await syncUsername(base44, vendorData.toLowerCase(), patch.username);
           }
         }
       }

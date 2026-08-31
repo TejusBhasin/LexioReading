@@ -35,7 +35,7 @@ export default async function(req) {
       },
       body: JSON.stringify({
         workflow_id: WORKFLOW_ID,
-        vendor_data: user.email,
+        vendor_data: user.email.toLowerCase(),
         callback: 'https://lexio-reading.base44.app/functions/diditCallback',
       }),
     });
@@ -50,11 +50,11 @@ export default async function(req) {
     // Mark the key consumed and stamp the profile with the pending session.
     await base44.asServiceRole.entities.VerificationKey.update(vk.id, {
       is_used: true,
-      used_by_email: user.email,
+      used_by_email: user.email.toLowerCase(),
       used_at: new Date().toISOString(),
     });
 
-    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: user.email });
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: user.email.toLowerCase() });
     if (profiles[0]) {
       await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
         verification_status: 'pending',
@@ -64,7 +64,7 @@ export default async function(req) {
       });
     } else {
       await base44.asServiceRole.entities.UserProfile.create({
-        user_email: user.email,
+        user_email: user.email.toLowerCase(),
         verification_status: 'pending',
         didit_session_id: session.session_id,
         verified_real_name: nameStr,
