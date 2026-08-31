@@ -1,0 +1,44 @@
+{
+  "name": "VerifiedUser",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who receives the manual blue checkmark"
+    },
+    "username": {
+      "type": "string",
+      "description": "Snapshot of the user's username at the time they were badged, used for display and profile link"
+    },
+    "added_by_email": {
+      "type": "string"
+    },
+    "added_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
