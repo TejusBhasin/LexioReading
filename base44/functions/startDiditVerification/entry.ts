@@ -36,7 +36,7 @@ export default async function(req) {
       body: JSON.stringify({
         workflow_id: WORKFLOW_ID,
         vendor_data: user.email,
-        callback: 'https://lexio-reading.base44.app/profile',
+        callback: 'https://lexio-reading.base44.app/functions/diditCallback',
       }),
     });
 
