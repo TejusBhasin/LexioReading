@@ -27,11 +27,12 @@ export default function UserPublicProfilePage() {
   async function load() {
     setLoading(true);
     try {
-      let p = await base44.entities.UserProfile.filter({ username });
-      // Case-insensitive fallback so links with old (pre-normalization) casing still resolve.
+      const lc = (username || '').toLowerCase();
+      let p = await base44.entities.UserProfile.filter({ username: lc });
+      // Case-insensitive fallback so links with any casing still resolve.
       if (!p[0]) {
         const all = await base44.entities.UserProfile.list('-created_date', 200);
-        p = all.filter(prof => prof.username && prof.username.toLowerCase() === username.toLowerCase());
+        p = all.filter(prof => prof.username && prof.username.toLowerCase() === lc);
       }
       if (!p[0]) { setLoading(false); return; }
       setProfile(p[0]);
