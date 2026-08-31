@@ -1,8 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 
-// Per-session config (NOT a secret). "Free KYC superuser" workflow.
-const WORKFLOW_ID = '9a3430fc-6139-45ca-86e7-314c45c3afee';
+// Per-session config (NOT a secret). "Free KYC" workflow.
+const WORKFLOW_ID = '28d235f2-ef2a-444b-a5d7-3cf7046a997c';
 
 export default async function(req) {
   try {
