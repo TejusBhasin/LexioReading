@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Search, Sparkles, BookOpen, TrendingUp, Trash2, Flag, Ban, Lock, Play } from 'lucide-react';
+import { Star, Search, Sparkles, BookOpen, TrendingUp, Trash2, Flag, Ban, Lock, Play, BadgeCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
@@ -7,6 +7,9 @@ import ReportContentModal from '@/components/safety/ReportContentModal';
 import BlockUserModal from '@/components/safety/BlockUserModal';
 import { getIsolationFilter } from '@/lib/schoolIsolation';
 import { getVocab } from '@/lib/vocab';
+import useVerifiedAuthors from '@/hooks/useVerifiedAuthors';
+import { boostVerified } from '@/lib/verifiedBoost';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 export default function ReviewsPage() {
   const { user } = useAuth();
@@ -18,6 +21,8 @@ export default function ReviewsPage() {
   const [blockedEmails, setBlockedEmails] = useState([]);
   const [isolation, setIsolation] = useState(null);
   const [contentMode, setContentMode] = useState('books');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const verifiedMap = useVerifiedAuthors();
   const v = getVocab(contentMode);
 
   useEffect(() => {
@@ -55,19 +60,22 @@ export default function ReviewsPage() {
     setLoading(false);
   }
 
+  const isVerifiedReview = (r) => !!verifiedMap[r.user_email] || !!r.author_verified;
+
   const filtered = reviews
     .filter(r => !blockedEmails.includes(r.user_email))
     .filter(r => r.is_public !== false)
+    .filter(r => verifiedOnly ? isVerifiedReview(r) : true)
     .filter(r =>
       r.book_title?.toLowerCase().includes(search.toLowerCase()) ||
       r.username?.toLowerCase().includes(search.toLowerCase()) ||
       r.content?.toLowerCase().includes(search.toLowerCase())
     );
 
-  const topRated = [...filtered].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 20);
-  const recent = filtered.slice(0, 30);
+  const topRated = boostVerified([...filtered].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 20), isVerifiedReview);
+  const recent = boostVerified(filtered.slice(0, 30), isVerifiedReview);
 
-  const displayed = tab === 'recent' ? recent : tab === 'top' ? topRated : myReviews;
+  const displayed = tab === 'recent' ? recent : tab === 'top' ? topRated : (verifiedOnly ? myReviews.filter(isVerifiedReview) : myReviews);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 pb-24 md:pb-8">
@@ -102,14 +110,25 @@ export default function ReviewsPage() {
       </div>
 
       {/* Search */}
-      <div className="relative mb-5">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
-        <input
-          className="lx-input pl-9"
-          placeholder={`Search by ${v.book}, reviewer, or content...`}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+      <div className="flex gap-2 mb-5">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+          <input
+            className="lx-input pl-9"
+            placeholder={`Search by ${v.book}, reviewer, or content...`}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <button onClick={() => setVerifiedOnly(x => !x)} title="Show only verified reviewers"
+          className="flex items-center gap-1.5 px-3 rounded text-sm font-medium transition-all whitespace-nowrap"
+          style={{
+            background: verifiedOnly ? 'rgba(59,130,246,0.15)' : 'var(--bg-card)',
+            color: verifiedOnly ? '#3b82f6' : 'var(--text-secondary)',
+            border: `1px solid ${verifiedOnly ? '#3b82f6' : 'var(--lx-border)'}`,
+          }}>
+          <BadgeCheck size={14} /> Verified
+        </button>
       </div>
 
       {/* Tabs */}
@@ -142,7 +161,7 @@ export default function ReviewsPage() {
       ) : displayed.length > 0 ? (
         <div className="space-y-4">
           {displayed.map(review => (
-            <ReviewItem key={review.id} review={review} user={user} isOwner={review.user_email === user?.email} onDelete={(id) => {
+            <ReviewItem key={review.id} review={review} user={user} verifiedMap={verifiedMap} isOwner={review.user_email === user?.email} onDelete={(id) => {
               setReviews(prev => prev.filter(r => r.id !== id));
               setMyReviews(prev => prev.filter(r => r.id !== id));
             }} />
@@ -165,7 +184,9 @@ export default function ReviewsPage() {
   );
 }
 
-function ReviewItem({ review, user, isOwner, onDelete }) {
+function ReviewItem({ review, user, isOwner, onDelete, verifiedMap }) {
+  const verified = !!verifiedMap?.[review.user_email] || !!review.author_verified;
+  const displayName = verifiedMap?.[review.user_email]?.username || review.author_display_name || review.username || 'reader';
   const stars = Math.round(review.rating || 0);
   const [showReport, setShowReport] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
@@ -232,8 +253,8 @@ function ReviewItem({ review, user, isOwner, onDelete }) {
             </div>
           </div>
 
-          <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
-            by <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>@{review.username || 'reader'}</span>
+          <p className="text-xs mb-2 flex items-center gap-1 flex-wrap" style={{ color: 'var(--text-muted)' }}>
+            by <span className="font-medium inline-flex items-center gap-0.5" style={{ color: 'var(--text-secondary)' }}>@{displayName}{verified && <VerifiedBadge size={12} />}</span>
             {review.created_date && <> · {new Date(review.created_date).toLocaleDateString()}</>}
             {isPrivate && <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>Private</span>}
           </p>

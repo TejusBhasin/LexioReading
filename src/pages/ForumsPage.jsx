@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, TrendingUp, Clock, Flame, Lock } from 'lucide-react';
+import { Search, Plus, TrendingUp, Clock, Flame, Lock, BadgeCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useUserSafeness } from '@/hooks/useUserSafeness';
 import { useAuth } from '@/lib/AuthContext';
@@ -7,6 +7,8 @@ import { getIsolationFilter } from '@/lib/schoolIsolation';
 import ForumPostCard from '@/components/forums/ForumPostCard';
 import NewPostModal from '@/components/forums/NewPostModal';
 import PostDetailPage from '@/components/forums/PostDetailPage';
+import useVerifiedAuthors from '@/hooks/useVerifiedAuthors';
+import { boostVerified } from '@/lib/verifiedBoost';
 
 const SORT_OPTIONS = [
   { value: 'hot', label: 'Hot', icon: Flame },
@@ -30,6 +32,8 @@ export default function ForumsPage() {
   const [popularTags, setPopularTags] = useState([]);
   const [blockedEmails, setBlockedEmails] = useState([]);
   const [isolation, setIsolation] = useState(null);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const verifiedMap = useVerifiedAuthors();
 
   useEffect(() => {
     loadPosts();
@@ -100,12 +104,16 @@ export default function ForumsPage() {
   }
 
   function getScore(p) { return (p.upvotes || 0) - (p.downvotes || 0); }
+  function isVerifiedPost(p) { return !!verifiedMap[p.author_email]; }
 
   function getSortedFiltered() {
     let result = posts;
 
     // Hide blocked users' content
     if (blockedEmails.length > 0) result = result.filter(p => !blockedEmails.includes(p.author_email));
+
+    // Verified-only filter
+    if (verifiedOnly) result = result.filter(p => isVerifiedPost(p));
 
     // Tag filter
     if (activeTag) result = result.filter(p => (p.tags || []).includes(activeTag));
@@ -121,15 +129,16 @@ export default function ForumsPage() {
       );
     }
 
-    // Sort
-    if (sort === 'new') return [...result].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-    if (sort === 'top') return [...result].sort((a, b) => getScore(b) - getScore(a));
-    // Hot = score + recency
-    return [...result].sort((a, b) => {
+    // Sort (natural order), then apply verified boost toward the top
+    let sorted;
+    if (sort === 'new') sorted = [...result].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    else if (sort === 'top') sorted = [...result].sort((a, b) => getScore(b) - getScore(a));
+    else sorted = [...result].sort((a, b) => {
       const ageA = (Date.now() - new Date(a.created_date)) / 3600000;
       const ageB = (Date.now() - new Date(b.created_date)) / 3600000;
       return (getScore(b) / (ageB + 2)) - (getScore(a) / (ageA + 2));
     });
+    return boostVerified(sorted, isVerifiedPost);
   }
 
   const filtered = getSortedFiltered();
@@ -182,7 +191,7 @@ export default function ForumsPage() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1 items-center">
           {SORT_OPTIONS.map(({ value, label, icon: SortIcon }) => (
             <button key={value} onClick={() => setSort(value)}
               className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium transition-all"
@@ -194,6 +203,15 @@ export default function ForumsPage() {
               <SortIcon size={13} /> {label}
             </button>
           ))}
+          <button onClick={() => setVerifiedOnly(x => !x)} title="Show only posts from verified users"
+            className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium transition-all whitespace-nowrap"
+            style={{
+              background: verifiedOnly ? 'rgba(59,130,246,0.15)' : 'var(--bg-card)',
+              color: verifiedOnly ? '#3b82f6' : 'var(--text-secondary)',
+              border: `1px solid ${verifiedOnly ? '#3b82f6' : 'var(--lx-border)'}`,
+            }}>
+            <BadgeCheck size={14} /> Verified
+          </button>
         </div>
       </div>
 
