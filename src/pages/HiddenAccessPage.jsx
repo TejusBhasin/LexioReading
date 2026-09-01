@@ -1,18 +1,30 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 
 export default function HiddenAccessPage() {
   const [code, setCode] = useState('');
   const [error, setError] = useState(false);
+  const [checking, setChecking] = useState(false);
   const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (code.trim() === 'Lovetejus2016$$') {
-      navigate('/book-creator');
-    } else {
+    if (checking) return;
+    setChecking(true);
+    try {
+      const res = await base44.functions.invoke('verifyHiddenAccess', { code });
+      if (res.valid) {
+        navigate('/book-creator');
+      } else {
+        setError(true);
+        setCode('');
+      }
+    } catch {
       setError(true);
       setCode('');
+    } finally {
+      setChecking(false);
     }
   }
 
