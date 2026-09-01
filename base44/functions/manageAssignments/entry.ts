@@ -74,6 +74,17 @@ Deno.serve(async (req) => {
     // ─── get_class_assignments (teacher view) ───
     if (action === 'get_class_assignments') {
       const { class_id } = body;
+      if (!class_id) return Response.json({ error: 'class_id required' }, { status: 400 });
+      const classes = await base44.asServiceRole.entities.SchoolClass.filter({ id: class_id });
+      if (!classes[0]) return Response.json({ error: 'Class not found' }, { status: 404 });
+      const cls = classes[0];
+      const memberships = await base44.asServiceRole.entities.SchoolMember.filter({
+        user_email: user.email, school_id: cls.school_id, kicked: false,
+      });
+      const isTeacher = cls.teacher_email === user.email;
+      const isAdmin = memberships.some(m => m.role === 'admin' || m.role === 'semi_admin');
+      if (!isTeacher && !isAdmin) return Response.json({ error: 'Not authorized' }, { status: 403 });
+
       const assignments = await base44.asServiceRole.entities.Assignment.filter({ class_id }, '-created_date');
       const submissions = [];
       for (const a of assignments) {
