@@ -22,7 +22,6 @@ export default function VaultPage() {
   const [form, setForm] = useState({ card_name: '', card_number: '', expiration_date: '', notes: '', image_url_1: '', image_url_2: '' });
   const [saving, setSaving] = useState(false);
   const [uploadingImg, setUploadingImg] = useState({ img1: false, img2: false });
-  const [recoveryEmail, setRecoveryEmail] = useState('');
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoverySent, setRecoverySent] = useState(false);
   const [pinRecord, setPinRecord] = useState(null);
@@ -112,13 +111,13 @@ export default function VaultPage() {
   }
 
   async function sendRecovery() {
-    if (!recoveryEmail.trim()) return;
+    if (!user?.email) return;
     try {
       const records = await base44.entities.VaultPin.filter({ user_email: user.email });
       const stored = records[0]?.pin;
       if (!stored) return;
       await base44.integrations.Core.SendEmail({
-        to: recoveryEmail,
+        to: user.email,
         subject: 'Lexio Vault PIN Recovery',
         body: `Your Lexio Vault PIN is: ${stored}\n\nIf you did not request this, please update your PIN immediately.`,
       });
@@ -236,8 +235,7 @@ export default function VaultPage() {
             </button>
             {showRecovery && (
               <div className="mt-3 text-left space-y-2">
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Enter your email to receive your PIN:</p>
-                <input type="email" className="lx-input text-sm" placeholder="your@email.com" value={recoveryEmail} onChange={e => setRecoveryEmail(e.target.value)} />
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Your PIN will be sent to your account email ({user?.email}).</p>
                 {recoverySent ? (
                   <p className="text-xs text-green-400">Recovery email sent!</p>
                 ) : (
