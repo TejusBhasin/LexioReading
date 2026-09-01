@@ -34,6 +34,11 @@
     "is_read": {
       "type": "boolean",
       "default": false
+    },
+    "push_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a native push has already been sent for this notification (idempotency guard against re-trigger abuse)"
     }
   },
   "required": [

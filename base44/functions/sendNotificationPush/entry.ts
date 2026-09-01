@@ -24,8 +24,13 @@ export default async function (req) {
       return Response.json({ skipped: true });
     }
     if (!record) return Response.json({ skipped: true });
-    const ageMin = (Date.now() - new Date(record.created_date).getTime()) / 60000;
-    if (ageMin > 5) return Response.json({ skipped: true });
+    // Idempotency: a notification only ever pushes once. An external caller
+    // hitting the public URL can only reference existing notifications, so this
+    // guarantees they cannot trigger duplicate pushes.
+    if (record.push_sent) return Response.json({ skipped: true });
+    // Only freshly-created notifications are eligible (automation fires on create).
+    const ageSec = (Date.now() - new Date(record.created_date).getTime()) / 1000;
+    if (ageSec > 60) return Response.json({ skipped: true });
 
     const result = await sendPushToEmails(
       base44,
@@ -34,6 +39,10 @@ export default async function (req) {
       record.body || '',
       record.link
     );
+    // Mark as pushed so any subsequent call (incl. by a stranger) is a no-op.
+    try {
+      await base44.asServiceRole.entities.Notification.update(record.id, { push_sent: true });
+    } catch (e) {}
     return Response.json({ result });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

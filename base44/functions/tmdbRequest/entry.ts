@@ -8,6 +8,20 @@ const IMG_BASE = 'https://image.tmdb.org/t/p';
 // popular, top_rated.
 export default async function (req) {
   try {
+    // Same-origin guard: this proxy is only meant to be called from the app's
+    // own frontend. On a public app there's no logged-in user to authenticate,
+    // so we verify the request originated from the app's host (works for the
+    // default domain and any connected custom domain) and reject direct
+    // external callers that don't present an app-origin Referer/Origin.
+    const reqUrl = new URL(req.url);
+    const host = reqUrl.host;
+    const origin = req.headers.get('origin');
+    const referer = req.headers.get('referer');
+    const matchesHost = (h) => { try { return new URL(h).host === host; } catch (e) { return false; } };
+    if (origin && !matchesHost(origin)) return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (referer && !matchesHost(referer)) return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (!origin && !referer) return Response.json({ error: 'Forbidden' }, { status: 403 });
+
     const base44 = createClientFromRequest(req);
     let body = {};
     try {
