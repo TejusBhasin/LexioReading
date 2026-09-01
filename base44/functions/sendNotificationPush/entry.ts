@@ -9,15 +9,30 @@ export default async function (req) {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
     const notif = body?.data;
-    if (!notif || !notif.user_email) {
+    const id = body?.event?.entity_id || notif?.id;
+    if (!id) {
       return Response.json({ skipped: true });
     }
+    // Resolve the real record from the DB so a direct (unauthenticated) caller
+    // can't push arbitrary content/recipient — only an actual, just-created
+    // Notification can trigger a push, and only with its stored fields.
+    let record;
+    try {
+      const records = await base44.asServiceRole.entities.Notification.filter({ id });
+      record = records[0];
+    } catch (e) {
+      return Response.json({ skipped: true });
+    }
+    if (!record) return Response.json({ skipped: true });
+    const ageMin = (Date.now() - new Date(record.created_date).getTime()) / 60000;
+    if (ageMin > 5) return Response.json({ skipped: true });
+
     const result = await sendPushToEmails(
       base44,
-      [notif.user_email],
-      notif.title || 'Lexio',
-      notif.body || '',
-      notif.link
+      [record.user_email],
+      record.title || 'Lexio',
+      record.body || '',
+      record.link
     );
     return Response.json({ result });
   } catch (error) {
