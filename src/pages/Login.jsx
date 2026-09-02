@@ -21,7 +21,24 @@ export default function Login() {
     try {
       await base44.auth.loginViaEmailPassword(email, password);
       const params = new URLSearchParams(window.location.search);
-      window.location.href = params.get("next") || "/";
+      // Only allow a same-origin relative path for the post-login redirect.
+      // Rejects javascript:, external URLs, and protocol-relative // / \ tricks.
+      const next = params.get("next");
+      let dest = "/";
+      if (next) {
+        try {
+          const url = new URL(next, window.location.origin);
+          if (url.origin === window.location.origin) {
+            const path = url.pathname + url.search;
+            if (path.startsWith("/") && !path.startsWith("//") && !path.includes("\\")) {
+              dest = path;
+            }
+          }
+        } catch {
+          // invalid URL — fall back to "/"
+        }
+      }
+      window.location.href = dest;
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
