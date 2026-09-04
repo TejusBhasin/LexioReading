@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { getStudentRestrictions } from '@/lib/studentRestrictions';
-import { buildOutlinePrompt, buildChapterPrompt, OUTLINE_SCHEMA, calcChapterCount, countWords } from '@/lib/bookCreator';
+import { calcChapterCount, countWords } from '@/lib/bookCreator';
 import BookChat from '@/components/bookcreator/BookChat';
 import BookResult from '@/components/bookcreator/BookResult';
 import BookLibrary from '@/components/bookcreator/BookLibrary';
@@ -48,12 +48,13 @@ export default function BookCreatorPage() {
     const spec = { ...bookSpec, writing_style: selectedStyle, lexile_level: lexileLevel, age_range: ageRange };
 
     try {
-      const outlineResult = await base44.integrations.Core.InvokeLLM({
-        prompt: buildOutlinePrompt(spec, chapterCount, wordsPerChapter),
-        response_json_schema: OUTLINE_SCHEMA,
+      const outlineResult = await base44.functions.invoke('generateCustomBook', {
+        action: 'outline',
+        spec,
+        chapter_count: chapterCount,
+        words_per_chapter: wordsPerChapter,
       });
-      const outline = typeof outlineResult === 'string' ? JSON.parse(outlineResult) : outlineResult;
-      const chapters = outline.chapters || [];
+      const chapters = outlineResult.data?.chapters || [];
       if (chapters.length === 0) throw new Error('No chapters generated');
 
       setProgress({ current: 0, total: chapters.length, title: chapters[0]?.title || '' });
@@ -64,10 +65,16 @@ export default function BookCreatorPage() {
         const prevEnding = generated.length > 0
           ? generated[generated.length - 1].content.split('\n').filter(l => l.trim()).slice(-2).join(' ')
           : '';
-        const result = await base44.integrations.Core.InvokeLLM({
-          prompt: buildChapterPrompt(spec, ch, i + 1, chapters.length, wordsPerChapter, prevEnding),
+        const result = await base44.functions.invoke('generateCustomBook', {
+          action: 'chapter',
+          spec,
+          chapter: ch,
+          num: i + 1,
+          total: chapters.length,
+          words_per_chapter: wordsPerChapter,
+          prev_ending: prevEnding,
         });
-        const text = typeof result === 'string' ? result : String(result);
+        const text = result.data?.text || String(result.data);
         generated.push({ title: ch.title, content: text });
         setProgress({ current: i + 1, total: chapters.length, title: ch.title });
       }

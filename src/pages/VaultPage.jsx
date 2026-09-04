@@ -113,15 +113,8 @@ export default function VaultPage() {
   async function sendRecovery() {
     if (!user?.email) return;
     try {
-      const records = await base44.entities.VaultPin.filter({ user_email: user.email });
-      const stored = records[0]?.pin;
-      if (!stored) return;
-      await base44.integrations.Core.SendEmail({
-        to: user.email,
-        subject: 'Lexio Vault PIN Recovery',
-        body: `Your Lexio Vault PIN is: ${stored}\n\nIf you did not request this, please update your PIN immediately.`,
-      });
-      setRecoverySent(true);
+      const res = await base44.functions.invoke('sendVaultPinRecovery', {});
+      if (res.data?.sent) setRecoverySent(true);
     } catch (e) {}
   }
 

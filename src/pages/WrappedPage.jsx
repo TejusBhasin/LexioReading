@@ -66,25 +66,15 @@ export default function WrappedPage() {
     if (!data) return;
     setGenerating(true);
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Based on this reader's ${year} stats, assign them a reading personality type:
-Books finished: ${data.finished.length}
-Top genres: ${data.topGenres.join(', ')}
-Total reading sessions: ${data.totalLogs}
-Sample reflections: ${data.reflections.join(' | ') || 'none'}
-
-Choose ONE from: explorer, deep_diver, emotionalist, thrill_seeker, dreamer
-Also write a 2-sentence personalized reading personality summary.`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            type: { type: 'string' },
-            summary: { type: 'string' },
-          }
-        }
+      const result = await base44.functions.invoke('readingPersonality', {
+        finished: data.finished.length,
+        top_genres: data.topGenres,
+        total_logs: data.totalLogs,
+        reflections: data.reflections,
+        year,
       });
-      const pType = PERSONALITY_TYPES.find(p => p.key === result?.type) || PERSONALITY_TYPES[0];
-      setPersonality({ ...pType, summary: result?.summary || pType.desc });
+      const pType = PERSONALITY_TYPES.find(p => p.key === result.data?.type) || PERSONALITY_TYPES[0];
+      setPersonality({ ...pType, summary: result.data?.summary || pType.desc });
     } catch (e) {
       setPersonality(PERSONALITY_TYPES[Math.floor(Math.random() * PERSONALITY_TYPES.length)]);
     }

@@ -41,18 +41,8 @@ export default function DashboardPage() {
     // Fetch a fresh quote from the web each day
     const cached = getCachedQuote();
     if (cached) { setDailyQuote(cached); return; }
-    base44.integrations.Core.InvokeLLM({
-      prompt: 'Find a famous and inspiring quote about reading, books, or literature from a real author. Use the web to find one. Return the exact quote text and the author\'s name. Pick something different from common quotes like "So many books, so little time" — find something more unique and thought-provoking.',
-      add_context_from_internet: true,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          text: { type: 'string', description: 'The exact quote text' },
-          author: { type: 'string', description: 'The author\'s name' }
-        },
-        required: ['text', 'author']
-      }
-    }).then(quote => {
+    base44.functions.invoke('dailyQuote', {}).then(res => {
+      const quote = res.data?.quote;
       if (quote?.text && quote?.author) {
         const q = { text: quote.text, author: quote.author };
         setCachedQuote(q);

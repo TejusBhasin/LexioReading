@@ -141,67 +141,23 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
     const isFirstMessage = messages.filter(m => m.role === 'user').length === 0;
 
     try {
-      // Generate a clean short title async (non-blocking) on first message
-      if (isFirstMessage && onNewSession) {
-        base44.integrations.Core.InvokeLLM({
-          prompt: `Create a short 3-5 word title for a book chat that started with this message: "${text}". Output ONLY the title, no quotes, no punctuation at end. Examples: "Books like Harry Potter", "Dark fantasy recommendations", "Help with reading list".`,
-          model: 'gpt_5_mini'
-        }).then(title => {
-          const t = typeof title === 'string' ? title.trim() : text.slice(0, 45).trim();
-          onNewSession(sessionId, t);
-          base44.entities.ChatMessage.filter({ user_email: user.email, session_id: sessionId }).then(existing => {
-            existing.forEach(m => base44.entities.ChatMessage.update(m.id, { session_title: t }));
-          }).catch(() => {});
-        }).catch(() => {
-          onNewSession(sessionId, text.slice(0, 45).trim());
-        });
-      }
-
       await base44.entities.ChatMessage.create({ user_email: user.email, role: 'user', content: text, session_id: sessionId });
 
-      const recentMessages = messages.slice(-10).map(m => `${m.role}: ${m.content}`).join('\n');
-      const companion = userContext?.contentMode === 'movies' ? 'movie' : userContext?.contentMode === 'books_movies' ? 'reading and movies' : 'reading';
-
-      const contextStr = userContext ? `
-USER PROFILE (personalize everything based on this):
-- Content mode: ${userContext.contentMode} (books only, movies only, or both)
-- Favorite genres: ${userContext.genres}
-- Reading moods: ${userContext.moods}
-- Pacing: ${userContext.pacing} | Difficulty: ${userContext.difficulty}
-- Dislikes: ${userContext.dislikes} | Disliked genres: ${userContext.dislikedGenres}
-- Favorite books: ${userContext.favoriteBooks}
-- Currently reading: ${userContext.reading.join(', ') || 'none'}
-- Recently finished books: ${userContext.finished.join(', ') || 'none'}
-- Want to read: ${userContext.wantToRead.join(', ') || 'none'}
-- Watched movies: ${userContext.watchedMovies.join(', ') || 'none'}
-- Currently watching: ${userContext.watchingMovies.join(', ') || 'none'}
-- Book clubs joined: ${userContext.clubCount || 0}
-- Recent reviews: ${userContext.recentReviews.join(', ') || 'none'}
-- Recent forum posts: ${userContext.recentPosts.join(', ') || 'none'}` : '';
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are Lexio, a friendly AI assistant for the Lexio ${companion} companion app. You help users with ANYTHING related to books AND movies — recommendations, clubs, reviews, tracking reading/watching, finding books or films similar to ones they loved, discussing themes, authors, directors, genres, and more. Adapt to the user's content mode (books only, movies only, or both) shown in their profile.
-${contextStr}
-
-Previous conversation:
-${recentMessages}
-
-User message: "${text}"
-
-Your rules:
-1. You are a BOOK & MOVIE recommendation assistant. You help users discover books and movies, discuss genres, authors, and directors, and find their next read or watch.
-2. ANTI-CHEATING — CRITICAL: NEVER provide plot summaries, chapter summaries, detailed plot recaps, or tell the user "what happens" in a book. Many users are students with assigned reading — helping them avoid reading is strictly forbidden.
-3. If a user asks for a summary, recap, "tell me what happens", "explain the plot", "give me the cliff notes", or anything that sounds like they want to avoid reading the book, politely decline: "I can't provide book summaries — that would ruin the reading experience! I can tell you about the genre, who'd enjoy it, or recommend similar books instead."
-4. NEVER reveal spoilers, twists, endings, character deaths, or specific plot events for any book or movie.
-5. You MAY discuss: high-level themes (without revealing plot), genre, writing style, target audience, similar books or films, author/director background, series reading order, and whether a book or movie matches someone's taste.
-6. If the user asks about something completely unrelated to reading, books, or movies (e.g. math homework, coding, cooking), kindly redirect them back to books or movies. Never be rude.
-7. When recommending, reference their profile above and explain WHY it matches.
-8. Format recommendations as: **Title** by Author/Director — brief reason. For movies, note the director if known.
-9. Keep responses under 300 words unless listing many titles.`,
-        model: 'claude_sonnet_4_6'
+      const response = await base44.functions.invoke('companionChat', {
+        message: text,
+        history: messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
+        first: isFirstMessage,
       });
 
-      const aiContent = typeof response === 'string' ? response : response?.text || 'Here are some recommendations for you!';
+      const aiContent = response.data?.reply || 'Here are some recommendations for you!';
+
+      if (isFirstMessage && onNewSession && response.data?.title) {
+        const t = response.data.title;
+        onNewSession(sessionId, t);
+        base44.entities.ChatMessage.filter({ user_email: user.email, session_id: sessionId }).then(existing => {
+          existing.forEach(m => base44.entities.ChatMessage.update(m.id, { session_title: t }));
+        }).catch(() => {});
+      }
 
       await base44.entities.ChatMessage.create({ user_email: user.email, role: 'assistant', content: aiContent, session_id: sessionId });
       setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);

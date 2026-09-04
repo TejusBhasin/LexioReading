@@ -52,11 +52,8 @@ export default function ReadingGoalPage() {
       const d = b.date_finished || b.updated_date;
       return d && new Date(d).getFullYear() === currentYear;
     }).length;
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate 5 personalized, motivating reading goals for a reader who has finished ${finishedCount} books this year. Make them specific, achievable, and inspiring. Mix genre goals, habit goals, and social goals.`,
-      response_json_schema: { type: 'object', properties: { goals: { type: 'array', items: { type: 'string' } } } }
-    });
-    setAiSuggestions(result?.goals || []);
+    const result = await base44.functions.invoke('readingGoalSuggestions', { finished_count: finishedCount });
+    setAiSuggestions(result.data?.goals || []);
     setLoadingAI(false);
   }
 

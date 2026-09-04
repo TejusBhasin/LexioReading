@@ -34,16 +34,12 @@ export async function getPopularMovies() {
 
 // AI-driven: asks the LLM for movie titles matching the user's taste, then resolves them via TMDB.
 export async function getMovieRecommendations(prefs) {
-  const genres = (prefs?.favorite_genres || []).join(', ');
-  const moods = (prefs?.moods || []).join(', ');
-  const prompt = `Suggest 8 real, well-known movie titles a viewer would enjoy based on these preferences. Favorite genres: ${genres || 'not set'}. Preferred moods: ${moods || 'not set'}. Return ONLY a JSON object with a "titles" array of title strings, no explanation.`;
   try {
-    const res = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      response_json_schema: { type: 'object', properties: { titles: { type: 'array', items: { type: 'string' } } }, required: ['titles'] },
-      model: 'gpt_5_mini',
+    const res = await base44.functions.invoke('movieRecommendations', {
+      genres: prefs?.favorite_genres || [],
+      moods: prefs?.moods || [],
     });
-    const titles = (res?.titles || []).slice(0, 8);
+    const titles = (res.data?.titles || []).slice(0, 8);
     const results = await Promise.all(titles.map((t) => searchMovies(t, 3).catch(() => [])));
     const pool = results.flat();
     const unique = Object.values(Object.fromEntries(pool.map((m) => [m.tmdb_id, m])));

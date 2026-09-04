@@ -131,24 +131,12 @@ export default function BookDetailPage() {
 
   async function loadAgeInfo(b) {
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `For the book "${b.title}" by ${b.author}, provide:
-1. recommended_age: the minimum recommended age (e.g. "12+", "14+", "16+", "18+", "All ages")
-2. lexile_level: the approximate Lexile reading level as a number (e.g. 800 for typical 7th grade)
-3. lexile_label: a short label like "GN730L" or "800L" or an approximate range
-4. content_notes: very brief note on any mature content (e.g. "mild violence", "clean", "some adult themes")
-Use your knowledge of this book.`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            recommended_age: { type: 'string' },
-            lexile_level: { type: 'number' },
-            lexile_label: { type: 'string' },
-            content_notes: { type: 'string' },
-          }
-        }
+      const result = await base44.functions.invoke('bookInsights', {
+        action: 'age_info',
+        title: b.title,
+        author: b.author,
       });
-      setAgeInfo(result);
+      setAgeInfo(result.data);
     } catch (e) {}
   }
 
@@ -157,29 +145,14 @@ Use your knowledge of this book.`,
     setLoadingSummary(true);
     loadAgeInfo(b);
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Write a compelling, spoiler-free 3-sentence summary of "${b.title}" by ${b.author}.
-
-CRITICAL RULES — this is for a reading app used by students:
-- Do NOT reveal any plot points, twists, character arcs, deaths, or endings.
-- Do NOT summarize what happens in the story or retell any events.
-- Write like a back-cover blurb: describe the premise, tone, and who would enjoy it.
-- Tease the book's appeal WITHOUT giving away what actually happens.
-Make it feel like a knowledgeable friend recommending it — enthusiastic but honest.
-
-Also write one "hook line" (max 15 words) that captures the book's essence without spoiling anything.
-
-Context: ${b.description?.slice(0, 500) || 'No description available'}`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            summary: { type: 'string' },
-            hook: { type: 'string' },
-          }
-        }
+      const result = await base44.functions.invoke('bookInsights', {
+        action: 'summary',
+        title: b.title,
+        author: b.author,
+        description: b.description,
       });
-      if (result?.summary) setAiSummary(result.summary);
-      if (result?.hook) setAiReasoning(result.hook);
+      if (result.data?.summary) setAiSummary(result.data.summary);
+      if (result.data?.hook) setAiReasoning(result.data.hook);
     } catch (e) {}
     setLoadingSummary(false);
   }
@@ -212,29 +185,12 @@ Context: ${b.description?.slice(0, 500) || 'No description available'}`,
     if (!book) return;
     setLoadingSimilar(true);
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `List exactly 5 books that are very similar to "${book.title}" by ${book.author}. 
-These should be books for the same audience and genre. Do NOT include the original book.
-Return a JSON object with a "books" array, each item having "title" and "author" fields.`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            books: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  title: { type: 'string' },
-                  author: { type: 'string' },
-                }
-              }
-            }
-          }
-        }
+      const result = await base44.functions.invoke('bookInsights', {
+        action: 'similar',
+        title: book.title,
+        author: book.author,
       });
-
-      // Handle both wrapped {books:[]} and raw array responses
-      const aiBooks = Array.isArray(result) ? result : (result?.books || []);
+      const aiBooks = result.data?.books || [];
       if (aiBooks.length === 0) { setLoadingSimilar(false); return; }
 
       const fetched = await Promise.all(

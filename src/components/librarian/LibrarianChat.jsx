@@ -35,19 +35,9 @@ export default function LibrarianChat({ pin, onExit }) {
     setLoading(true);
 
     try {
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are the Lexio Librarian, a friendly AI assistant at a library kiosk. A visitor walked up and asked: "${text}"
+      const response = await base44.functions.invoke('librarianChat', { message: text });
 
-Your rules:
-1. Help visitors find books, learn about authors, explore genres, and discover new reads.
-2. When recommending books, format as: **Title** by Author — brief reason.
-3. Keep responses friendly, concise, and under 200 words.
-4. If asked about something unrelated to books, kindly redirect to reading and books.
-5. You are in a public kiosk setting — keep all content appropriate for all ages.`,
-        model: 'claude_sonnet_4_6'
-      });
-
-      const aiContent = typeof response === 'string' ? response : response?.text || 'Let me help you find something great to read!';
+      const aiContent = response.data?.reply || 'Let me help you find something great to read!';
       setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
     } catch (e) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I had trouble with that. Please try again!' }]);

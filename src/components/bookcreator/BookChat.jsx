@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { CHAT_SYSTEM_PROMPT, CHAT_RESPONSE_SCHEMA } from '@/lib/bookCreator';
 
 export default function BookChat({ onBookReady, genre, style }) {
   const introParts = ["Hi! I'm your Custom Book Creator AI."];
@@ -28,15 +27,13 @@ export default function BookChat({ onBookReady, genre, style }) {
     setLoading(true);
 
     try {
-      const genreLine = genre ? `\n\nThe user has already selected the genre: ${genre}. Use this as the book's genre unless the user explicitly asks to change it.` : '';
-      const styleLine = style ? `\n\nThe user has already selected the writing style: ${style}. Use this as the book's writing style unless the user explicitly asks to change it.` : '';
-      const history = newMessages.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n\n');
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `${CHAT_SYSTEM_PROMPT}${genreLine}${styleLine}\n\nConversation so far:\n${history}\n\nAssistant:`,
-        response_json_schema: CHAT_RESPONSE_SCHEMA,
+      const result = await base44.functions.invoke('bookCreatorChat', {
+        genre,
+        style,
+        history: newMessages.map(m => ({ role: m.role, content: m.content })),
       });
 
-      const response = typeof result === 'string' ? JSON.parse(result) : result;
+      const response = result.data || {};
       setMessages(prev => [...prev, { role: 'assistant', content: response.message || response }]);
 
       if (response.ready && response.book_spec) {

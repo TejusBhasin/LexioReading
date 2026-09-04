@@ -58,16 +58,8 @@ export default function EasterEggPage() {
   async function generateJokes() {
     setLoadingJokes(true);
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Generate 10 short, clever, and funny book/reading-related jokes. Mix puns, observational humor, and nerdy bookworm humor. Keep each joke to 1-2 sentences max. Make them fresh and original.`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            jokes: { type: 'array', items: { type: 'string' } }
-          }
-        }
-      });
-      setJokes(result?.jokes || []);
+      const result = await base44.functions.invoke('easterEgg', { action: 'jokes' });
+      setJokes(result.data?.jokes || []);
       setJokeIdx(0);
     } catch (e) {}
     setLoadingJokes(false);
@@ -77,20 +69,8 @@ export default function EasterEggPage() {
     setGenerating(true);
     setBookIdea(null);
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Generate a wildly creative, funny, and original book idea. Make it epic but completely absurd and unexpected.
-Include: a dramatic title, a one-sentence plot twist description, and a movie-trailer-style tagline.
-Be creative, hilarious, and surprising. Think "Pride and Prejudice and Zombies" meets "The Hitchhiker's Guide to the Galaxy".`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            title: { type: 'string' },
-            plot: { type: 'string' },
-            tagline: { type: 'string' },
-          }
-        }
-      });
-      setBookIdea(result);
+      const result = await base44.functions.invoke('easterEgg', { action: 'book_idea' });
+      setBookIdea(result.data || null);
     } catch (e) {}
     setGenerating(false);
   }

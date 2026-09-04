@@ -122,16 +122,11 @@ export default function ChallengesPage() {
 
   async function generateAISquares() {
     setGenerating(true);
-    const prompt = `Generate 25 fun, creative, and specific reading bingo challenge squares for a book reader.
-User info: ${library.finished} books finished, reads genres: ${library.genres.join(', ') || 'various'}.
-Make them diverse: some easy, some hard, some genre-specific, some general, some social.
-Return ONLY a JSON array of 25 short strings (max 8 words each), no numbering. Example format:
-["Read a book set in Asia", "Finish a book in one day", ...]`;
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      response_json_schema: { type: 'object', properties: { squares: { type: 'array', items: { type: 'string' } } } }
+    const result = await base44.functions.invoke('challengeBingoSquares', {
+      finished_count: library.finished,
+      genres: library.genres,
     });
-    const newSquares = result?.squares?.slice(0, 25) || BINGO_SQUARES;
+    const newSquares = result.data?.squares?.slice(0, 25) || BINGO_SQUARES;
     // Ensure 25 squares, with free square at index 12
     while (newSquares.length < 25) newSquares.push(BINGO_SQUARES[newSquares.length]);
     newSquares[12] = '⭐ FREE\nRead any book';

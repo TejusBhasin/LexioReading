@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     const memberUsernames = {};
     members.forEach(m => { memberUsernames[m.user_email] = m.username || m.user_email; });
 
-    if (action === 'list') {
+    if (action === 'list' || action === 'ai_sort') {
       const allReports = await base44.asServiceRole.entities.ReportedContent.list('-created_date', 200);
       // Only show reports routed to this school (content isolation enabled)
       const schoolReports = allReports.filter(r =>
@@ -40,26 +40,53 @@ Deno.serve(async (req) => {
         memberEmails.includes(r.reported_user_email)
       );
 
-      return Response.json({
-        incidents: schoolReports.map(r => ({
-          id: r.id,
-          reporter_email: r.reporter_email,
-          reported_user_email: r.reported_user_email,
-          reported_username: memberUsernames[r.reported_user_email] || r.reported_user_email,
-          content_type: r.content_type,
-          content_snapshot: r.content_snapshot,
-          reason: r.reason,
-          details: r.details,
-          status: r.status,
-          ai_verdict: r.ai_verdict,
-          ai_reason: r.ai_reason,
-          action_taken: r.action_taken,
-          school_suggested_action: r.school_suggested_action,
-          school_suggested_by: r.school_suggested_by,
-          school_suggested_at: r.school_suggested_at,
-          created_date: r.created_date,
-        })),
+      const incidents = schoolReports.map(r => ({
+        id: r.id,
+        reporter_email: r.reporter_email,
+        reported_user_email: r.reported_user_email,
+        reported_username: memberUsernames[r.reported_user_email] || r.reported_user_email,
+        content_type: r.content_type,
+        content_snapshot: r.content_snapshot,
+        reason: r.reason,
+        details: r.details,
+        status: r.status,
+        ai_verdict: r.ai_verdict,
+        ai_reason: r.ai_reason,
+        action_taken: r.action_taken,
+        school_suggested_action: r.school_suggested_action,
+        school_suggested_by: r.school_suggested_by,
+        school_suggested_at: r.school_suggested_at,
+        created_date: r.created_date,
+      }));
+
+      if (action === 'list') {
+        return Response.json({ incidents });
+      }
+
+      // AI severity sort: the incident list is re-derived from the database
+      // (never trusted from the request body) and ranked by a fixed prompt.
+      const incidentSummaries = incidents.map(inc => ({
+        id: inc.id,
+        type: inc.content_type,
+        reason: inc.reason,
+        status: inc.status,
+        content: (inc.content_snapshot || '').slice(0, 200),
+        student: inc.reported_username,
+      }));
+      const res = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: `You are a school safety assistant. Sort these reported incidents by severity (most severe first). Consider: type of violation, repeat offenders, and content severity. Return a JSON array of incident IDs in priority order.
+
+Incidents:
+${JSON.stringify(incidentSummaries, null, 2)}`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            sorted_ids: { type: 'array', items: { type: 'string' } },
+            reasoning: { type: 'string' },
+          }
+        }
       });
+      return Response.json({ sorted_ids: res?.sorted_ids || [], reasoning: res?.reasoning || '' });
     }
 
     if (action === 'suggest') {

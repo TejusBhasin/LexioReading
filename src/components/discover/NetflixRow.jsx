@@ -17,27 +17,11 @@ export default function NetflixRow({ seed, onSave, savedIds }) {
     setLoading(true);
     try {
       // Use AI to recommend 2 genuinely similar books
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `Recommend exactly 2 books that are genuinely similar to "${seed.title}"${seed.author ? ` by ${seed.author}` : ''}. These should be books that a reader who enjoyed the seed book would love. Consider similar themes, writing style, genre, and tone. Return the exact title and author for each.`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            recommendations: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  title: { type: 'string' },
-                  author: { type: 'string' },
-                  reason: { type: 'string' }
-                }
-              }
-            }
-          }
-        }
+      const res = await base44.functions.invoke('similarBookPair', {
+        title: seed.title,
+        author: seed.author,
       });
-
-      const recs = res?.recommendations || [];
+      const recs = res.data?.recommendations || [];
       // Fetch each recommended book from Google Books to get covers & metadata
       const results = await Promise.all(
         recs.map(async (rec) => {

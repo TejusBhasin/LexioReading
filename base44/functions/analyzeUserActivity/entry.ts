@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     const discussionSummary = discussions.slice(0, 15).map(d => d.content).join('\n');
     const libraryTitles = finishedBooks.slice(0, 20).map(b => `${b.book_title} by ${b.book_author}`).join(', ');
 
-    const analysis = await base44.integrations.Core.InvokeLLM({
+    const analysis = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: `Analyze this user's reading activity and extract their taste profile for personalized book recommendations.
 
 REVIEWS (with ratings):

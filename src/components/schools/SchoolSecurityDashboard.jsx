@@ -37,34 +37,16 @@ export default function SchoolSecurityDashboard({ school, user, members, onRefre
     if (incidents.length === 0) return;
     setAiSorting(true);
     try {
-      const incidentSummaries = incidents.map((inc, i) => ({
-        id: inc.id,
-        type: inc.content_type,
-        reason: inc.reason,
-        status: inc.status,
-        content: (inc.content_snapshot || '').slice(0, 200),
-        student: inc.reported_username,
-      }));
-
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are a school safety assistant. Sort these reported incidents by severity (most severe first). Consider: type of violation, repeat offenders, and content severity. Return a JSON array of incident IDs in priority order.
-
-Incidents:
-${JSON.stringify(incidentSummaries, null, 2)}`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            sorted_ids: { type: 'array', items: { type: 'string' } },
-            reasoning: { type: 'string' },
-          }
-        }
+      const res = await base44.functions.invoke('schoolSafetyIncidents', {
+        action: 'ai_sort',
+        school_id: school.id,
       });
 
-      if (res?.sorted_ids) {
-        const sorted = res.sorted_ids
+      if (res.data?.sorted_ids) {
+        const sorted = res.data.sorted_ids
           .map(id => incidents.find(i => i.id === id))
           .filter(Boolean);
-        setSortedIncidents({ items: sorted, reasoning: res.reasoning });
+        setSortedIncidents({ items: sorted, reasoning: res.data.reasoning });
       }
     } catch (e) {}
     setAiSorting(false);

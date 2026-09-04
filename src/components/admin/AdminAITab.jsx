@@ -21,39 +21,9 @@ export default function AdminAITab({ user }) {
     setProcessing(true);
     setError('');
     try {
-      const llmRes = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are an admin assistant for Lexio, a reading app. Parse the admin's natural language instruction about restricting or managing a user.
+      const llmRes = await base44.functions.invoke('adminAICommand', { instruction: input });
 
-Available feature restriction keys (use these EXACT strings):
-- banned_from_forums: ban from forums
-- banned_from_clubs: ban from clubs / reading clubs
-- banned_from_comments: ban from comments
-- banned_from_discussions: ban from discussions
-- banned_from_chat: ban from AI chat
-
-Actions:
-- ban_feature: ban user from specific features (provide features array)
-- full_ban: completely ban the user
-- unban_feature: remove specific feature bans (provide features array)
-- unban_all: remove all bans and restrictions
-- warn: issue a warning (no ban)
-
-Admin's instruction: "${input}"
-
-Return the parsed result with the user's email (lowercase), the action, which features to ban/unban (if applicable), and a brief reason.`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            user_email: { type: 'string', description: 'The email of the user to act on (lowercase)' },
-            action: { type: 'string', enum: ['ban_feature', 'full_ban', 'unban_feature', 'unban_all', 'warn'] },
-            features: { type: 'array', items: { type: 'string', enum: ['banned_from_forums', 'banned_from_clubs', 'banned_from_comments', 'banned_from_discussions', 'banned_from_chat'] } },
-            reason: { type: 'string' },
-          },
-          required: ['user_email', 'action'],
-        },
-      });
-
-      const { user_email, action, features, reason } = llmRes;
+      const { user_email, action, features, reason } = llmRes.data || {};
 
       const existing = await base44.entities.UserSafeness.filter({ user_email });
       let record;
