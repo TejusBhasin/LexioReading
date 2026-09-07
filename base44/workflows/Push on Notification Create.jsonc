@@ -1,0 +1,37 @@
+{
+  "name": "Push on Notification Create",
+  "description": "Sends a native iOS push notification whenever a new in-app Notification is created (covers admin Direct Notify, vault-expiry alerts, forum/club/school notifications).",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "Notification"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "push_on_notification_create",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sendNotificationPush",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "sendNotificationPush"
+  }
+}
