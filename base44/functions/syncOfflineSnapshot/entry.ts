@@ -72,12 +72,18 @@ export default async function(req) {
       });
     }
 
+    // Write the new snapshot chunks first, then delete the old chunks —
+    // so the user is never left without a snapshot if the write fails.
     const existing = await base44.entities.OfflineSnapshot.filter({ user_email: email });
-    if (existing.length > 0) {
-      await base44.entities.OfflineSnapshot.deleteMany({ user_email: email });
-    }
+    let created = [];
     if (parts.length > 0) {
-      await base44.entities.OfflineSnapshot.bulkCreate(parts);
+      created = await base44.entities.OfflineSnapshot.bulkCreate(parts);
+    }
+    const newIds = new Set(created.map(r => r.id));
+    for (const old of existing) {
+      if (!newIds.has(old.id)) {
+        await base44.entities.OfflineSnapshot.delete(old.id).catch(() => {});
+      }
     }
 
     return Response.json({
