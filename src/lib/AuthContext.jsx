@@ -154,7 +154,21 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    // The component was rendered outside the app tree (e.g. an isolated
+    // page preview). Fall back to a signed-out default instead of crashing.
+    return {
+      user: null,
+      isAuthenticated: false,
+      isLoadingAuth: false,
+      isLoadingPublicSettings: false,
+      authError: null,
+      authChecked: true,
+      appPublicSettings: null,
+      logout: () => {},
+      navigateToLogin: () => {},
+      checkUserAuth: async () => {},
+      checkAppState: async () => {}
+    };
   }
   return context;
 };
