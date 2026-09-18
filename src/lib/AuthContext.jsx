@@ -5,6 +5,15 @@ import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 
 const AuthContext = createContext();
 
+const CACHED_USER_KEY = 'lexio_cached_user';
+const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
+
+// The signed-in user from the last online session, so an offline launch
+// can still load the app with its offline snapshot data.
+function readCachedUser() {
+  try { return JSON.parse(localStorage.getItem(CACHED_USER_KEY) || 'null'); } catch (e) { return null; }
+}
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,6 +25,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkAppState();
+    // When connectivity returns, re-validate the real auth state (an
+    // offline session may have been started from the cached user).
+    const onOnline = () => checkAppState();
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
   }, []);
 
   const checkAppState = async () => {
@@ -69,6 +83,17 @@ export const AuthProvider = ({ children }) => {
               message: appError.message
             });
           }
+        } else if (isOffline()) {
+          // Launching without internet — start an offline session from the
+          // cached user so the app loads with its offline snapshot data.
+          const cachedUser = readCachedUser();
+          if (cachedUser) {
+            setUser(cachedUser);
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
+          setAuthChecked(true);
         } else {
           setAuthError({
             type: 'unknown',
@@ -96,6 +121,7 @@ export const AuthProvider = ({ children }) => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
+      try { localStorage.setItem(CACHED_USER_KEY, JSON.stringify(currentUser)); } catch (e) {}
       setIsLoadingAuth(false);
       setAuthChecked(true);
     } catch (error) {
@@ -110,6 +136,14 @@ export const AuthProvider = ({ children }) => {
           type: 'auth_required',
           message: 'Authentication required'
         });
+      } else if (isOffline()) {
+        // No network — keep an offline session from the cached user so the
+        // app loads with snapshot data instead of bouncing to login.
+        const cachedUser = readCachedUser();
+        if (cachedUser) {
+          setUser(cachedUser);
+          setIsAuthenticated(true);
+        }
       }
     }
   };
@@ -117,6 +151,7 @@ export const AuthProvider = ({ children }) => {
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
+    try { localStorage.removeItem(CACHED_USER_KEY); } catch (e) {}
     
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
