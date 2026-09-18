@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AppShell from '@/components/layout/AppShell';
+import { useOfflineSnapshotSync } from '@/lib/offlineSnapshot';
 
 // Pages
 import DashboardPage from '@/pages/DashboardPage';
@@ -50,6 +51,7 @@ import ResetPassword from '@/pages/ResetPassword';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user, isAuthenticated } = useAuth();
+  useOfflineSnapshotSync(user);
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (

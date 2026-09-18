@@ -31,6 +31,13 @@ export function clearOfflineCache() {
   } catch (e) {}
 }
 
+// Seed the offline cache with a full list of records for one entity
+// (from the user's server-side snapshot). Serves as fallback data for
+// any read of that entity while offline.
+export function seedOfflineData(entityName, records) {
+  writeCache(`seed:${entityName}`, records);
+}
+
 function readCache(key) {
   try {
     const raw = localStorage.getItem(CACHE_PREFIX + key);
@@ -67,7 +74,7 @@ function wrapEntity(entity, name) {
             writeCache(key, result);
             return result;
           } catch (err) {
-            const cached = readCache(key);
+            const cached = readCache(key) ?? readCache(`seed:${name}`);
             if (cached !== null) return cached;
             throw err;
           }

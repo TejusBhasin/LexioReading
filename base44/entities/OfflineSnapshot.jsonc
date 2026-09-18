@@ -1,0 +1,46 @@
+{
+  "name": "OfflineSnapshot",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user this offline snapshot chunk belongs to"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user at snapshot time"
+    },
+    "part_index": {
+      "type": "number",
+      "description": "Zero-based index of this chunk within the snapshot JSON"
+    },
+    "total_parts": {
+      "type": "number",
+      "description": "Total number of chunks the snapshot JSON is split into"
+    },
+    "snapshot_chunk": {
+      "type": "string",
+      "description": "One chunk of the JSON containing all of the user's lists (library, reading log, goals, reviews, vault, clubs, chat) with items and statuses, synced hourly for offline access"
+    }
+  },
+  "required": [
+    "user_email",
+    "part_index",
+    "total_parts",
+    "snapshot_chunk"
+  ],
+  "rls": {
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "data.user_email": "{{user.email}}"
+    },
+    "delete": {
+      "data.user_email": "{{user.email}}"
+    }
+  }
+}
