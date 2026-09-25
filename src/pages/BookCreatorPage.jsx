@@ -10,6 +10,36 @@ import GenreSelect from '@/components/bookcreator/GenreSelect';
 import StyleSelect from '@/components/bookcreator/StyleSelect';
 import { Feather, AlertTriangle, ArrowLeft, Sparkles, Loader2, Library, Plus } from 'lucide-react';
 
+// ---- Generation progress persistence (mobile-safe resume) ----
+// Book generation runs many minutes. On phones/tablets the OS suspends or
+// discards the page mid-generation, which used to black out the screen and
+// lose all progress. Progress is saved locally after every chapter so an
+// interrupted book resumes automatically on reload.
+const GEN_KEY = 'lexio_book_gen_progress';
+
+function loadGenProgress() {
+  try { return JSON.parse(localStorage.getItem(GEN_KEY) || 'null'); } catch (e) { return null; }
+}
+function saveGenProgress(state) {
+  try { localStorage.setItem(GEN_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function clearGenProgress() {
+  try { localStorage.removeItem(GEN_KEY); } catch (e) {}
+}
+
+// Retry transient failures (mobile network blips, page suspended mid-request).
+async function invokeWithRetry(payload, attempts = 3) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try { return await base44.functions.invoke('generateCustomBook', payload); }
+    catch (e) {
+      lastErr = e;
+      if (i < attempts - 1) await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
 export default function BookCreatorPage() {
   const { user } = useAuth();
   const [view, setView] = useState('create');
@@ -40,46 +70,91 @@ export default function BookCreatorPage() {
     }).catch(() => {}).finally(() => setChecking(false));
   }, [user]);
 
-  async function generateBook() {
+  // Resume an interrupted or unsaved generation after a reload (mobile OS
+  // discards the page mid-generation).
+  useEffect(() => {
+    if (!user?.email) return;
+    const saved = loadGenProgress();
+    if (!saved || saved.user_email !== user.email) return;
+    if (saved.done && saved.finalBook) {
+      setBook(saved.finalBook);
+      setBookSpec(saved.spec);
+      setFromLibrary(false);
+      setPhase('result');
+    } else if (!saved.done && saved.chapters?.length) {
+      generateBook(saved);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email]);
+
+  async function generateBook(resumeState) {
+    let state = resumeState;
+
+    // Fresh start: continue any interrupted generation for the same book.
+    if (!state) {
+      const saved = loadGenProgress();
+      if (saved && saved.user_email === user?.email && !saved.done && saved.spec?.title === bookSpec?.title) {
+        state = saved;
+      }
+    }
+
+    if (!state) {
+      const chapterCount = calcChapterCount(pageCount);
+      const wordsPerChapter = Math.round((pageCount * 280) / chapterCount);
+      state = {
+        user_email: user?.email,
+        spec: { ...bookSpec, writing_style: selectedStyle, lexile_level: lexileLevel, age_range: ageRange },
+        author: authorName || 'Anonymous',
+        chapterCount,
+        wordsPerChapter,
+        chapters: [],
+        generated: [],
+      };
+    }
+
     setPhase('generating');
     setError('');
-    const chapterCount = calcChapterCount(pageCount);
-    const wordsPerChapter = Math.round((pageCount * 280) / chapterCount);
-    const spec = { ...bookSpec, writing_style: selectedStyle, lexile_level: lexileLevel, age_range: ageRange };
+    setBookSpec(state.spec);
 
     try {
-      const outlineResult = await base44.functions.invoke('generateCustomBook', {
-        action: 'outline',
-        spec,
-        chapter_count: chapterCount,
-        words_per_chapter: wordsPerChapter,
-      });
-      const chapters = outlineResult.data?.chapters || [];
-      if (chapters.length === 0) throw new Error('No chapters generated');
+      if (state.chapters.length === 0) {
+        const outlineResult = await invokeWithRetry({
+          action: 'outline',
+          spec: state.spec,
+          chapter_count: state.chapterCount,
+          words_per_chapter: state.wordsPerChapter,
+        });
+        state.chapters = outlineResult.data?.chapters || [];
+        if (state.chapters.length === 0) throw new Error('No chapters generated');
+        saveGenProgress(state);
+      }
 
-      setProgress({ current: 0, total: chapters.length, title: chapters[0]?.title || '' });
-      const generated = [];
+      setProgress({ current: state.generated.length, total: state.chapters.length, title: state.chapters[state.generated.length]?.title || '' });
 
-      for (let i = 0; i < chapters.length; i++) {
-        const ch = chapters[i];
-        const prevEnding = generated.length > 0
-          ? generated[generated.length - 1].content.split('\n').filter(l => l.trim()).slice(-2).join(' ')
+      for (let i = state.generated.length; i < state.chapters.length; i++) {
+        const ch = state.chapters[i];
+        const prevEnding = state.generated.length > 0
+          ? state.generated[state.generated.length - 1].content.split('\n').filter(l => l.trim()).slice(-2).join(' ')
           : '';
-        const result = await base44.functions.invoke('generateCustomBook', {
+        const result = await invokeWithRetry({
           action: 'chapter',
-          spec,
+          spec: state.spec,
           chapter: ch,
           num: i + 1,
-          total: chapters.length,
-          words_per_chapter: wordsPerChapter,
+          total: state.chapters.length,
+          words_per_chapter: state.wordsPerChapter,
           prev_ending: prevEnding,
         });
         const text = result.data?.text || String(result.data);
-        generated.push({ title: ch.title, content: text });
-        setProgress({ current: i + 1, total: chapters.length, title: ch.title });
+        state.generated.push({ title: ch.title, content: text });
+        saveGenProgress(state);
+        setProgress({ current: i + 1, total: state.chapters.length, title: ch.title });
       }
 
-      const finalBook = { title: bookSpec.title, author: authorName || 'Anonymous', chapters: generated };
+      const finalBook = { title: state.spec.title, author: state.author || 'Anonymous', chapters: state.generated };
+      state.done = true;
+      state.finalBook = finalBook;
+      saveGenProgress(state); // kept until the book is safely stored in the library
       setBook(finalBook);
       setFromLibrary(false);
       setPhase('result');
@@ -93,21 +168,23 @@ export default function BookCreatorPage() {
           user_email: user.email,
           title: finalBook.title,
           author: finalBook.author,
-          genre: bookSpec.genre || '',
-          description: bookSpec.description || '',
+          genre: state.spec.genre || '',
+          description: state.spec.description || '',
           book_file_url: file_url,
           chapter_count: finalBook.chapters.length,
           word_count: countWords(finalBook.chapters),
           page_count: Math.round(countWords(finalBook.chapters) / 280),
         });
+        clearGenProgress();
       } catch (e) {}
     } catch (e) {
-      setError(e.message || 'Failed to generate book. Please try again.');
+      setError((e.message || 'Failed to generate book.') + ' Your progress is saved — tap "Create My Book" again or reload the page to continue where it stopped.');
       setPhase('confirm');
     }
   }
 
   function startOver() {
+    clearGenProgress();
     setPhase('genre');
     setSelectedGenre(null);
     setSelectedStyle(null);
