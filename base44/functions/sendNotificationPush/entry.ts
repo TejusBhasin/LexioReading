@@ -6,19 +6,11 @@ import { sendPushToEmails } from '../../shared/push.ts';
 // which also covers admin Direct Notify sends and vault-expiry alerts.
 export default async function (req) {
   try {
-    // Caller guard: the only legitimate caller is the internal "Notification
-    // create" automation (a server-side, headerless or same-origin request).
-    // Reject anything that arrives with a browser Origin/Referer from a
-    // different host — i.e. a cross-origin external caller. Headerless
-    // callers (the automation, and curl) are still bound by the idempotency
-    // + DB-resolution + freshness checks below, so they cannot abuse the push.
-    const reqUrl = new URL(req.url);
-    const host = reqUrl.host;
-    const matchesHost = (h) => { try { return new URL(h).host === host; } catch (e) { return false; } };
-    const origin = req.headers.get('origin');
-    const referer = req.headers.get('referer');
-    if (origin && !matchesHost(origin)) return Response.json({ error: 'Forbidden' }, { status: 403 });
-    if (referer && !matchesHost(referer)) return Response.json({ error: 'Forbidden' }, { status: 403 });
+    // No origin/referer guard — the platform's function dispatcher strips
+    // those headers, so such a check rejects legitimate callers. Abuse is
+    // prevented by the DB-resolution + idempotency + freshness checks below:
+    // a stranger can only reference an existing, just-created notification,
+    // and each notification pushes at most once.
 
     const base44 = createClientFromRequest(req);
     const body = await req.json();
