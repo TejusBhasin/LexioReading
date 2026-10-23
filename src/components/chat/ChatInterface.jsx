@@ -24,6 +24,10 @@ const SUGGESTIONS = [
 function greetingFor(mode) {
   if (mode === 'movies') return "Hi! I'm your Lexio movie companion. What are you in the mood to watch?";
   if (mode === 'books_movies') return "Hi! I'm your Lexio reading and movies companion. What are you in the mood to read or watch?";
+  if (mode === 'music') return "Hi! I'm your Lexio music companion. What are you in the mood to listen to?";
+  if (mode === 'books_music') return "Hi! I'm your Lexio reading and music companion. What are you in the mood to read or listen to?";
+  if (mode === 'movies_music') return "Hi! I'm your Lexio movies and music companion. What are you in the mood to watch or listen to?";
+  if (mode === 'all') return "Hi! I'm your Lexio reading, movies, and music companion. What are you in the mood to read, watch, or listen to?";
   return "Hi! I'm your Lexio reading companion. What are you in the mood to read?";
 }
 

@@ -80,6 +80,11 @@
       "default": false,
       "description": "Whether the one-time movie mode popup has been shown to this user"
     },
+    "music_prompted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the one-time music prompt has been shown to this user"
+    },
     "librarian_pin": {
       "type": "string",
       "description": "PIN required to exit Librarian Mode kiosk"

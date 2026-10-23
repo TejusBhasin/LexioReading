@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Compass, MessageSquare, Star, Clock, CheckCircle, Bookmark, ArrowRight, Sparkles, Users, Lock, PenLine, HelpCircle, Quote } from 'lucide-react';
+import { BookOpen, Compass, MessageSquare, Star, Clock, CheckCircle, Bookmark, ArrowRight, Sparkles, Users, Lock, PenLine, HelpCircle, Quote, Film, Music } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -8,6 +8,7 @@ import SetupTour from '@/components/onboarding/SetupTour';
 import AppFooter from '@/components/layout/AppFooter';
 import VaultExpiryReminder from '@/components/vault/VaultExpiryReminder';
 import { getVocab } from '@/lib/vocab';
+import { modeHasMovies, modeHasMusic } from '@/lib/mediaModes';
 
 const FALLBACK_QUOTE = { text: 'A reader lives a thousand lives before he dies. The man who never reads lives only one.', author: 'George R.R. Martin' };
 
@@ -91,7 +92,7 @@ export default function DashboardPage() {
             <span className="font-serif italic" style={{ color: 'var(--lx-accent)' }}>supercharged.</span>
           </h1>
           <p className="text-lg mb-8 max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
-            AI-powered book discovery, a personal library tracker, and a reading companion that learns your taste.
+            AI-powered discovery for books, movies, and music, a personal library tracker, and a companion that learns your taste.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link to="/register" className="lx-btn-primary py-3 px-8 text-base">
@@ -104,18 +105,24 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-16">
-          {[
-            { icon: Compass, title: 'Discover Books', desc: 'Browse trending titles and search millions of books', href: '/discover' },
-            { icon: Sparkles, title: 'AI Recommendations', desc: 'Get personalized picks powered by AI', href: '/discover' },
-            { icon: MessageSquare, title: 'Chat About Books', desc: 'Talk to your AI reading companion anytime', href: '/chat' },
-          ].map(({ icon: Icon, title, desc, href }) => (
-            <Link key={title} to={href} className="lx-card p-5 text-left group hover:border-[var(--lx-accent)] transition-colors">
-              <Icon size={22} className="mb-3" style={{ color: 'var(--lx-accent)' }} />
-              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>{title}</h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{desc}</p>
-            </Link>
-          ))}
-        </div>
+            {[
+              { icon: Compass, title: 'Discover Books', desc: 'Browse trending titles and search millions of books', href: '/discover' },
+              { icon: Film, title: 'Watch Movies', desc: 'Track films, build a watchlist, and get AI movie picks', href: '/discover', badge: 'Popular' },
+              { icon: Music, title: 'Listen to Music', desc: 'Search millions of songs and save your favorites', href: '/discover', badge: 'New' },
+              { icon: Sparkles, title: 'AI Recommendations', desc: 'Get personalized picks for books and movies', href: '/discover' },
+              { icon: MessageSquare, title: 'Chat Companion', desc: 'Talk to your AI reading, watching & listening companion', href: '/chat' },
+              { icon: Bookmark, title: 'Track Everything', desc: 'One library for books, movies, and music', href: '/library' },
+            ].map(({ icon: Icon, title, desc, href, badge }) => (
+              <Link key={title} to={href} className="lx-card p-5 text-left group hover:border-[var(--lx-accent)] transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <Icon size={22} style={{ color: 'var(--lx-accent)' }} />
+                  {badge && <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'var(--lx-accent)', color: 'var(--bg-primary)' }}>{badge}</span>}
+                </div>
+                <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{desc}</p>
+              </Link>
+            ))}
+          </div>
 
         <div className="mt-16 -mx-4">
           <AppFooter />
@@ -181,6 +188,26 @@ export default function DashboardPage() {
             <p className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{stats.avgRating} / 5</p>
           </div>
         </div>
+      )}
+
+      {/* Movies & Music promo */}
+      {isAuthenticated && (!modeHasMovies(contentMode) || !modeHasMusic(contentMode)) && (
+        <Link to="/profile" className="lx-card p-4 mb-8 flex items-center gap-3 hover:border-[var(--lx-accent)] transition-colors">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#e50914' }}>
+            <Film size={18} style={{ color: 'white' }} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>New in Lexio: track movies & music</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {!modeHasMovies(contentMode) && !modeHasMusic(contentMode)
+                ? 'Discover films and songs alongside your books. Turn them on in your Profile.'
+                : !modeHasMovies(contentMode)
+                  ? 'Discover films and build a watchlist. Turn on movies in your Profile.'
+                  : 'Search millions of songs and save your favorites. Turn on music in your Profile.'}
+            </p>
+          </div>
+          <ArrowRight size={16} style={{ color: 'var(--lx-accent)' }} />
+        </Link>
       )}
 
       {/* Quick Nav */}

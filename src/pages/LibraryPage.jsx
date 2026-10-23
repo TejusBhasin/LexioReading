@@ -111,7 +111,7 @@ export default function LibraryPage() {
   }
 
   const filtered = (activeStatus === 'all' ? books : books.filter(b => b.status === activeStatus)).filter(b => mediaFilter === 'all' ? true : (b.media_type || 'book') === mediaFilter);
-  const statusLabels = { want_to_read: v.wantToRead, reading: v.reading === 'watching' ? 'Watching' : 'Reading', finished: v.finished === 'watched' ? 'Watched' : 'Finished', dropped: 'Dropped' };
+  const statusLabels = { want_to_read: v.wantToRead, reading: v.reading === 'watching' ? 'Watching' : v.reading === 'listening' ? 'Listening' : 'Reading', finished: v.finished === 'watched' ? 'Watched' : v.finished === 'listened' ? 'Listened' : 'Finished', dropped: 'Dropped' };
 
   const stats = {
     total: books.length,
@@ -142,6 +142,7 @@ export default function LibraryPage() {
           { key: 'all', label: 'All' },
           { key: 'book', label: 'Books' },
           { key: 'movie', label: 'Movies' },
+          { key: 'music', label: 'Music' },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -205,7 +206,7 @@ export default function LibraryPage() {
               className="lx-card flex gap-3 p-3 overflow-hidden"
             >
               {/* Cover */}
-              <Link to={(book.media_type || 'book') === 'movie' ? `/movie/${book.book_id}` : `/book/${book.book_id}`} className="flex-shrink-0 relative">
+              <Link to={(book.media_type || 'book') === 'movie' ? `/movie/${book.book_id}` : (book.media_type || 'book') === 'music' ? '/discover' : `/book/${book.book_id}`} className="flex-shrink-0 relative">
                 {book.book_cover ? (
                   <img src={book.book_cover} alt={book.book_title} className="w-12 h-16 object-cover rounded" />
                 ) : (
@@ -220,7 +221,7 @@ export default function LibraryPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <Link to={(book.media_type || 'book') === 'movie' ? `/movie/${book.book_id}` : `/book/${book.book_id}`}>
+                    <Link to={(book.media_type || 'book') === 'movie' ? `/movie/${book.book_id}` : (book.media_type || 'book') === 'music' ? '/discover' : `/book/${book.book_id}`}>
                       <h3 className="font-semibold text-sm truncate hover:underline" style={{ color: 'var(--text-primary)' }}>
                         {book.book_title}
                       </h3>

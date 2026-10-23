@@ -9,6 +9,10 @@ import NetflixRow from '@/components/discover/NetflixRow';
 import LoadMoreRecommendations from '@/components/discover/LoadMoreRecommendations';
 import CantFindBookPrompt from '@/components/discover/CantFindBookPrompt';
 import { searchMovies, getTrendingMovies, getTopRatedMovies, getMovieRecommendations } from '@/lib/tmdb';
+import { searchMusic } from '@/lib/audiodb';
+import MusicGrid from '@/components/music/MusicGrid';
+import MusicCard from '@/components/music/MusicCard';
+import { modeHasBooks, modeHasMovies, modeHasMusic } from '@/lib/mediaModes';
 import MovieGrid from '@/components/movies/MovieGrid';
 import MovieRecommendations from '@/components/movies/MovieRecommendations';
 import BookCard from '@/components/books/BookCard';
@@ -16,6 +20,8 @@ import MovieCard from '@/components/movies/MovieCard';
 import { getVocab } from '@/lib/vocab';
 
 const GENRE_FILTERS = ['All', 'Fiction', 'Fantasy', 'Sci-Fi', 'Mystery', 'Historical', 'Thriller', 'Non-Fiction'];
+
+const POPULAR_ARTISTS = ['Taylor Swift', 'Drake', 'Beyoncé', 'The Weeknd', 'Adele', 'Kendrick Lamar', 'Billie Eilish', 'Bad Bunny', 'Bruno Mars', 'SZA'];
 
 const FOR_YOU_QUERIES = [
   'bestselling literary fiction 2022', 'award winning mystery novel 2023',
@@ -81,6 +87,7 @@ export default function DiscoverPage() {
   const [movieResults, setMovieResults] = useState([]);
   const [searchFilter, setSearchFilter] = useState('all');
   const [forYouMovies, setForYouMovies] = useState([]);
+  const [musicResults, setMusicResults] = useState([]);
 
   useEffect(() => {
     if (user?.email) {
@@ -89,9 +96,10 @@ export default function DiscoverPage() {
         if (p[0]) {
           setShowPopular(p[0].show_popular !== false);
           setUserPrefs(p[0]);
-          setContentMode(p[0].content_mode || 'books');
+          const mode = p[0].content_mode || 'books';
+          setContentMode(mode);
           setContentRatio(p[0].content_ratio != null ? p[0].content_ratio : 50);
-          if ((p[0].content_mode || 'books') !== 'books') {
+          if (modeHasMovies(mode)) {
             getTrendingMovies().then(setTrendingMovies).catch(() => {});
             getTopRatedMovies().then(setTopRatedMovies).catch(() => {});
             getMovieRecommendations(p[0]).then(setForYouMovies).catch(() => {});
@@ -173,8 +181,12 @@ export default function DiscoverPage() {
 
   async function handleSearch(e) {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
-    const profileMatch = searchQuery.trim().match(/^\/u\/(.+)$/i);
+    runSearch(searchQuery);
+  }
+
+  async function runSearch(q) {
+    if (!q || !q.trim()) return;
+    const profileMatch = q.trim().match(/^\/u\/(.+)$/i);
     if (profileMatch) {
       navigate(`/u/${profileMatch[1].trim()}`);
       return;
@@ -184,22 +196,29 @@ export default function DiscoverPage() {
     setHasSearched(true);
     setSearchFilter('all');
     try {
-      if (contentMode !== 'movies') {
-        const results = await searchBooks(searchQuery, 12);
+      if (modeHasBooks(contentMode)) {
+        const results = await searchBooks(q, 12);
         setSearchResults(results);
       } else {
         setSearchResults([]);
       }
-      if (contentMode !== 'books') {
-        const movies = await searchMovies(searchQuery, 12);
+      if (modeHasMovies(contentMode)) {
+        const movies = await searchMovies(q, 12);
         setMovieResults(movies);
       } else {
         setMovieResults([]);
       }
-    } catch (e) {
+      if (modeHasMusic(contentMode)) {
+        const music = await searchMusic(q, 12);
+        setMusicResults(music);
+      } else {
+        setMusicResults([]);
+      }
+    } catch (err) {
       setSearchResults([]);
       setMovieResults([]);
-      setSearchError(e.message || 'Search failed. Please try again.');
+      setMusicResults([]);
+      setSearchError(err.message || 'Search failed. Please try again.');
     } finally {
       setSearching(false);
     }
@@ -248,6 +267,28 @@ export default function DiscoverPage() {
     } catch (e) {}
   }
 
+  async function saveMusic(track) {
+    if (!user) {
+      window.location.href = '/signup';
+      return;
+    }
+    const musicId = `audiodb-${track.audiodb_id}`;
+    if (savedIds.includes(musicId)) return;
+    try {
+      await base44.entities.UserLibrary.create({
+        user_email: user.email,
+        book_id: musicId,
+        book_title: track.title,
+        book_author: track.artist,
+        book_cover: track.cover_image,
+        media_type: 'music',
+        status: 'want_to_read',
+        date_added: new Date().toISOString(),
+      });
+      setSavedIds(prev => [...prev, musicId]);
+    } catch (e) {}
+  }
+
   function saveRatio(value) {
     clearTimeout(ratioTimer.current);
     ratioTimer.current = setTimeout(async () => {
@@ -262,10 +303,16 @@ export default function DiscoverPage() {
     }, 600);
   }
 
+  const hasBooks = modeHasBooks(contentMode);
+  const hasMovies = modeHasMovies(contentMode);
+  const hasMusic = modeHasMusic(contentMode);
+  const isMixed = [hasBooks, hasMovies, hasMusic].filter(Boolean).length > 1;
   const showBookResults = searchResults.length > 0 && (searchFilter === 'all' || searchFilter === 'book');
   const showMovieResults = movieResults.length > 0 && (searchFilter === 'all' || searchFilter === 'movie');
+  const showMusicResults = musicResults.length > 0 && (searchFilter === 'all' || searchFilter === 'music');
   const topBooks = searchResults.slice(0, 2);
   const topMovies = movieResults.slice(0, 2);
+  const topMusic = musicResults.slice(0, 2);
   const forYouMixed = useMemo(() => interleave(forYouBooks, forYouMovies, contentRatio), [forYouBooks, forYouMovies, contentRatio]);
 
   return (
@@ -338,7 +385,7 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {!searching && !searchError && hasSearched && searchResults.length === 0 && movieResults.length === 0 && (
+      {!searching && !searchError && hasSearched && searchResults.length === 0 && movieResults.length === 0 && musicResults.length === 0 && (
         <section className="mb-12">
           <div className="lx-card p-8 text-center">
             <Search size={28} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
@@ -348,7 +395,7 @@ export default function DiscoverPage() {
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
               Try checking the spelling, or use fewer words. You can also search by author name.
             </p>
-            <button onClick={() => { setSearchQuery(''); setSearchResults([]); setMovieResults([]); setHasSearched(false); }} className="lx-btn-ghost text-sm">Clear Search</button>
+            <button onClick={() => { setSearchQuery(''); setSearchResults([]); setMovieResults([]); setMusicResults([]); setHasSearched(false); }} className="lx-btn-ghost text-sm">Clear Search</button>
             <CantFindBookPrompt contentMode={contentMode} />
           </div>
         </section>
@@ -361,9 +408,14 @@ export default function DiscoverPage() {
               Results for "{searchQuery}"
             </h2>
             <div className="flex items-center gap-2">
-              {contentMode === 'books_movies' && (
+              {isMixed && (
                 <div className="flex gap-1">
-                  {[['all', 'All'], ['book', 'Books'], ['movie', 'Movies']].map(([val, label]) => (
+                  {[
+                    ['all', 'All'],
+                    ...(hasBooks ? [['book', 'Books']] : []),
+                    ...(hasMovies ? [['movie', 'Movies']] : []),
+                    ...(hasMusic ? [['music', 'Music']] : []),
+                  ].map(([val, label]) => (
                     <button key={val} onClick={() => setSearchFilter(val)}
                       className="px-3 py-1.5 rounded text-xs font-medium transition-all"
                       style={{ background: searchFilter === val ? 'var(--lx-accent)' : 'var(--bg-elevated)', color: searchFilter === val ? 'var(--bg-primary)' : 'var(--text-secondary)', border: `1px solid ${searchFilter === val ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
@@ -372,13 +424,13 @@ export default function DiscoverPage() {
                   ))}
                 </div>
               )}
-              <button onClick={() => { setSearchResults([]); setMovieResults([]); setHasSearched(false); setSearchQuery(''); setSearchFilter('all'); }} className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              <button onClick={() => { setSearchResults([]); setMovieResults([]); setMusicResults([]); setHasSearched(false); setSearchQuery(''); setSearchFilter('all'); }} className="text-sm" style={{ color: 'var(--text-muted)' }}>
                 Clear
               </button>
             </div>
           </div>
 
-          {contentMode === 'books_movies' && searchFilter === 'all' && (topBooks.length + topMovies.length) > 0 && (
+          {isMixed && searchFilter === 'all' && (topBooks.length + topMovies.length + topMusic.length) > 0 && (
             <div className="mb-6">
               <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>Top Results</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
@@ -388,21 +440,31 @@ export default function DiscoverPage() {
                 {topMovies.map((m, i) => (
                   <MovieCard key={`tm${i}`} movie={m} onSave={saveMovie} isSaved={savedIds.includes(m.tmdb_id || m.id)} />
                 ))}
+                {topMusic.map((t, i) => (
+                  <MusicCard key={`tmu${i}`} track={t} onSave={saveMusic} isSaved={savedIds.includes(`audiodb-${t.audiodb_id}`)} />
+                ))}
               </div>
             </div>
           )}
 
           {showBookResults && (
             <div className="mb-6">
-              {contentMode === 'books_movies' && <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>📚 Books</p>}
+              {isMixed && <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>📚 Books</p>}
               <BookGrid books={searchResults} onSave={saveBook} savedIds={savedIds} />
             </div>
           )}
 
           {showMovieResults && (
             <div className="mb-6">
-              {contentMode === 'books_movies' && <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>🎬 Movies</p>}
+              {isMixed && <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>🎬 Movies</p>}
               <MovieGrid movies={movieResults} onSave={saveMovie} savedIds={savedIds} />
+            </div>
+          )}
+
+          {showMusicResults && (
+            <div className="mb-6">
+              {isMixed && <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>🎵 Music</p>}
+              <MusicGrid tracks={musicResults} onSave={saveMusic} savedIds={savedIds} />
             </div>
           )}
 
@@ -434,12 +496,12 @@ export default function DiscoverPage() {
       )}
 
       {/* Netflix-style "Because you liked" rows */}
-      {isAuthenticated && contentMode !== 'movies' && viewMode !== 'movies' && netflixSeeds.length > 0 && netflixSeeds.map((seed, i) => (
+      {isAuthenticated && hasBooks && viewMode !== 'movies' && netflixSeeds.length > 0 && netflixSeeds.map((seed, i) => (
         <NetflixRow key={seed.title + i} seed={seed} onSave={saveBook} savedIds={savedIds} />
       ))}
 
       {/* For You */}
-      {isAuthenticated && (contentMode === 'books' || (contentMode === 'books_movies' && viewMode === 'books')) && (
+      {isAuthenticated && hasBooks && viewMode !== 'movies' && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <Sparkles size={18} style={{ color: 'var(--lx-accent)' }} />
@@ -475,7 +537,7 @@ export default function DiscoverPage() {
       )}
 
       {/* Trending */}
-      {showPopular && contentMode !== 'movies' && viewMode !== 'movies' && (
+      {showPopular && hasBooks && viewMode !== 'movies' && (
         <section>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -507,7 +569,7 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {contentMode !== 'books' && viewMode !== 'books' && trendingMovies.length > 0 && (
+      {hasMovies && viewMode !== 'books' && trendingMovies.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>
@@ -517,7 +579,7 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {contentMode !== 'books' && viewMode !== 'books' && topRatedMovies.length > 0 && (
+      {hasMovies && viewMode !== 'books' && topRatedMovies.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>
@@ -527,7 +589,31 @@ export default function DiscoverPage() {
         </section>
       )}
 
-      {isAuthenticated && (contentMode === 'movies' || (contentMode === 'books_movies' && viewMode === 'movies')) && (
+      {hasMusic && !searching && !hasSearched && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(124,58,237,0.15)', color: '#a78bfa' }}>MUSIC</span>
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Browse Popular Artists</h2>
+          </div>
+          <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+            Tap an artist to see their albums, then save the ones you love.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {POPULAR_ARTISTS.map(a => (
+              <button
+                key={a}
+                onClick={() => { setSearchQuery(a); runSearch(a); }}
+                className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--lx-border)' }}
+              >
+                🎵 {a}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {isAuthenticated && hasMovies && (viewMode === 'movies' || !hasBooks) && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(229,9,20,0.15)', color: '#e50914' }}>MOVIES</span>

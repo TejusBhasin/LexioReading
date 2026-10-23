@@ -145,10 +145,14 @@
       "enum": [
         "books",
         "books_movies",
-        "movies"
+        "movies",
+        "music",
+        "books_music",
+        "movies_music",
+        "all"
       ],
       "default": "books",
-      "description": "Which media types the user sees across Lexio: books only, both books and movies, or movies only"
+      "description": "Which media types the user sees across Lexio: any combination of books, movies, and music"
     },
     "content_ratio": {
       "type": "number",

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
+import MediaModePicker from '@/components/media/MediaModePicker';
 
 function TandC() {
   const [open, setOpen] = useState(false);
@@ -415,33 +416,13 @@ export default function SetupTour({ user, userProfile, onComplete, forceComplete
         {currentStep === 'content_mode' && (
           <div>
             <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-              🎬 Movies in Lexio
+              📚🎬🎵 What do you want to track?
             </h2>
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-              Lexio now supports movies alongside books. What would you like to see? You can change this anytime in your Profile.
+              Pick any combination of books, movies, and music. You can change this anytime in your Profile.
             </p>
-            <div className="space-y-2 mb-5">
-              {[
-                { value: 'books', title: 'Books Only', desc: 'Keep Lexio focused on reading.' },
-                { value: 'books_movies', title: 'Books & Movies', desc: 'Discover, track, and review both books and movies side by side.' },
-                { value: 'movies', title: 'Movies Only', desc: 'Switch Lexio to a movie-focused experience.' },
-              ].map(opt => (
-                <button key={opt.value} onClick={() => setContentMode(opt.value)}
-                  className="w-full text-left p-3 rounded-lg transition-all"
-                  style={{
-                    background: contentMode === opt.value ? 'rgba(245,214,35,0.1)' : 'var(--bg-elevated)',
-                    border: `1px solid ${contentMode === opt.value ? 'var(--lx-accent)' : 'var(--lx-border)'}`,
-                  }}>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <div className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
-                      style={{ background: contentMode === opt.value ? 'var(--lx-accent)' : 'transparent', border: `2px solid ${contentMode === opt.value ? 'var(--lx-accent)' : 'var(--lx-border)'}` }}>
-                      {contentMode === opt.value && <Check size={10} style={{ color: 'var(--bg-primary)' }} />}
-                    </div>
-                    <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{opt.title}</span>
-                  </div>
-                  <p className="text-xs ml-6" style={{ color: 'var(--text-muted)' }}>{opt.desc}</p>
-                </button>
-              ))}
+            <div className="mb-5">
+              <MediaModePicker value={contentMode} onChange={setContentMode} />
             </div>
             <div className="flex gap-2">
               <button onClick={() => setStep(0)} className="lx-btn-ghost flex-1 justify-center">Back</button>

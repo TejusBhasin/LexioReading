@@ -24,10 +24,11 @@
       "type": "string",
       "enum": [
         "book",
-        "movie"
+        "movie",
+        "music"
       ],
       "default": "book",
-      "description": "Whether this review is for a book or a movie"
+      "description": "Whether this review is for a book, movie, or music track"
     },
     "rating": {
       "type": "number"

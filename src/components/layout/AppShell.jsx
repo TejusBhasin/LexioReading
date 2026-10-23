@@ -12,6 +12,8 @@ import BanScreen from '@/components/safety/BanScreen.jsx';
 import AppLockScreen from '@/components/safety/AppLockScreen.jsx';
 import LibrarianChat from '@/components/librarian/LibrarianChat.jsx';
 import MovieModePopup from '@/components/onboarding/MovieModePopup.jsx';
+import MusicModePopup from '@/components/onboarding/MusicModePopup.jsx';
+import { modeHasBooks } from '@/lib/mediaModes';
 
 const NAV_ITEMS = [
 { path: '/', icon: LayoutDashboard, label: 'Home' },
@@ -90,6 +92,7 @@ export default function AppShell({ children, user }) {
   const [hasAssignments, setHasAssignments] = useState(false);
   const [autoJoinedSchool, setAutoJoinedSchool] = useState(null);
   const [showMovieModePopup, setShowMovieModePopup] = useState(false);
+  const [showMusicModePopup, setShowMusicModePopup] = useState(false);
   const menuRef = useRef(null);
 
   // Pull-to-refresh state
@@ -250,6 +253,9 @@ export default function AppShell({ children, user }) {
         if (profile.onboarding_complete && !profile.movie_mode_prompted) {
           setShowMovieModePopup(true);
         }
+        if (profile.onboarding_complete && profile.movie_mode_prompted && !profile.music_prompted) {
+          setShowMusicModePopup(true);
+        }
         // Check if terms version needs re-acceptance (use localStorage as fast cache)
         const localVersion = localStorage.getItem('lexio_terms_version');
         const profileVersion = profile.tc_version;
@@ -356,11 +362,12 @@ export default function AppShell({ children, user }) {
   const isHidden = (path) => {
     if (prefs?.simple_mode && ['/clubs', '/forums', '/reviews'].includes(path)) return true;
     if (prefs?.hidden_tabs?.includes(path)) return true;
-    if (prefs?.content_mode === 'movies' && ['/book-creator', '/goal', '/quotes', '/challenges', '/strength', '/reading-log'].includes(path)) return true;
+    if (prefs?.content_mode && !modeHasBooks(prefs.content_mode) && ['/book-creator', '/goal', '/quotes', '/challenges', '/strength', '/reading-log'].includes(path)) return true;
     return false;
   };
   const moviesOnly = prefs?.content_mode === 'movies';
-  const labelFor = (path, label) => (moviesOnly && path === '/library') ? 'Watchlist' : label;
+  const musicOnly = prefs?.content_mode === 'music';
+  const labelFor = (path, label) => (moviesOnly && path === '/library') ? 'Watchlist' : (musicOnly && path === '/library') ? 'Music' : label;
   const allNavItems = [...NAV_ITEMS, ...OTHER_NAV, ...EXTRA_NAV].filter(item => !isRestricted(item.path) && !isHidden(item.path) && (item.path !== '/assignments' || hasAssignments));
   const visibleExtraNav = EXTRA_NAV.filter(item => !isRestricted(item.path) && !isHidden(item.path));
   const visibleTopBarIcons = TOP_BAR_ICON_OPTIONS.filter(item => !isRestricted(item.path) && !isHidden(item.path));
@@ -383,6 +390,9 @@ export default function AppShell({ children, user }) {
       }
       {showMovieModePopup && userProfile && user &&
       <MovieModePopup user={user} profile={userProfile} onDone={() => { setShowMovieModePopup(false); loadUserProfile(); }} />
+      }
+      {showMusicModePopup && userProfile && user &&
+      <MusicModePopup user={user} profile={userProfile} currentMode={prefs?.content_mode || 'books'} onDone={() => { setShowMusicModePopup(false); loadPrefs(); loadUserProfile(); }} />
       }
       {(showTour || forceTour) && user &&
       <SetupTour

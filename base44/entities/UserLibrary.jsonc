@@ -21,10 +21,11 @@
       "type": "string",
       "enum": [
         "book",
-        "movie"
+        "movie",
+        "music"
       ],
       "default": "book",
-      "description": "Whether this library entry is a book or a movie"
+      "description": "Whether this library entry is a book, movie, or music track"
     },
     "status": {
       "type": "string",
