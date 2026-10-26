@@ -83,6 +83,12 @@ export default function BookCreatorPage() {
       setPhase('result');
     } else if (!saved.done && saved.chapters?.length) {
       generateBook(saved);
+    } else if (!saved.done && saved.spec) {
+      // Interrupted before the first chapter was saved — restore the spec so
+      // "Create My Book" resumes it instead of starting from scratch.
+      setBookSpec(saved.spec);
+      setPhase('confirm');
+      setError('Your previous generation was interrupted. Tap "Create My Book" to continue where it left off.');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email]);

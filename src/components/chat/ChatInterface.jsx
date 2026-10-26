@@ -228,7 +228,7 @@ export default function ChatInterface({ user, sessionId: initialSessionId, onNew
       <div className="p-4 border-t" style={{ borderColor: 'var(--lx-border)' }}>
         {isDemo && (
           <p className="text-xs text-center mb-2" style={{ color: 'var(--text-muted)' }}>
-            Demo mode — <a href="/signup" style={{ color: 'var(--lx-accent)' }}>Sign up</a> for full AI chat
+            Demo mode — <a href="/register" style={{ color: 'var(--lx-accent)' }}>Sign up</a> for full AI chat
           </p>
         )}
         {messages.length <= 1 && (

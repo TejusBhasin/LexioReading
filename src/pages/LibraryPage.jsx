@@ -105,7 +105,7 @@ export default function LibraryPage() {
           Your library lives here
         </h2>
         <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>Sign in to track your books, ratings, and reading journey.</p>
-        <Link to="/signup" className="lx-btn-primary">Get Started Free</Link>
+        <Link to="/register" className="lx-btn-primary">Get Started Free</Link>
       </div>
     );
   }

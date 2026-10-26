@@ -226,7 +226,7 @@ export default function DiscoverPage() {
 
   async function saveBook(book) {
     if (!user) {
-      window.location.href = '/signup';
+      window.location.href = '/register';
       return;
     }
     const bookId = book.google_books_id || book.id;
@@ -247,7 +247,7 @@ export default function DiscoverPage() {
 
   async function saveMovie(movie) {
     if (!user) {
-      window.location.href = '/signup';
+      window.location.href = '/register';
       return;
     }
     const movieId = movie.tmdb_id || movie.id;
@@ -269,7 +269,7 @@ export default function DiscoverPage() {
 
   async function saveMusic(track) {
     if (!user) {
-      window.location.href = '/signup';
+      window.location.href = '/register';
       return;
     }
     const musicId = `audiodb-${track.audiodb_id}`;

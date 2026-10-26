@@ -85,7 +85,7 @@ export default function ChatPage() {
         <div className="max-w-2xl mx-auto mb-8 rounded-lg overflow-hidden" style={{ border: '1px solid var(--lx-border)' }}>
           <ChatInterface user={null} />
         </div>
-        <Link to="/signup" className="lx-btn-primary">
+        <Link to="/register" className="lx-btn-primary">
           Sign Up for Full Access
         </Link>
       </div>

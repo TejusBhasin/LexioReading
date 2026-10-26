@@ -77,6 +77,8 @@ export default function DashboardPage() {
 
   const currentlyReading = library.filter(b => b.status === 'reading').slice(0, 3);
   const recentlyFinished = library.filter(b => b.status === 'finished').slice(0, 3);
+  const mediaHref = (b) => b.media_type === 'movie' ? `/movie/${b.book_id}` : b.media_type === 'music' ? '/discover' : `/book/${b.book_id}`;
+  const mediaIcon = (b) => b.media_type === 'movie' ? Film : b.media_type === 'music' ? Music : BookOpen;
 
   if (!isAuthenticated) {
     return (
@@ -244,12 +246,12 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-2">
             {currentlyReading.map(b => (
-              <Link key={b.id} to={`/book/${b.book_id}`} className="lx-card p-3 flex items-center gap-3 hover:border-[var(--lx-accent)] transition-colors">
+              <Link key={b.id} to={mediaHref(b)} className="lx-card p-3 flex items-center gap-3 hover:border-[var(--lx-accent)] transition-colors">
                 {b.book_cover
                   ? <img src={b.book_cover} alt={b.book_title} className="w-10 h-14 object-cover rounded flex-shrink-0" style={{ imageRendering: 'auto' }} />
-                  : <div className="w-10 h-14 rounded flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
-                      <BookOpen size={14} style={{ color: 'var(--lx-accent)' }} />
-                    </div>
+                  : (() => { const MIcon = mediaIcon(b); return <div className="w-10 h-14 rounded flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
+                      <MIcon size={14} style={{ color: 'var(--lx-accent)' }} />
+                    </div>; })()
                 }
                 <div className="min-w-0">
                   <p className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>{b.book_title}</p>
@@ -272,12 +274,12 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-2">
             {recentlyFinished.map(b => (
-              <Link key={b.id} to={`/book/${b.book_id}`} className="lx-card p-3 flex items-center gap-3 hover:border-[var(--lx-accent)] transition-colors">
+              <Link key={b.id} to={mediaHref(b)} className="lx-card p-3 flex items-center gap-3 hover:border-[var(--lx-accent)] transition-colors">
                 {b.book_cover
                   ? <img src={b.book_cover} alt={b.book_title} className="w-10 h-14 object-cover rounded flex-shrink-0" />
-                  : <div className="w-10 h-14 rounded flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
-                      <CheckCircle size={14} style={{ color: 'var(--lx-accent)' }} />
-                    </div>
+                  : (() => { const MIcon = mediaIcon(b); return <div className="w-10 h-14 rounded flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
+                      <MIcon size={14} style={{ color: 'var(--lx-accent)' }} />
+                    </div>; })()
                 }
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>{b.book_title}</p>

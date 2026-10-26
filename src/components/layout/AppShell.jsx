@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -95,43 +95,7 @@ export default function AppShell({ children, user }) {
   const [showMusicModePopup, setShowMusicModePopup] = useState(false);
   const menuRef = useRef(null);
 
-  // Pull-to-refresh state
-  const [pullDistance, setPullDistance] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const touchStartY = useRef(0);
   const mainRef = useRef(null);
-  const PTR_THRESHOLD = 64;
-
-  const handleTouchStart = useCallback((e) => {
-    if (mainRef.current?.scrollTop === 0) {
-      touchStartY.current = e.touches[0].clientY;
-    } else {
-      touchStartY.current = 0;
-    }
-  }, []);
-
-  const handleTouchMove = useCallback((e) => {
-    if (!touchStartY.current) return;
-    const delta = e.touches[0].clientY - touchStartY.current;
-    if (delta > 0) {
-      setPullDistance(Math.min(delta * 0.5, PTR_THRESHOLD + 20));
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    if (pullDistance >= PTR_THRESHOLD) {
-      setIsRefreshing(true);
-      setPullDistance(PTR_THRESHOLD);
-      setTimeout(() => {
-        window.location.reload();
-      }, 600);
-    } else {
-      setPullDistance(0);
-    }
-    touchStartY.current = 0;
-  }, [pullDistance]);
-
-
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -534,27 +498,11 @@ export default function AppShell({ children, user }) {
         </div>
       }
 
-      {/* Pull-to-Refresh indicator */}
-      {pullDistance > 0 &&
-      <div
-        className="flex items-center justify-center overflow-hidden transition-all duration-150 md:hidden"
-        style={{ height: pullDistance, background: 'var(--bg-secondary)' }}>
-        
-          <div
-          className={`w-6 h-6 rounded-full border-2 ${isRefreshing ? 'animate-spin' : ''}`}
-          style={{ borderColor: 'var(--lx-accent)', borderTopColor: 'transparent' }} />
-        
-        </div>
-      }
-
       {/* Main Content */}
       <main
         ref={mainRef}
         className="flex-1 min-h-0 overflow-y-auto safe-bottom"
         style={{ overscrollBehavior: 'none', ...(prefs?.hide_top_bar ? { paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' } : {}) }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         onKeyDown={(e) => {
           if (e.key === ' ' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) && !e.target.isContentEditable) {
             e.preventDefault();
