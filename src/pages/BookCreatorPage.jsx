@@ -94,7 +94,9 @@ export default function BookCreatorPage() {
   }, [user?.email]);
 
   async function generateBook(resumeState) {
-    let state = resumeState;
+    // Only accept a real saved-progress object as a resume state — anything
+    // else (e.g. a stray event argument) must start a fresh generation.
+    let state = resumeState && typeof resumeState === 'object' && resumeState.spec ? resumeState : null;
 
     // Fresh start: continue any interrupted generation for the same book.
     if (!state) {
@@ -378,7 +380,7 @@ export default function BookCreatorPage() {
           </div>
         </div>
 
-        <button onClick={generateBook} className="lx-btn-primary w-full justify-center">
+        <button onClick={() => generateBook()} className="lx-btn-primary w-full justify-center">
           <Sparkles size={16} /> Create My Book
         </button>
         <p className="text-xs text-center mt-2" style={{ color: 'var(--text-muted)' }}>Text only · No images · PG-13 content filtered · Saved to your library</p>
