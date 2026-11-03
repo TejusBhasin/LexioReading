@@ -1,0 +1,41 @@
+{
+  "name": "SocialCalendarPostfef2358d1f6b7afa9792de69",
+  "description": "Publish a scheduled Social Calendar post.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "one_time",
+      "cron_expression": null,
+      "one_time_date": "2026-11-13T00:30:00Z",
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "namespace": "base44",
+      "name": "SocialCalendarPostfef2358d1f6b7afa9792de69",
+      "version": "1.0.0"
+    },
+    "do": [
+      {
+        "publish": {
+          "call": "publish_social_post",
+          "with": {
+            "scheduled_post_id": "fef2358d1f6b7afa9792de69",
+            "expected_scheduled_at": "2026-11-13T00:30:00+00:00"
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
