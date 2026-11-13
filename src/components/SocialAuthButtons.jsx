@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import AppleIcon from "@/components/AppleIcon";
 import MicrosoftIcon from "@/components/MicrosoftIcon";
+import { startProviderSignIn } from "@/lib/providerSignIn";
+
+const PROVIDER_LABELS = {
+  google: "Google",
+  apple: "Apple",
+  microsoft: "Microsoft",
+};
 
 export default function SocialAuthButtons({ redirectTo = "/" }) {
   const [oauthLoading, setOauthLoading] = useState(null);
@@ -16,7 +22,7 @@ export default function SocialAuthButtons({ redirectTo = "/" }) {
     const oauthError = params.get("error") || params.get("auth_error");
     if (oauthError) {
       const provider = params.get("provider") || "social";
-      setError(`${provider === "apple" ? "Apple" : provider === "google" ? "Google" : provider === "microsoft" ? "Microsoft" : provider === "facebook" ? "Facebook" : "Social"} sign-in failed: ${oauthError}. Please try again or use email/password.`);
+      setError(`${PROVIDER_LABELS[provider] || "Social"} sign-in failed: ${oauthError}. Please try again or use email/password.`);
       params.delete("error");
       params.delete("auth_error");
       params.delete("provider");
@@ -29,56 +35,35 @@ export default function SocialAuthButtons({ redirectTo = "/" }) {
     setOauthLoading(provider);
     setError("");
     try {
-      base44.auth.loginWithProvider(provider, window.location.origin + redirectTo);
+      startProviderSignIn(provider, redirectTo);
     } catch (err) {
-      setError(`${provider === "apple" ? "Apple" : provider === "google" ? "Google" : provider === "microsoft" ? "Microsoft" : "Facebook"} sign-in failed to start. Please try again.`);
+      setError(`${PROVIDER_LABELS[provider] || "Social"} sign-in failed to start. Please try again.`);
       setOauthLoading(null);
     }
   };
 
   return (
     <>
-      <Button
-        variant="outline"
-        className="w-full h-12 text-sm font-medium mb-3"
-        onClick={() => handleProvider("google")}
-        disabled={!!oauthLoading}
-      >
-        {oauthLoading === "google" ? (
-          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-        ) : (
-          <GoogleIcon className="w-5 h-5 mr-2" />
-        )}
-        Continue with Google
-      </Button>
-
-      <Button
-        variant="outline"
-        className="w-full h-12 text-sm font-medium mb-3"
-        onClick={() => handleProvider("apple")}
-        disabled={!!oauthLoading}
-      >
-        {oauthLoading === "apple" ? (
-          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-        ) : (
-          <AppleIcon className="w-5 h-5 mr-2" />
-        )}
-        Continue with Apple
-      </Button>
-
-      <Button
-        variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
-        onClick={() => handleProvider("microsoft")}
-        disabled={!!oauthLoading}
-      >
-        {oauthLoading === "microsoft" ? (
-          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-        ) : (
-          <MicrosoftIcon className="w-5 h-5 mr-2" />
-        )}
-        Continue with Microsoft
-      </Button>
+      {["google", "apple", "microsoft"].map((provider, i) => (
+        <Button
+          key={provider}
+          variant="outline"
+          className={`w-full h-12 text-sm font-medium mb-3 ${i === 2 ? "mb-6" : ""}`}
+          onClick={() => handleProvider(provider)}
+          disabled={!!oauthLoading}
+        >
+          {oauthLoading === provider ? (
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          ) : provider === "google" ? (
+            <GoogleIcon className="w-5 h-5 mr-2" />
+          ) : provider === "apple" ? (
+            <AppleIcon className="w-5 h-5 mr-2" />
+          ) : (
+            <MicrosoftIcon className="w-5 h-5 mr-2" />
+          )}
+          Continue with {PROVIDER_LABELS[provider]}
+        </Button>
+      ))}
 
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">

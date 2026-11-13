@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import SocialAuthButtons from "@/components/SocialAuthButtons";
+import SecureSignInFallback from "@/components/auth/SecureSignInFallback";
 import { repairSignInOnThisDevice } from "@/lib/repairClient";
+import { signInWithPassword } from "@/lib/passwordSignIn";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -20,7 +22,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await base44.auth.loginViaEmailPassword(email, password);
+      await signInWithPassword(email, password);
       const params = new URLSearchParams(window.location.search);
       // Only allow a same-origin relative path for the post-login redirect.
       // Rejects javascript:, external URLs, and protocol-relative // / \ tricks.
@@ -129,15 +131,14 @@ export default function Login() {
         </Button>
       </form>
 
-      <div className="mt-6 pt-5 border-t border-border text-center">
-        <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
-          Sign-in not working? Your browser may be holding an old copy of Lexio.
-        </p>
+      <SecureSignInFallback />
+
+      <div className="mt-5 text-center">
         <button
           type="button"
           onClick={repairSignInOnThisDevice}
-          className="text-xs font-bold underline"
-          style={{ color: '#f5d623' }}
+          className="text-xs underline"
+          style={{ color: 'var(--text-muted)' }}
         >
           Clear cached copy and reload
         </button>

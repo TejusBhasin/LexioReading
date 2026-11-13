@@ -49,6 +49,7 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
+import AuthHandoff from '@/pages/AuthHandoff';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user, isAuthenticated } = useAuth();
@@ -159,6 +160,9 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            {/* Finishes a provider sign-in that ran on the platform origin and
+                hands the session back to this domain. */}
+            <Route path="/auth-handoff" element={<AuthHandoff />} />
             {/* ── Landing page — redirect to home (same not-logged-in view) ── */}
             <Route path="/landing" element={<Navigate to="/" replace />} />
             {/* ── Everything else goes through AuthenticatedApp ── */}
