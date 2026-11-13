@@ -23,8 +23,17 @@ function appId() {
  * the platform returns to `destination` on whichever host the app is running,
  * carrying the session with it.
  */
+// The platform only returns a session to a host the app actually runs on.
+// The builder's preview frame is not one of those, so anything else falls back
+// to the published app.
+function returnBase() {
+  const host = window.location.hostname;
+  const known = host === 'base44.app' || host.endsWith('.base44.app') || host === 'lexioreading.app' || host.endsWith('.lexioreading.app');
+  return known ? window.location.origin : PLATFORM_APP_URL;
+}
+
 export function providerSignInUrl(provider, destination = '/') {
-  const fromUrl = new URL(destination, window.location.origin).toString();
+  const fromUrl = new URL(destination, returnBase()).toString();
   const path = PROVIDER_PATHS[provider] || PROVIDER_PATHS.google;
   return `${PLATFORM_ORIGIN}${path}?app_id=${encodeURIComponent(appId() || '')}&from_url=${encodeURIComponent(fromUrl)}`;
 }
