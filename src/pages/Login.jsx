@@ -74,15 +74,7 @@ export default function Login() {
 
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          <p>{error}</p>
-          <button
-            type="button"
-            onClick={repairSignInOnThisDevice}
-            className="mt-2 text-xs font-semibold underline"
-            style={{ color: '#f5d623' }}
-          >
-            Sign-in keeps failing? Clear this device's cached copy and reload
-          </button>
+          {error}
         </div>
       )}
 
@@ -136,6 +128,20 @@ export default function Login() {
           )}
         </Button>
       </form>
+
+      <div className="mt-6 pt-5 border-t border-border text-center">
+        <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+          Sign-in not working? Your browser may be holding an old copy of Lexio.
+        </p>
+        <button
+          type="button"
+          onClick={repairSignInOnThisDevice}
+          className="text-xs font-bold underline"
+          style={{ color: '#f5d623' }}
+        >
+          Clear cached copy and reload
+        </button>
+      </div>
     </AuthLayout>
   );
 }
