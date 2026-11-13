@@ -1,87 +1,26 @@
-const VERSION = 'lexio-v3';
-const SHELL_CACHE = `lexio-shell-${VERSION}`;
-const ASSET_CACHE = `lexio-assets-${VERSION}`;
-
-// App shell: cached on install so the app loads offline (iOS home-screen PWA).
-self.addEventListener('install', (event) => {
-  event.waitUntil((async () => {
-    try {
-      const cache = await caches.open(SHELL_CACHE);
-      await cache.addAll(['/', '/manifest.json']);
-    } catch (e) {}
-    self.skipWaiting();
-  })());
+// Self-destructing service worker.
+//
+// Lexio used to cache its app shell for offline use. On devices that kept an
+// older cached copy, sign-in navigations were answered from that stale cache,
+// which is what made every sign-in method appear broken. This worker exists
+// only to clean a device up: it deletes every cache, removes itself, and stops
+// intercepting anything. No fetch handler on purpose.
+self.addEventListener('install', () => {
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(k => !k.endsWith(VERSION)).map(k => caches.delete(k)));
-    await self.clients.claim();
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    } catch (e) {}
+    try {
+      await self.registration.unregister();
+    } catch (e) {}
+    try {
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach((c) => { try { c.navigate(c.url); } catch (e) {} });
+    } catch (e) {}
   })());
-});
-
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
-
-  let url;
-  try { url = new URL(req.url); } catch (e) { return; }
-
-  // Never handle platform API traffic — sign-in/OAuth, functions, entities.
-  // Those requests redirect across origins and the offline fallback below would
-  // serve the cached app shell in their place, showing the app's 404 page.
-  if (url.origin === self.location.origin &&
-      (url.pathname.startsWith('/api/') || url.pathname.startsWith('/functions/'))) {
-    return;
-  }
-
-  // App navigations: network-first; offline → cached app shell (SPA takes over).
-  if (req.mode === 'navigate') {
-    event.respondWith((async () => {
-      try {
-        const fresh = await fetch(req);
-        const cache = await caches.open(SHELL_CACHE);
-        cache.put('/', fresh.clone()).catch(() => {});
-        return fresh;
-      } catch (e) {
-        const cache = await caches.open(SHELL_CACHE);
-        const cached = (await cache.match('/')) || (await cache.match('/index.html'));
-        return cached || Response.error();
-      }
-    })());
-    return;
-  }
-
-  // Static assets: cache-first (hashed build files, fonts, covers, logos).
-  // Note: only /assets/* gets same-origin cache-first — dev-server modules are
-  // served unhashed, so network-first there keeps the builder preview fresh.
-  const isAsset =
-    (url.origin === self.location.origin && url.pathname.startsWith('/assets/')) ||
-    /\.(png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|otf|mp3|mp4)$/i.test(url.pathname) ||
-    url.hostname === 'fonts.googleapis.com' ||
-    url.hostname === 'fonts.gstatic.com' ||
-    url.hostname === 'media.base44.com' ||
-    url.hostname === 'images.unsplash.com';
-
-  if (isAsset) {
-    event.respondWith((async () => {
-      const cache = await caches.open(ASSET_CACHE);
-      const cached = await cache.match(req);
-      if (cached) {
-        // Refresh in the background so covers update when back online.
-        fetch(req).then(res => {
-          if (res && (res.ok || res.type === 'opaque')) cache.put(req, res).catch(() => {});
-        }).catch(() => {});
-        return cached;
-      }
-      try {
-        const res = await fetch(req);
-        cache.put(req, res.clone()).catch(() => {});
-        return res;
-      } catch (e) {
-        return Response.error();
-      }
-    })());
-  }
 });

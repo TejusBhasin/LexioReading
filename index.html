@@ -17,31 +17,24 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
+      // Lexio no longer caches itself for offline use. Any service worker left
+      // on a device can answer sign-in navigations with an old cached copy of
+      // the app, which is what made every sign-in method fail there. Remove any
+      // worker, delete every cache, then reload ONCE so the device loads the
+      // current app. /sw.js is a self-destructing worker that does the same, for
+      // devices whose old worker is still controlling the page.
       if ('serviceWorker' in navigator) {
-        var AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/mfa'];
-        // Auth pages must never be served by a cached app shell: a worker that
-        // controls them can answer sign-in navigations with the app's 404 and
-        // break every login method on a device. Drop any worker here.
-        if (AUTH_PATHS.indexOf(window.location.pathname) !== -1) {
-          navigator.serviceWorker.getRegistrations().then(function (regs) {
-            regs.forEach(function (r) { r.unregister(); });
-          }).catch(function () {});
-        } else {
-          // A newly activated worker (e.g. one that fixed the sign-in handling)
-          // must replace the old one immediately, so reload once when it takes
-          // control instead of running stale app code.
-          var refreshed = false;
-          navigator.serviceWorker.addEventListener('controllerchange', function () {
-            if (refreshed) return;
-            refreshed = true;
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          if (!regs.length) return null;
+          regs.forEach(function (r) { r.unregister(); });
+          return caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          }).then(function () {
+            if (sessionStorage.getItem('lexio_cache_purged')) return;
+            sessionStorage.setItem('lexio_cache_purged', '1');
             window.location.reload();
           });
-          window.addEventListener('load', function () {
-            // updateViaCache:'none' so a device can never keep running an old
-            // cached worker that answers sign-in navigations with the app shell.
-            navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(function () {});
-          });
-        }
+        }).catch(function () {});
       }
     </script>
   </body>
