@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import SocialAuthButtons from "@/components/SocialAuthButtons";
+import { repairSignInOnThisDevice } from "@/lib/repairClient";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -73,7 +74,15 @@ export default function Login() {
 
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          {error}
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={repairSignInOnThisDevice}
+            className="mt-2 text-xs font-semibold underline"
+            style={{ color: '#f5d623' }}
+          >
+            Sign-in keeps failing? Clear this device's cached copy and reload
+          </button>
         </div>
       )}
 

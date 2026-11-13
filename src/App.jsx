@@ -42,6 +42,7 @@ import AssignmentsPage from '@/pages/AssignmentsPage';
 import BookCreatorPage from '@/pages/BookCreatorPage';
 import MovieDetailPage from '@/pages/MovieDetailPage';
 import PointNotificationContainer from '@/components/streak/PointNotification';
+import LoginOutageBanner from '@/components/LoginOutageBanner';
 
 // Auth pages
 import Login from '@/pages/Login';
@@ -150,6 +151,7 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
+        <LoginOutageBanner />
         <Router>
           <Routes>
             {/* ── Auth pages — fullscreen, outside AppShell ── */}

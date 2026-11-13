@@ -18,11 +18,30 @@
     <script type="module" src="/src/main.jsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          // updateViaCache:'none' so a device can never keep running an old
-          // cached worker that answers sign-in navigations with the app shell.
-          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(function () {});
-        });
+        var AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/mfa'];
+        // Auth pages must never be served by a cached app shell: a worker that
+        // controls them can answer sign-in navigations with the app's 404 and
+        // break every login method on a device. Drop any worker here.
+        if (AUTH_PATHS.indexOf(window.location.pathname) !== -1) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        } else {
+          // A newly activated worker (e.g. one that fixed the sign-in handling)
+          // must replace the old one immediately, so reload once when it takes
+          // control instead of running stale app code.
+          var refreshed = false;
+          navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (refreshed) return;
+            refreshed = true;
+            window.location.reload();
+          });
+          window.addEventListener('load', function () {
+            // updateViaCache:'none' so a device can never keep running an old
+            // cached worker that answers sign-in navigations with the app shell.
+            navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(function () {});
+          });
+        }
       }
     </script>
   </body>

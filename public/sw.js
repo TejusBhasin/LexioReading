@@ -1,4 +1,4 @@
-const VERSION = 'lexio-v2';
+const VERSION = 'lexio-v3';
 const SHELL_CACHE = `lexio-shell-${VERSION}`;
 const ASSET_CACHE = `lexio-assets-${VERSION}`;
 
