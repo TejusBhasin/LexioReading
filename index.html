@@ -12,41 +12,16 @@
     <meta name="apple-mobile-web-app-title" content="Lexio" />
     <link rel="apple-touch-icon" href="https://media.base44.com/images/public/6a1374d5ee1c4d052371c126/61dbfe26d_Lexio.png" />
     <title>Lexio — Reading & Movie Companion</title>
-    <script>
-      // Sign-in links must live on the platform origin. If a device (or an old
-      // bookmark, or an older copy of the app) sends the browser to this domain
-      // for an auth path, this domain answers with Lexio's own 404 page and the
-      // sign-in can never start. Forward those requests to the platform now,
-      // before anything renders.
-      (function () {
-        var p = window.location.pathname;
-        if (p.indexOf('/api/apps/auth') === 0 || p.indexOf('/api/apps/oauth') === 0) {
-          window.location.replace('https://app.base44.com' + p + window.location.search);
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Lexio no longer caches itself for offline use. Any service worker left
-      // on a device can answer sign-in navigations with an old cached copy of
-      // the app, which is what made every sign-in method fail there. Remove any
-      // worker, delete every cache, then reload ONCE so the device loads the
-      // current app. /sw.js is a self-destructing worker that does the same, for
-      // devices whose old worker is still controlling the page.
+      // The app no longer caches itself; drop any worker left on the device so
+      // it can never serve an old copy of the app.
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function (regs) {
-          if (!regs.length) return null;
           regs.forEach(function (r) { r.unregister(); });
-          return caches.keys().then(function (keys) {
-            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
-          }).then(function () {
-            if (sessionStorage.getItem('lexio_cache_purged')) return;
-            sessionStorage.setItem('lexio_cache_purged', '1');
-            window.location.reload();
-          });
         }).catch(function () {});
       }
     </script>

@@ -7,9 +7,7 @@ import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import SocialAuthButtons from "@/components/SocialAuthButtons";
-import SecureSignInFallback from "@/components/auth/SecureSignInFallback";
-import { repairSignInOnThisDevice } from "@/lib/repairClient";
-import { signInWithPassword } from "@/lib/passwordSignIn";
+import { signInWithPassword } from "@/lib/authPaths";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -131,18 +129,6 @@ export default function Login() {
         </Button>
       </form>
 
-      <SecureSignInFallback />
-
-      <div className="mt-5 text-center">
-        <button
-          type="button"
-          onClick={repairSignInOnThisDevice}
-          className="text-xs underline"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Clear cached copy and reload
-        </button>
-      </div>
     </AuthLayout>
   );
 }

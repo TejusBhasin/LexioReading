@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import AppleIcon from "@/components/AppleIcon";
 import MicrosoftIcon from "@/components/MicrosoftIcon";
-import { startProviderSignIn } from "@/lib/providerSignIn";
+import { startProviderSignIn } from "@/lib/authPaths";
 
 const PROVIDER_LABELS = {
   google: "Google",
