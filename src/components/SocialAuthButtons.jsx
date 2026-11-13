@@ -31,11 +31,12 @@ export default function SocialAuthButtons({ redirectTo = "/" }) {
     }
   }, []);
 
-  const handleProvider = (provider) => {
+  const handleProvider = async (provider) => {
     setOauthLoading(provider);
     setError("");
     try {
-      startProviderSignIn(provider, redirectTo);
+      await startProviderSignIn(provider, redirectTo);
+      setOauthLoading(null);
     } catch (err) {
       setError(`${PROVIDER_LABELS[provider] || "Social"} sign-in failed to start. Please try again.`);
       setOauthLoading(null);
