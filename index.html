@@ -19,7 +19,9 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').catch(function () {});
+          // updateViaCache:'none' so a device can never keep running an old
+          // cached worker that answers sign-in navigations with the app shell.
+          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(function () {});
         });
       }
     </script>
