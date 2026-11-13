@@ -1,4 +1,4 @@
-const VERSION = 'lexio-v1';
+const VERSION = 'lexio-v2';
 const SHELL_CACHE = `lexio-shell-${VERSION}`;
 const ASSET_CACHE = `lexio-assets-${VERSION}`;
 
@@ -27,6 +27,14 @@ self.addEventListener('fetch', (event) => {
 
   let url;
   try { url = new URL(req.url); } catch (e) { return; }
+
+  // Never handle platform API traffic — sign-in/OAuth, functions, entities.
+  // Those requests redirect across origins and the offline fallback below would
+  // serve the cached app shell in their place, showing the app's 404 page.
+  if (url.origin === self.location.origin &&
+      (url.pathname.startsWith('/api/') || url.pathname.startsWith('/functions/'))) {
+    return;
+  }
 
   // App navigations: network-first; offline → cached app shell (SPA takes over).
   if (req.mode === 'navigate') {
