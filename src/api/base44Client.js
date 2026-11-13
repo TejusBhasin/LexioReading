@@ -4,14 +4,14 @@ import { appParams } from '@/lib/app-params';
 const { appId, token, functionsVersion, appBaseUrl } = appParams;
 
 //Create a client with authentication required
-// Every request (entities, functions, integrations, auth) goes straight to the
-// platform origin. With a relative URL each request hit the app's own domain and
-// was redirected to the platform, which is what made sign-in and calls fragile.
+// Requests stay on the app's own origin: the custom domain proxies the platform
+// API directly, and keeping it same-origin means the session cookies the platform
+// sets for this domain are sent with every call.
 export const base44 = createClient({
   appId,
   token,
   functionsVersion,
-  serverUrl: appBaseUrl,
+  serverUrl: '',
   requiresAuth: false,
   appBaseUrl
 });
