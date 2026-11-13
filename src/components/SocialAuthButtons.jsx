@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { createClient } from "@base44/sdk";
+import { appParams } from "@/lib/app-params";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import AppleIcon from "@/components/AppleIcon";
 import MicrosoftIcon from "@/components/MicrosoftIcon";
+
+// Provider sign-in must start on the platform API origin: the app's own origin
+// (builder preview, custom domain) does not proxy /api/auth routes, so a
+// relative URL would load the auth route as an app page instead.
+const authClient = appParams.appId
+  ? createClient({
+      appId: appParams.appId,
+      functionsVersion: appParams.functionsVersion,
+      serverUrl: "",
+      requiresAuth: false,
+      appBaseUrl: "https://app.base44.com",
+    })
+  : base44;
 
 export default function SocialAuthButtons({ redirectTo = "/" }) {
   const [oauthLoading, setOauthLoading] = useState(null);
@@ -29,7 +44,7 @@ export default function SocialAuthButtons({ redirectTo = "/" }) {
     setOauthLoading(provider);
     setError("");
     try {
-      base44.auth.loginWithProvider(provider, window.location.origin + redirectTo);
+      authClient.auth.loginWithProvider(provider, window.location.origin + redirectTo);
     } catch (err) {
       setError(`${provider === "apple" ? "Apple" : provider === "google" ? "Google" : provider === "microsoft" ? "Microsoft" : "Facebook"} sign-in failed to start. Please try again.`);
       setOauthLoading(null);
