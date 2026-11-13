@@ -12,6 +12,19 @@
     <meta name="apple-mobile-web-app-title" content="Lexio" />
     <link rel="apple-touch-icon" href="https://media.base44.com/images/public/6a1374d5ee1c4d052371c126/61dbfe26d_Lexio.png" />
     <title>Lexio — Reading & Movie Companion</title>
+    <script>
+      // Sign-in links must live on the platform origin. If a device (or an old
+      // bookmark, or an older copy of the app) sends the browser to this domain
+      // for an auth path, this domain answers with Lexio's own 404 page and the
+      // sign-in can never start. Forward those requests to the platform now,
+      // before anything renders.
+      (function () {
+        var p = window.location.pathname;
+        if (p.indexOf('/api/apps/auth') === 0 || p.indexOf('/api/apps/oauth') === 0) {
+          window.location.replace('https://app.base44.com' + p + window.location.search);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
