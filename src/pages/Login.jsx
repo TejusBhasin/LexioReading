@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import SocialAuthButtons from "@/components/SocialAuthButtons";
-import { signInWithPassword, clearPendingSignIn, restartSignIn } from "@/lib/authPaths";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,18 +14,12 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Arriving here with a half-finished sign-in from an earlier attempt would
-  // otherwise fail the same way again.
-  useEffect(() => {
-    clearPendingSignIn();
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await signInWithPassword(email, password);
+      await base44.auth.loginViaEmailPassword(email, password);
       const params = new URLSearchParams(window.location.search);
       // Only allow a same-origin relative path for the post-login redirect.
       // Rejects javascript:, external URLs, and protocol-relative // / \ tricks.
@@ -134,15 +127,6 @@ export default function Login() {
           )}
         </Button>
       </form>
-
-      <button
-        type="button"
-        onClick={restartSignIn}
-        className="w-full mt-4 text-xs text-center hover:underline"
-        style={{ color: '#666' }}
-      >
-        Sign-in stuck? Clear the saved sign-in and start over
-      </button>
 
     </AuthLayout>
   );

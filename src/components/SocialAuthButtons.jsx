@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import AppleIcon from "@/components/AppleIcon";
 import MicrosoftIcon from "@/components/MicrosoftIcon";
-import { startProviderSignIn } from "@/lib/authPaths";
 
 const PROVIDER_LABELS = {
   google: "Google",
@@ -35,7 +35,7 @@ export default function SocialAuthButtons({ redirectTo = "/" }) {
     setOauthLoading(provider);
     setError("");
     try {
-      await startProviderSignIn(provider, redirectTo);
+      await base44.auth.loginWithProvider(provider, redirectTo);
       setOauthLoading(null);
     } catch (err) {
       setError(`${PROVIDER_LABELS[provider] || "Social"} sign-in failed to start. Please try again.`);
