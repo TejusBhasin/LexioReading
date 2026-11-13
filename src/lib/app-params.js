@@ -44,7 +44,10 @@ const getAppParams = () => {
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
 		fromUrl: getAppParamValue("from_url", { defaultValue: window.location.href }),
 		functionsVersion: getAppParamValue("functions_version", { defaultValue: import.meta.env.VITE_BASE44_FUNCTIONS_VERSION }),
-		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: import.meta.env.VITE_BASE44_APP_BASE_URL }),
+		// Sign-in / OAuth navigations must target the platform origin. Relative
+		// URLs resolve against the app's own domain, where the offline service
+		// worker or the SPA serves the app shell instead of the auth endpoint.
+		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: import.meta.env.VITE_BASE44_APP_BASE_URL }) || "https://app.base44.com",
 	}
 }
 
