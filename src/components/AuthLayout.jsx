@@ -1,6 +1,30 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+// Provider sign-in opens a popup that browsers block inside the editor's
+// embedded preview frame, so a sign-in started there can never finish.
+// Point the tester at the real site in its own tab instead.
+function PreviewNotice() {
+  const [embedded, setEmbedded] = React.useState(false);
+  React.useEffect(() => {
+    try { setEmbedded(window.self !== window.top); } catch (e) { setEmbedded(true); }
+  }, []);
+  if (!embedded) return null;
+  const target = `https://lexioreading.app${window.location.pathname}${window.location.search}`;
+  return (
+    <div className="rounded-xl p-4 mb-5" style={{ background: '#1f1a08', border: '1px solid #f5a623' }}>
+      <p style={{ color: '#f0ebe0', fontSize: 13, lineHeight: 1.5 }}>
+        Sign-in can't finish inside the editor preview. Open Lexio in its own tab to sign in.
+      </p>
+      <a href={target} target="_blank" rel="noopener noreferrer"
+        className="inline-block mt-3 px-3 py-1.5 rounded text-xs font-bold"
+        style={{ background: '#f5a623', color: '#0a0a0a' }}>
+        Open sign-in in a new tab
+      </a>
+    </div>
+  );
+}
+
 export default function AuthLayout({ icon: Icon, title, subtitle, footer, children }) {
   return (
     <div className="fixed inset-0 flex" style={{ background: '#0a0a0a' }}>
@@ -54,6 +78,8 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
             </h1>
             {subtitle && <p style={{ color: '#666', fontSize: 15 }}>{subtitle}</p>}
           </div>
+
+          <PreviewNotice />
 
           <div className="rounded-2xl p-8" style={{ background: '#161616', border: '1px solid #2a2a2a' }}>
             {children}
