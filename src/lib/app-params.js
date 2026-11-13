@@ -44,10 +44,11 @@ const getAppParams = () => {
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
 		fromUrl: getAppParamValue("from_url", { defaultValue: window.location.href }),
 		functionsVersion: getAppParamValue("functions_version", { defaultValue: import.meta.env.VITE_BASE44_FUNCTIONS_VERSION }),
-		// Sign-in / OAuth navigations must target the platform origin. Relative
-		// URLs resolve against the app's own domain, where the offline service
-		// worker or the SPA serves the app shell instead of the auth endpoint.
-		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: import.meta.env.VITE_BASE44_APP_BASE_URL }) || "https://app.base44.com",
+		// Sign-in / OAuth navigations must target the platform origin. A stored
+		// app_base_url from an earlier build (the app's own domain) keeps winning
+		// over the default, producing auth links on the custom domain that the
+		// app shell answers with its 404 page. Drop the stored value and pin it.
+		appBaseUrl: (storage.removeItem('base44_app_base_url'), "https://app.base44.com"),
 	}
 }
 
